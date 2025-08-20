@@ -23,7 +23,7 @@ Unlike other tools, PromptLint does **not** invent or guess missing details. Ins
 ---
 
 ## 📄 Documentation
-- [Prompt Optimization Principles](./Prompt%20优化原则.md)  
+- [Prompt Optimization Principles](./Prompt_Optimization_Principles.md)  
   (Design rules and guidelines we follow to ensure faithful optimization)
 
 ---
