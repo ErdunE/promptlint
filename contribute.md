@@ -74,28 +74,28 @@ git clone https://github.com/YOUR_GITHUB_USERNAME/promptlint.git
 cd promptlint
 ```
 
-3. Create a new branch for your feature or fix (replace YOUR_GITHUB_USERNAME and feature-name accordingly):
+3. **Create a new branch for your feature or fix (replace YOUR_GITHUB_USERNAME and feature-name accordingly)**:
 ```bash
 git checkout -b YOUR_GITHUB_USERNAME/feature-name
 ``` 
 
-4. Make your changes (add new files, update existing code, improve docs, etc.).
+4. **Make your changes (add new files, update existing code, improve docs, etc.).**
 Stage them with:
 ```bash
 git add .
 ```   
 
-5.	Commit your changes with a clear and descriptive message:
+5.	**Commit your changes with a clear and descriptive message:**
 ```bash
 git commit -m "Add: new lint rule for vague task descriptions"
 ```
 
-6.	Push your branch to your forked repository:
+6.	**Push your branch to your forked repository:**
 ```bash
 git push origin YOUR_GITHUB_USERNAME/feature-name
 ```
 
-7.	Open a pull request:
+7.	**Open a pull request:**
  - Navigate to your fork on GitHub.
  - Click Compare & pull request.
  - Describe your changes clearly, link related issues if any, and submit.
