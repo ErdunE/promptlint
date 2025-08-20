@@ -29,4 +29,4 @@ Unlike other tools, PromptLint does **not** invent or guess missing details. Ins
 ---
 
 ## 📜 License
-MIT License
+[MIT License](https://github.com/ErdunE/promptlint/blob/main/LICENSE)
