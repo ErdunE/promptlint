@@ -1,0 +1,47 @@
+{
+  "name": "@promptlint/site-adapters",
+  "version": "0.1.0",
+  "description": "Site integration adapters for PromptLint Chrome Extension",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:run": "vitest run",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "promptlint",
+    "chrome-extension",
+    "dom-adapters",
+    "chatgpt",
+    "claude",
+    "ai-sites"
+  ],
+  "author": "PromptLint Team",
+  "license": "MIT",
+  "dependencies": {
+    "@promptlint/shared-types": "file:../shared-types"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "jsdom": "^23.0.0",
+    "@vitest/ui": "^1.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/promptlint/promptlint.git",
+    "directory": "packages/site-adapters"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
