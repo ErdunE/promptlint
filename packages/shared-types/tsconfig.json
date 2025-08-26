@@ -1,4 +1,3 @@
-// ===== tsconfig.json (UPDATED) =====
 {
     "compilerOptions": {
       "target": "ES2022",
@@ -16,6 +15,7 @@
       "sourceMap": true,
       "outDir": "dist",
       "rootDir": "src",
+      "composite": true,
       
       "noUnusedLocals": true,
       "noUnusedParameters": true,

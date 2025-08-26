@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { analyzePrompt } from '../analyzer';
-import { LintRuleType } from '@promptlint/shared-types';
+import { LintRuleType, LintResult } from '@promptlint/shared-types';
 
 describe('Boundary Condition Testing', () => {
   describe('Score Boundary Cases', () => {
@@ -115,7 +115,7 @@ describe('Boundary Condition Testing', () => {
 
     it('should maintain consistency across repeated calls', () => {
       const testPrompt = 'implement quicksort algorithm in Python';
-      const results = [];
+      const results: LintResult[] = [];
       
       // Run same prompt 20 times
       for (let i = 0; i < 20; i++) {
@@ -132,7 +132,7 @@ describe('Boundary Condition Testing', () => {
     });
 
     it('should handle concurrent-like rapid calls', () => {
-      const promises = [];
+      const promises: Promise<LintResult>[] = [];
       const testPrompts = [
         'write function',
         'maybe implement something',
