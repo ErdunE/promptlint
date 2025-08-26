@@ -21,9 +21,11 @@ export * from './config-types';
 // Re-export commonly used types for convenience
 export type {
   LintResult,
-  LintIssue,
-  LintRuleType
+  LintIssue
 } from './lint-types';
+
+// Export enum as value (not type)
+export { LintRuleType } from './lint-types';
 
 export type {
   RephraseResult,

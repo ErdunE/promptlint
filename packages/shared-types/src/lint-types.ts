@@ -90,6 +90,12 @@ export interface LintEngineConfig {
     mediumSeverityPenalty: number;
     /** Score penalty per low severity issue */
     lowSeverityPenalty: number;
+    /** Bonus for excellent task verbs (implement, develop, etc.) */
+    taskVerbQualityBonus?: number;
+    /** Bonus for specific terms (algorithm, function, etc.) */
+    specificityBonus?: number;
+    /** Bonus for clear, well-structured prompts */
+    clarityBonus?: number;
   };
   /** Performance requirements */
   performance: {

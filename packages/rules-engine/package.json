@@ -1,0 +1,46 @@
+{
+  "name": "@promptlint/rules-engine",
+  "version": "0.1.0",
+  "description": "Core lint analysis engine for PromptLint - pure TypeScript implementation",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "benchmark": "node dist/benchmark.js"
+  },
+  "keywords": [
+    "typescript",
+    "lint",
+    "analysis",
+    "promptlint",
+    "rules-engine"
+  ],
+  "author": "PromptLint Team",
+  "license": "MIT",
+  "dependencies": {
+    "@promptlint/shared-types": "file:../shared-types"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}
