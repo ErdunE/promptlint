@@ -1,0 +1,40 @@
+{
+    "name": "@promptlint/shared-types",
+    "version": "0.1.0",
+    "description": "Shared TypeScript interfaces and types for PromptLint",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+      "dist"
+    ],
+    "scripts": {
+      "build": "tsc",
+      "build:watch": "tsc --watch",
+      "clean": "rm -rf dist",
+      "test": "vitest",
+      "test:watch": "vitest --watch",
+      "lint": "eslint src --ext .ts",
+      "lint:fix": "eslint src --ext .ts --fix",
+      "typecheck": "tsc --noEmit"
+    },
+    "keywords": [
+      "typescript",
+      "types",
+      "interfaces",
+      "promptlint",
+      "shared"
+    ],
+    "author": "PromptLint Team",
+    "license": "MIT",
+    "devDependencies": {
+      "@types/node": "^20.0.0",
+      "@typescript-eslint/eslint-plugin": "^6.0.0",
+      "@typescript-eslint/parser": "^6.0.0",
+      "eslint": "^8.0.0",
+      "typescript": "^5.0.0",
+      "vitest": "^1.0.0"
+    },
+    "publishConfig": {
+      "access": "restricted"
+    }
+  }
