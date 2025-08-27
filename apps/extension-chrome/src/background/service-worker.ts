@@ -32,7 +32,7 @@ class PromptLintServiceWorker {
     successfulInitializations: 0,
     errorCount: 0,
     supportedSites: ['ChatGPT', 'Claude'],
-    version: '0.1.0'
+    version: '0.2.0'
   };
 
   constructor() {
@@ -128,8 +128,22 @@ class PromptLintServiceWorker {
         break;
 
       case 'REINJECT_CONTENT_SCRIPT':
-        this.reinjectContentScript(tabId);
+        if (tabId) {
+          this.reinjectContentScript(tabId);
+        }
         sendResponse({ success: true });
+        break;
+
+      case 'SAVE_API_KEY':
+        this.saveApiKey(request.apiKey).then(result => sendResponse(result));
+        break;
+
+      case 'CLEAR_API_KEY':
+        this.clearApiKey().then(result => sendResponse(result));
+        break;
+
+      case 'TEST_API_KEY':
+        this.testApiKey().then(result => sendResponse(result));
         break;
 
       default:
@@ -331,6 +345,131 @@ class PromptLintServiceWorker {
     
     // Could clear old data, migrate settings, etc.
     // For MVP, just log the update
+  }
+
+  // API Key Management Methods
+
+  private async saveApiKey(apiKey: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!apiKey || !apiKey.startsWith('sk-') || apiKey.length < 25) {
+        return { success: false, error: 'Invalid API key format' };
+      }
+
+      // Simple encryption using Web Crypto API
+      const encoder = new TextEncoder();
+      const data = encoder.encode(apiKey);
+      
+      // Generate a key for encryption
+      const key = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt']
+      );
+
+      // Generate a random IV
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      
+      // Encrypt the API key
+      const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        data
+      );
+
+      // Export the key for storage
+      const exportedKey = await crypto.subtle.exportKey('raw', key);
+
+      // Store encrypted data and key
+      await chrome.storage.local.set({
+        openai_api_key_encrypted: Array.from(new Uint8Array(encrypted)),
+        openai_api_key_iv: Array.from(iv),
+        openai_api_key_key: Array.from(new Uint8Array(exportedKey))
+      });
+
+      console.log('[PromptLint Background] API key saved successfully');
+      return { success: true };
+
+    } catch (error) {
+      console.error('[PromptLint Background] Error saving API key:', error);
+      return { success: false, error: 'Failed to encrypt and save API key' };
+    }
+  }
+
+  private async clearApiKey(): Promise<{ success: boolean; error?: string }> {
+    try {
+      await chrome.storage.local.remove([
+        'openai_api_key_encrypted',
+        'openai_api_key_iv',
+        'openai_api_key_key'
+      ]);
+
+      console.log('[PromptLint Background] API key cleared successfully');
+      return { success: true };
+
+    } catch (error) {
+      console.error('[PromptLint Background] Error clearing API key:', error);
+      return { success: false, error: 'Failed to clear API key' };
+    }
+  }
+
+  private async testApiKey(): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Decrypt the stored API key
+      const result = await chrome.storage.local.get([
+        'openai_api_key_encrypted',
+        'openai_api_key_iv',
+        'openai_api_key_key'
+      ]);
+
+      if (!result.openai_api_key_encrypted) {
+        return { success: false, error: 'No API key configured' };
+      }
+
+      // Import the key
+      const keyData = new Uint8Array(result.openai_api_key_key);
+      const key = await crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'AES-GCM' },
+        false,
+        ['decrypt']
+      );
+
+      // Decrypt the API key
+      const iv = new Uint8Array(result.openai_api_key_iv);
+      const encryptedData = new Uint8Array(result.openai_api_key_encrypted);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        encryptedData
+      );
+
+      const decoder = new TextDecoder();
+      const apiKey = decoder.decode(decrypted);
+
+      // Test the API key with a simple request
+      const response = await fetch('https://api.openai.com/v1/models', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        console.log('[PromptLint Background] API key test successful');
+        return { success: true };
+      } else {
+        const errorText = await response.text();
+        console.error('[PromptLint Background] API key test failed:', response.status, errorText);
+        return { success: false, error: `API key test failed: ${response.status}` };
+      }
+
+    } catch (error) {
+      console.error('[PromptLint Background] Error testing API key:', error);
+      return { success: false, error: 'Failed to test API key' };
+    }
   }
 }
 

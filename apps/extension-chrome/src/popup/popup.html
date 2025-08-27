@@ -14,7 +14,7 @@
         <span class="popup-icon">✨</span>
         <h1 class="popup-title">PromptLint</h1>
       </div>
-      <div class="popup-version">v0.1.0</div>
+      <div class="popup-version">v0.2.0</div>
     </div>
 
     <!-- Status Section -->
@@ -63,6 +63,40 @@
       <div class="error-actions">
         <button class="btn btn-secondary" id="clearErrorsBtn">Clear Errors</button>
         <button class="btn btn-primary" id="reinjectBtn">Retry</button>
+      </div>
+    </div>
+
+    <!-- API Configuration -->
+    <div class="popup-section">
+      <h3 class="section-title">Rephrase Configuration</h3>
+      <div class="config-card">
+        <div class="config-item">
+          <label for="apiKeyInput" class="config-label">
+            <span class="config-icon">🔑</span>
+            OpenAI API Key (Optional)
+          </label>
+          <div class="input-group">
+            <input 
+              type="password" 
+              id="apiKeyInput" 
+              class="config-input" 
+              placeholder="sk-..."
+              autocomplete="off"
+            >
+            <button class="btn btn-icon" id="toggleApiKey" type="button" title="Show/Hide API Key">
+              <span class="toggle-icon">👁️</span>
+            </button>
+          </div>
+          <div class="config-help">
+            Without API key: Uses offline template-based rephrasing<br>
+            With API key: Uses AI-powered GPT rephrasing
+          </div>
+        </div>
+        <div class="config-actions">
+          <button class="btn btn-secondary" id="clearApiKeyBtn">Clear</button>
+          <button class="btn btn-primary" id="saveApiKeyBtn">Save</button>
+        </div>
+        <div class="config-status" id="apiKeyStatus"></div>
       </div>
     </div>
 

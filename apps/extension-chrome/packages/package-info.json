@@ -12,11 +12,11 @@
     "ChatGPT",
     "Claude"
   ],
-  "totalSizeKB": 94,
+  "totalSizeKB": 220,
   "files": {
     "background.js": 5,
     "content-script.css": 4,
-    "content-script.js": 60,
+    "content-script.js": 186,
     "floating-panel.css": 7,
     "icon-128.png": 0,
     "icon-16.png": 0,
@@ -26,7 +26,7 @@
     "popup.html": 4,
     "popup.js": 6
   },
-  "buildDate": "2025-08-27T00:50:27.930Z",
+  "buildDate": "2025-08-27T04:10:25.344Z",
   "chromeMinVersion": "88",
   "features": [
     "Real-time prompt analysis",

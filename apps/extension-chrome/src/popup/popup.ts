@@ -21,21 +21,29 @@ interface ErrorStats {
 }
 
 class PromptLintPopup {
-  private loadingOverlay: HTMLElement;
-  private statusCard: HTMLElement;
-  private statusIndicator: HTMLElement;
-  private statusText: HTMLElement;
-  private statusDetails: HTMLElement;
-  private statusSite: HTMLElement;
-  private statusConfidence: HTMLElement;
-  private errorSection: HTMLElement;
-  private errorList: HTMLElement;
+  private loadingOverlay!: HTMLElement;
+  private statusCard!: HTMLElement;
+  private statusIndicator!: HTMLElement;
+  private statusText!: HTMLElement;
+  private statusDetails!: HTMLElement;
+  private statusSite!: HTMLElement;
+  private statusConfidence!: HTMLElement;
+  private errorSection!: HTMLElement;
+  private errorList!: HTMLElement;
   private currentTabId: number | null = null;
+  
+  // API key management elements
+  private apiKeyInput!: HTMLInputElement;
+  private toggleApiKeyBtn!: HTMLElement;
+  private saveApiKeyBtn!: HTMLButtonElement;
+  private clearApiKeyBtn!: HTMLButtonElement;
+  private apiKeyStatus!: HTMLElement;
 
   constructor() {
     this.initializeElements();
     this.attachEventListeners();
     this.loadPopupData();
+    this.loadApiKeyStatus();
   }
 
   private initializeElements(): void {
@@ -48,6 +56,13 @@ class PromptLintPopup {
     this.statusConfidence = this.getElement('statusConfidence');
     this.errorSection = this.getElement('errorSection');
     this.errorList = this.getElement('errorList');
+    
+    // API key management elements
+    this.apiKeyInput = this.getElement('apiKeyInput') as HTMLInputElement;
+    this.toggleApiKeyBtn = this.getElement('toggleApiKey');
+    this.saveApiKeyBtn = this.getElement('saveApiKeyBtn') as HTMLButtonElement;
+    this.clearApiKeyBtn = this.getElement('clearApiKeyBtn') as HTMLButtonElement;
+    this.apiKeyStatus = this.getElement('apiKeyStatus');
   }
 
   private getElement(id: string): HTMLElement {
@@ -88,6 +103,23 @@ class PromptLintPopup {
     this.getElement('supportLink').addEventListener('click', (e) => {
       e.preventDefault();
       this.openSupportPage();
+    });
+
+    // API key management listeners
+    this.toggleApiKeyBtn.addEventListener('click', () => {
+      this.toggleApiKeyVisibility();
+    });
+
+    this.saveApiKeyBtn.addEventListener('click', () => {
+      this.saveApiKey();
+    });
+
+    this.clearApiKeyBtn.addEventListener('click', () => {
+      this.clearApiKey();
+    });
+
+    this.apiKeyInput.addEventListener('input', () => {
+      this.validateApiKeyInput();
     });
   }
 
@@ -306,6 +338,149 @@ class PromptLintPopup {
       url: 'https://github.com/promptlint/promptlint/discussions'
     });
     window.close();
+  }
+
+  // API Key Management Methods
+  
+  private async loadApiKeyStatus(): Promise<void> {
+    try {
+      const result = await chrome.storage.local.get(['openai_api_key_encrypted']);
+      const hasApiKey = !!result.openai_api_key_encrypted;
+      
+      if (hasApiKey) {
+        this.apiKeyInput.placeholder = 'API key configured (hidden)';
+        this.showApiKeyStatus('API key configured - AI rephrasing enabled', 'success');
+      } else {
+        this.apiKeyInput.placeholder = 'sk-...';
+        this.showApiKeyStatus('No API key - using offline mode', 'info');
+      }
+    } catch (error) {
+      console.error('[PromptLint Popup] Error loading API key status:', error);
+      this.showApiKeyStatus('Error loading API key status', 'error');
+    }
+  }
+
+  private toggleApiKeyVisibility(): void {
+    const isPassword = this.apiKeyInput.type === 'password';
+    this.apiKeyInput.type = isPassword ? 'text' : 'password';
+    
+    const toggleIcon = this.toggleApiKeyBtn.querySelector('.toggle-icon') as HTMLElement;
+    toggleIcon.textContent = isPassword ? '🙈' : '👁️';
+  }
+
+  private validateApiKeyInput(): void {
+    const value = this.apiKeyInput.value.trim();
+    
+    if (!value) {
+      this.saveApiKeyBtn.disabled = false;
+      this.clearApiKeyBtn.disabled = false;
+      this.showApiKeyStatus('', '');
+      return;
+    }
+
+    // Basic OpenAI API key validation - more flexible for actual OpenAI key formats
+    const isValidFormat = /^sk-[A-Za-z0-9_-]{20,}$/.test(value);
+    
+    if (isValidFormat) {
+      this.saveApiKeyBtn.disabled = false;
+      this.showApiKeyStatus('Valid API key format', 'success');
+    } else {
+      this.saveApiKeyBtn.disabled = true;
+      this.showApiKeyStatus('Invalid API key format (should be sk-...)', 'error');
+    }
+  }
+
+  private async saveApiKey(): Promise<void> {
+    try {
+      const apiKey = this.apiKeyInput.value.trim();
+      
+      if (!apiKey) {
+        this.showApiKeyStatus('Please enter an API key', 'error');
+        return;
+      }
+
+      // Basic validation - more lenient for actual OpenAI keys
+      if (!apiKey.startsWith('sk-') || apiKey.length < 25) {
+        this.showApiKeyStatus('Invalid API key format', 'error');
+        return;
+      }
+
+      this.showApiKeyStatus('Saving API key...', 'info');
+      
+      // Send to background script for encryption and storage
+      const response = await chrome.runtime.sendMessage({
+        type: 'SAVE_API_KEY',
+        apiKey: apiKey
+      });
+
+      if (response.success) {
+        this.apiKeyInput.value = '';
+        this.apiKeyInput.placeholder = 'API key configured (hidden)';
+        this.showApiKeyStatus('API key saved successfully', 'success');
+        
+        // Test the API key
+        setTimeout(() => this.testApiKey(), 1000);
+      } else {
+        this.showApiKeyStatus(response.error || 'Failed to save API key', 'error');
+      }
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error saving API key:', error);
+      this.showApiKeyStatus('Error saving API key', 'error');
+    }
+  }
+
+  private async clearApiKey(): Promise<void> {
+    try {
+      this.showApiKeyStatus('Clearing API key...', 'info');
+      
+      const response = await chrome.runtime.sendMessage({
+        type: 'CLEAR_API_KEY'
+      });
+
+      if (response.success) {
+        this.apiKeyInput.value = '';
+        this.apiKeyInput.placeholder = 'sk-...';
+        this.showApiKeyStatus('API key cleared - using offline mode', 'info');
+      } else {
+        this.showApiKeyStatus(response.error || 'Failed to clear API key', 'error');
+      }
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error clearing API key:', error);
+      this.showApiKeyStatus('Error clearing API key', 'error');
+    }
+  }
+
+  private async testApiKey(): Promise<void> {
+    try {
+      this.showApiKeyStatus('Testing API key...', 'info');
+      
+      const response = await chrome.runtime.sendMessage({
+        type: 'TEST_API_KEY'
+      });
+
+      if (response.success) {
+        this.showApiKeyStatus('API key working - AI rephrasing enabled', 'success');
+      } else {
+        this.showApiKeyStatus(`API key test failed: ${response.error}`, 'error');
+      }
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error testing API key:', error);
+      this.showApiKeyStatus('Error testing API key', 'error');
+    }
+  }
+
+  private showApiKeyStatus(message: string, type: 'success' | 'error' | 'info' | ''): void {
+    if (!message || !type) {
+      this.apiKeyStatus.textContent = '';
+      this.apiKeyStatus.className = 'config-status';
+      return;
+    }
+
+    this.apiKeyStatus.textContent = message;
+    this.apiKeyStatus.className = `config-status ${type}`;
   }
 }
 

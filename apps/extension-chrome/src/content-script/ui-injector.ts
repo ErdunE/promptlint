@@ -6,7 +6,7 @@
  */
 
 import { SiteAdapter, LintResult } from '@promptlint/shared-types';
-import { FloatingPanel, FloatingPanelOptions } from './floating-panel';
+import { FloatingPanel, FloatingPanelOptions, RephraseCallbacks } from './floating-panel';
 
 export interface UIInjectorOptions {
   panelOptions?: FloatingPanelOptions;
@@ -19,15 +19,17 @@ export class UIInjector {
   private options: Required<UIInjectorOptions>;
   private floatingPanel: FloatingPanel | null = null;
   private injectionPoint: HTMLElement | null = null;
+  private rephraseCallbacks: RephraseCallbacks;
   private isInitialized = false;
 
-  constructor(adapter: SiteAdapter, options: UIInjectorOptions = {}) {
+  constructor(adapter: SiteAdapter, options: UIInjectorOptions = {}, rephraseCallbacks: RephraseCallbacks = {}) {
     this.adapter = adapter;
     this.options = {
       panelOptions: options.panelOptions || {},
       autoPosition: options.autoPosition !== false,
       respectSiteStyles: options.respectSiteStyles !== false
     };
+    this.rephraseCallbacks = rephraseCallbacks;
   }
 
   async initialize(): Promise<void> {
@@ -40,13 +42,21 @@ export class UIInjector {
       console.log('[PromptLint] Initializing UI injector...');
       
       // Find UI injection point using site adapter
-      const injectionResult = await this.adapter.findInjectionPoint();
+      const injectionResult = await (this.adapter as any).findInjectionPoint();
+      console.log('[PromptLint DEBUG] Injection result:', injectionResult);
+      
       if (!injectionResult.element) {
-        console.warn('[PromptLint] No UI injection point found, using fallback');
+        console.warn('[PromptLint DEBUG] No UI injection point found, using document.body fallback');
         this.injectionPoint = document.body;
       } else {
         this.injectionPoint = injectionResult.element;
-        console.log('[PromptLint] Found injection point:', injectionResult.selectorUsed);
+        console.log('[PromptLint DEBUG] Found injection point element:', this.injectionPoint);
+        console.log('[PromptLint DEBUG] Injection point selector used:', injectionResult.selectorUsed);
+        console.log('[PromptLint DEBUG] Injection point tag/id/class:', {
+          tagName: this.injectionPoint?.tagName,
+          id: this.injectionPoint?.id,
+          className: this.injectionPoint?.className
+        });
       }
 
       // Determine optimal panel position
@@ -56,8 +66,8 @@ export class UIInjector {
         position: panelPosition
       };
 
-      // Initialize floating panel
-      this.floatingPanel = new FloatingPanel(panelOptions);
+      // Initialize floating panel with rephrase callbacks
+      this.floatingPanel = new FloatingPanel(panelOptions, this.rephraseCallbacks);
       await this.floatingPanel.initialize();
 
       this.isInitialized = true;
@@ -76,7 +86,7 @@ export class UIInjector {
 
     try {
       // Get input element to position relative to it
-      const inputResult = this.adapter.findInputElement();
+      const inputResult = (this.adapter as any).findInputElement();
       if (!inputResult.element) {
         return 'bottom-right';
       }
@@ -108,7 +118,7 @@ export class UIInjector {
     }
   }
 
-  async updateResults(result: LintResult): Promise<void> {
+  async updateResults(result: LintResult, originalPrompt?: string): Promise<void> {
     if (!this.floatingPanel) {
       console.warn('[PromptLint] Floating panel not initialized');
       return;
@@ -116,7 +126,7 @@ export class UIInjector {
 
     try {
       // Update the floating panel with new results
-      this.floatingPanel.updateResults(result);
+      this.floatingPanel.updateResults(result, originalPrompt);
       
       // Log for debugging
       console.log('[PromptLint] UI updated with results:', {
@@ -181,7 +191,7 @@ export class UIInjector {
       if (this.injectionPoint && !document.contains(this.injectionPoint)) {
         console.log('[PromptLint] Injection point removed, finding new one...');
         
-        const injectionResult = await this.adapter.findInjectionPoint();
+        const injectionResult = await (this.adapter as any).findInjectionPoint();
         if (injectionResult.element) {
           this.injectionPoint = injectionResult.element;
         } else {

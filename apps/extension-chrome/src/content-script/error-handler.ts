@@ -238,19 +238,14 @@ export class ErrorHandler {
     return {
       score: 0,
       issues: [{
-        type: 'system_error',
+        type: 'missing_language' as any,
         severity: 'high',
-        message: error.userMessage,
-        suggestion: error.suggestion || 'Please try again or contact support'
+        message: error.userMessage
       }],
       metadata: {
         processingTime: 0,
-        rulesApplied: [],
-        error: {
-          type: error.type,
-          recoverable: error.recoverable,
-          timestamp: error.timestamp
-        }
+        inputLength: 0,
+        timestamp: new Date()
       }
     };
   }

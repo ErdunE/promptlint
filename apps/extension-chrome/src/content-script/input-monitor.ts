@@ -40,7 +40,7 @@ export class InputMonitor {
       console.log('[PromptLint] Initializing input monitor...');
       
       // Find input element using site adapter
-      const inputResult = await this.adapter.findInputElement();
+      const inputResult = await (this.adapter as any).findInputElement();
       if (!inputResult.element) {
         console.warn('[PromptLint] No input element found');
         return;
@@ -113,14 +113,34 @@ export class InputMonitor {
       // Get current text content
       const currentText = this.extractTextContent();
       
-      // Skip if text hasn't changed or is too short/long
+      // Skip if text hasn't changed or is too long
       if (currentText === this.lastAnalyzedText || 
-          currentText.length < this.options.minLength ||
           currentText.length > this.options.maxLength) {
         return;
       }
 
       this.lastAnalyzedText = currentText;
+      
+      // Handle empty input - reset score to 0
+      if (currentText.length === 0) {
+        console.log('[PromptLint] Input cleared, resetting score to 0');
+        await this.uiInjector.updateResults({
+          score: 0,
+          issues: [],
+          metadata: {
+            processingTime: 0,
+            inputLength: 0,
+            timestamp: new Date()
+          }
+        }, '');
+        return;
+      }
+      
+      // Skip analysis if text is too short (but not empty)
+      if (currentText.length < this.options.minLength) {
+        return;
+      }
+      
       console.log('[PromptLint] Analyzing input:', currentText.substring(0, 50) + '...');
 
       // Analyze prompt using rules engine with error handling
@@ -146,7 +166,7 @@ export class InputMonitor {
 
       if (lintResult) {
         // Update UI with results
-        await this.uiInjector.updateResults(lintResult);
+        await this.uiInjector.updateResults(lintResult, currentText);
       } else {
         // Analysis failed after retries, show error
         const promptLintError = globalErrorHandler.handleError(
@@ -156,7 +176,7 @@ export class InputMonitor {
         );
         
         const errorResult = globalErrorHandler.createErrorLintResult(promptLintError);
-        await this.uiInjector.updateResults(errorResult);
+        await this.uiInjector.updateResults(errorResult, currentText);
       }
 
     } catch (error) {
@@ -171,7 +191,7 @@ export class InputMonitor {
       );
       
       const errorResult = globalErrorHandler.createErrorLintResult(promptLintError);
-      await this.uiInjector.updateResults(errorResult);
+      await this.uiInjector.updateResults(errorResult, this.lastAnalyzedText);
     }
   }
 
@@ -200,7 +220,7 @@ export class InputMonitor {
       this.stopMonitoring();
       
       // Find input element again
-      const inputResult = await this.adapter.findInputElement();
+      const inputResult = await (this.adapter as any).findInputElement();
       if (!inputResult.element) {
         console.warn('[PromptLint] No input element found during refresh');
         return false;
@@ -251,7 +271,7 @@ export class InputMonitor {
       }
 
       const lintResult = analyzePrompt(currentText);
-      await this.uiInjector.updateResults(lintResult);
+      await this.uiInjector.updateResults(lintResult, currentText);
       return lintResult;
     } catch (error) {
       console.error('[PromptLint] Error in immediate analysis:', error);
