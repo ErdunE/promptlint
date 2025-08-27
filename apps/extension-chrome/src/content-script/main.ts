@@ -5,11 +5,12 @@
  * Integrates with site-adapters for DOM interaction and rules-engine for analysis
  */
 
-import { siteDetector, adapterRegistry, initializeSiteAdapters } from '@promptlint/site-adapters';
-import { SiteType } from '@promptlint/shared-types';
+import { siteDetector, adapterRegistry, initializeSiteAdapters, getCurrentSiteAdapter } from '@promptlint/site-adapters';
+
 import { UIInjector } from './ui-injector';
 import { InputMonitor } from './input-monitor';
 import { globalErrorHandler, ErrorType } from './error-handler';
+import { extensionRephraseService } from './rephrase-service';
 
 class PromptLintContentScript {
   private uiInjector: UIInjector | null = null;
@@ -28,7 +29,7 @@ class PromptLintContentScript {
       // Detect current site with error handling
       const siteDetection = await globalErrorHandler.attemptRecovery(
         async () => {
-          const detection = siteDetector.detectSite();
+          const detection = await siteDetector.detectSite();
           if (!detection || detection.confidence < 0.7) {
             throw new Error('Site not supported or confidence too low');
           }
@@ -67,6 +68,9 @@ class PromptLintContentScript {
       console.log('[PromptLint] Looking for adapter for site type:', siteDetection.type);
       const adapter = await globalErrorHandler.attemptRecovery(
         async () => {
+          if (!siteDetection.type) {
+            throw new Error('Site type is null');
+          }
           const adapterInstance = adapterRegistry.getAdapterByType(siteDetection.type);
           console.log('[PromptLint] Found adapter:', !!adapterInstance);
           if (!adapterInstance) {
@@ -86,7 +90,7 @@ class PromptLintContentScript {
       // Initialize adapter with error handling
       await globalErrorHandler.attemptRecovery(
         async () => {
-          await adapter.performInitialization();
+          await adapter.initialize();
           return true;
         },
         ErrorType.ADAPTER_INITIALIZATION_FAILED,
@@ -95,10 +99,20 @@ class PromptLintContentScript {
 
       console.log('[PromptLint] Site adapter initialized');
 
+      // Initialize rephrase service
+      console.log('[PromptLint] Initializing rephrase service...');
+      const rephraseStatus = await extensionRephraseService.initialize();
+      console.log('[PromptLint] Rephrase service status:', rephraseStatus);
+
       // Initialize UI components with error handling
       const uiInitialized = await globalErrorHandler.attemptRecovery(
         async () => {
-          this.uiInjector = new UIInjector(adapter);
+          // Create rephrase callbacks
+          const rephraseCallbacks = extensionRephraseService.createGracefulFallback();
+          
+          this.uiInjector = new UIInjector(adapter as any, {
+            panelOptions: { enableRephrase: true }
+          }, rephraseCallbacks);
           await this.uiInjector.initialize();
           return true;
         },
@@ -114,7 +128,7 @@ class PromptLintContentScript {
       // Initialize input monitor with error handling
       const inputInitialized = await globalErrorHandler.attemptRecovery(
         async () => {
-          this.inputMonitor = new InputMonitor(adapter, this.uiInjector!);
+          this.inputMonitor = new InputMonitor(adapter as any, this.uiInjector!);
           await this.inputMonitor.initialize();
           return true;
         },
@@ -172,15 +186,23 @@ class PromptLintContentScript {
         this.uiInjector = null;
       }
 
-      const adapter = adapterRegistry.getAdapterForCurrentSite();
-      if (adapter) {
-        await adapter.performCleanup();
+      // Safely cleanup adapter with error handling
+      try {
+        const adapter = await getCurrentSiteAdapter();
+        if (adapter) {
+          adapter.cleanup();
+        }
+      } catch (adapterError) {
+        console.warn('[PromptLint] Error during adapter cleanup:', adapterError);
+        // Don't let adapter cleanup errors prevent other cleanup
       }
 
       this.isInitialized = false;
       console.log('[PromptLint] Content script cleaned up');
     } catch (error) {
       console.error('[PromptLint] Error during cleanup:', error);
+      // Ensure initialization state is reset even if cleanup fails
+      this.isInitialized = false;
     }
   }
 }
@@ -200,15 +222,46 @@ if (document.readyState === 'loading') {
 
 // Handle page navigation (SPA routing)
 let currentUrl = window.location.href;
-const observer = new MutationObserver(() => {
-  if (window.location.href !== currentUrl) {
-    currentUrl = window.location.href;
-    console.log('[PromptLint] URL changed, reinitializing...');
-    promptLintCS.cleanup().then(() => {
-      // Small delay to let SPA finish navigation
-      setTimeout(() => promptLintCS.initialize(), 1000);
-    });
+
+// Function to handle URL changes
+const handleUrlChange = () => {
+  try {
+    const newUrl = window.location.href;
+    if (newUrl !== currentUrl) {
+      console.log('[PromptLint] URL changed from', currentUrl, 'to', newUrl);
+      currentUrl = newUrl;
+      
+      // Check if the new URL is still supported
+      const isSupported = newUrl.startsWith('https://chat.openai.com/') || 
+                         newUrl.startsWith('https://chatgpt.com/') ||
+                         newUrl.startsWith('https://claude.ai/') ||
+                         newUrl.startsWith('https://anthropic.com/');
+      
+      if (isSupported) {
+        console.log('[PromptLint] New URL is supported, reinitializing...');
+        promptLintCS.cleanup().then(() => {
+          // Small delay to let SPA finish navigation
+          setTimeout(() => promptLintCS.initialize(), 1000);
+        }).catch(error => {
+          console.warn('[PromptLint] Error during cleanup before reinitialization:', error);
+          // Try to initialize anyway
+          setTimeout(() => promptLintCS.initialize(), 1000);
+        });
+      } else {
+        console.log('[PromptLint] New URL is not supported, cleaning up...');
+        promptLintCS.cleanup().catch(error => {
+          console.warn('[PromptLint] Error during cleanup for unsupported URL:', error);
+        });
+      }
+    }
+  } catch (error) {
+    console.error('[PromptLint] Error in URL change handler:', error);
   }
+};
+
+// MutationObserver for DOM changes (catches most SPA navigation)
+const observer = new MutationObserver(() => {
+  handleUrlChange();
 });
 
 observer.observe(document.body, {
@@ -216,10 +269,33 @@ observer.observe(document.body, {
   subtree: true
 });
 
+// History API listener for pushState/replaceState (catches programmatic navigation)
+const originalPushState = history.pushState;
+const originalReplaceState = history.replaceState;
+
+history.pushState = function(...args) {
+  originalPushState.apply(history, args);
+  setTimeout(handleUrlChange, 100);
+};
+
+history.replaceState = function(...args) {
+  originalReplaceState.apply(history, args);
+  setTimeout(handleUrlChange, 100);
+};
+
+// Popstate listener for browser back/forward
+window.addEventListener('popstate', () => {
+  setTimeout(handleUrlChange, 100);
+});
+
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
   promptLintCS.cleanup();
   observer.disconnect();
+  
+  // Restore original history methods
+  history.pushState = originalPushState;
+  history.replaceState = originalReplaceState;
 });
 
 // Listen for messages from background script
@@ -228,7 +304,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'GET_STATUS':
       sendResponse({
         initialized: promptLintCS['isInitialized'],
-        site: siteDetector.detectSite()?.type || null
+        site: null
       });
       break;
     

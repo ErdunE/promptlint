@@ -7,17 +7,18 @@ import { SiteType, SiteDetectionResult } from '../types';
 
 /**
  * URL patterns for supported sites
+ * Using prefix matching to handle all conversation URLs
  */
 const SITE_PATTERNS: Record<SiteType, RegExp[]> = {
   [SiteType.CHATGPT]: [
-    /^https?:\/\/chat\.openai\.com/i,
-    /^https?:\/\/chatgpt\.com/i,
-    /^https?:\/\/.*\.openai\.com\/chat/i
+    /^https?:\/\/chat\.openai\.com\//i,
+    /^https?:\/\/chatgpt\.com\//i,
+    /^https?:\/\/.*\.openai\.com\/chat\//i
   ],
   [SiteType.CLAUDE]: [
-    /^https?:\/\/claude\.ai/i,
-    /^https?:\/\/.*\.anthropic\.com/i,
-    /^https?:\/\/console\.anthropic\.com/i
+    /^https?:\/\/claude\.ai\//i,
+    /^https?:\/\/.*\.anthropic\.com\//i,
+    /^https?:\/\/console\.anthropic\.com\//i
   ]
 };
 

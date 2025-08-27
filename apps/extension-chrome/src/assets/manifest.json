@@ -1,16 +1,18 @@
 {
   "manifest_version": 3,
   "name": "PromptLint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Grammarly for AI prompts - improve prompt clarity and structure in real-time",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "host_permissions": [
     "https://chat.openai.com/*",
     "https://chatgpt.com/*", 
     "https://claude.ai/*",
-    "https://anthropic.com/*"
+    "https://anthropic.com/*",
+    "https://api.openai.com/*"
   ],
   "content_scripts": [
     {

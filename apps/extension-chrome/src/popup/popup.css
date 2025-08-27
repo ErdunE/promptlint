@@ -433,3 +433,132 @@ body {
   border-color: #fbbc04;
   background: linear-gradient(135deg, #fffbf0 0%, #fef7e0 100%);
 }
+
+/* API Configuration Styles */
+.config-card {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  border: 2px solid #e1e5f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+.config-item {
+  margin-bottom: 12px;
+}
+
+.config-label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.config-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.input-group {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.config-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid #e1e5f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.config-input:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.config-input::placeholder {
+  color: #9aa0a6;
+  font-style: italic;
+}
+
+.btn-icon {
+  padding: 10px;
+  min-width: auto;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border: 2px solid #e1e5f0;
+}
+
+.btn-icon:hover {
+  background: #e8eaed;
+  border-color: #dadce0;
+}
+
+.toggle-icon {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.config-help {
+  font-size: 12px;
+  color: #5f6368;
+  line-height: 1.4;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 8px;
+  border-radius: 6px;
+  border-left: 3px solid #4285f4;
+}
+
+.config-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.config-actions .btn {
+  flex: 1;
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+.config-status {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.3s ease;
+  min-height: 16px;
+}
+
+.config-status.success {
+  background: #e6f4ea;
+  color: #137333;
+  border: 1px solid #ceead6;
+}
+
+.config-status.error {
+  background: #fce8e6;
+  color: #d93025;
+  border: 1px solid #f9dedc;
+}
+
+.config-status.info {
+  background: #e8f0fe;
+  color: #1967d2;
+  border: 1px solid #d2e3fc;
+}
+
+.config-status:empty {
+  display: none;
+}

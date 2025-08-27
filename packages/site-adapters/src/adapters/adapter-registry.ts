@@ -18,13 +18,17 @@ export class AdapterRegistry implements IAdapterRegistry {
    */
   register(adapter: ISiteAdapter): void {
     if (this.adapters.has(adapter.siteType)) {
-      throw new AdapterError(
-        AdapterErrorType.INITIALIZATION_FAILED,
-        `Adapter for ${adapter.siteType} is already registered`,
-        { siteType: adapter.siteType }
-      );
+      console.log(`[PromptLint] Adapter for ${adapter.siteType} already registered, skipping`);
+      return;
     }
 
+    this.adapters.set(adapter.siteType, adapter);
+  }
+
+  /**
+   * Register or update a site adapter (safe for re-registration)
+   */
+  registerOrUpdate(adapter: ISiteAdapter): void {
     this.adapters.set(adapter.siteType, adapter);
   }
 

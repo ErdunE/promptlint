@@ -129,9 +129,9 @@ const CHATGPT_SELECTORS = {
 const CHATGPT_CONFIG: SiteConfiguration = {
   type: SiteType.CHATGPT,
   urlPatterns: [
-    /^https?:\/\/chat\.openai\.com/i,
-    /^https?:\/\/chatgpt\.com/i,
-    /^https?:\/\/.*\.openai\.com\/chat/i
+    /^https?:\/\/chat\.openai\.com\//i,
+    /^https?:\/\/chatgpt\.com\//i,
+    /^https?:\/\/.*\.openai\.com\/chat\//i
   ],
   inputSelector: CHATGPT_SELECTORS.input,
   submitSelector: CHATGPT_SELECTORS.submit,

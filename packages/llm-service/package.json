@@ -1,0 +1,38 @@
+{
+  "name": "@promptlint/llm-service",
+  "version": "0.2.0",
+  "description": "LLM service for PromptLint - AI-powered prompt rephrasing with OpenAI integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@promptlint/shared-types": "file:../shared-types",
+    "openai": "^4.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "keywords": [
+    "promptlint",
+    "llm",
+    "openai",
+    "rephrase",
+    "prompt-improvement",
+    "ai-assistant"
+  ],
+  "author": "PromptLint Team",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}

@@ -138,9 +138,9 @@ const CLAUDE_SELECTORS = {
 const CLAUDE_CONFIG: SiteConfiguration = {
   type: SiteType.CLAUDE,
   urlPatterns: [
-    /^https?:\/\/claude\.ai/i,
-    /^https?:\/\/.*\.anthropic\.com/i,
-    /^https?:\/\/console\.anthropic\.com/i
+    /^https?:\/\/claude\.ai\//i,
+    /^https?:\/\/.*\.anthropic\.com\//i,
+    /^https?:\/\/console\.anthropic\.com\//i
   ],
   inputSelector: CLAUDE_SELECTORS.input,
   submitSelector: CLAUDE_SELECTORS.submit,

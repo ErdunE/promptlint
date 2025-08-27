@@ -46,9 +46,9 @@ export async function initializeSiteAdapters(): Promise<void> {
   const { chatgptAdapter } = await import('./sites/chatgpt');
   const { claudeAdapter } = await import('./sites/claude');
   
-  // Register all adapters
-  adapterRegistry.register(chatgptAdapter);
-  adapterRegistry.register(claudeAdapter);
+  // Register all adapters (safe for re-registration)
+  adapterRegistry.registerOrUpdate(chatgptAdapter);
+  adapterRegistry.registerOrUpdate(claudeAdapter);
   
   // Initialize all adapters
   await adapterRegistry.initializeAll();
