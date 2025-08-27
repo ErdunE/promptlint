@@ -1,0 +1,48 @@
+{
+  "name": "PromptLint",
+  "version": "0.1.0",
+  "description": "Grammarly for AI prompts - improve prompt clarity and structure in real-time",
+  "author": "PromptLint Team",
+  "license": "MIT",
+  "manifestVersion": 3,
+  "permissions": [
+    "activeTab"
+  ],
+  "supportedSites": [
+    "ChatGPT",
+    "Claude"
+  ],
+  "totalSizeKB": 94,
+  "files": {
+    "background.js": 5,
+    "content-script.css": 4,
+    "content-script.js": 60,
+    "floating-panel.css": 7,
+    "icon-128.png": 0,
+    "icon-16.png": 0,
+    "icon-48.png": 0,
+    "manifest.json": 1,
+    "popup.css": 7,
+    "popup.html": 4,
+    "popup.js": 6
+  },
+  "buildDate": "2025-08-27T00:50:27.930Z",
+  "chromeMinVersion": "88",
+  "features": [
+    "Real-time prompt analysis",
+    "Quality scoring (0-100)",
+    "Specific improvement suggestions",
+    "Non-intrusive floating panel",
+    "Dark mode support",
+    "Professional UI design",
+    "Comprehensive error handling",
+    "Performance optimized (<50ms analysis)"
+  ],
+  "technicalSpecs": {
+    "analysisSpeed": "<50ms",
+    "siteDetection": "<100ms",
+    "elementFinding": "<200ms",
+    "memoryUsage": "<10MB",
+    "architecture": "Modular TypeScript with separate packages"
+  }
+}

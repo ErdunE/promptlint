@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "PromptLint",
+  "version": "0.1.0",
+  "description": "Grammarly for AI prompts - improve prompt clarity and structure in real-time",
+  "permissions": [
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://chat.openai.com/*",
+    "https://chatgpt.com/*", 
+    "https://claude.ai/*",
+    "https://anthropic.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://claude.ai/*", 
+        "https://anthropic.com/*"
+      ],
+      "js": ["content-script.js"],
+      "css": ["content-script.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PromptLint - AI Prompt Quality Assistant",
+    "default_icon": {
+      "16": "icon-16.png",
+      "48": "icon-48.png", 
+      "128": "icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["floating-panel.css"],
+      "matches": [
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*", 
+        "https://claude.ai/*",
+        "https://anthropic.com/*"
+      ]
+    }
+  ]
+}

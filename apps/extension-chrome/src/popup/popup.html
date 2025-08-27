@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptLint</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <div class="popup-header">
+      <div class="popup-logo">
+        <span class="popup-icon">✨</span>
+        <h1 class="popup-title">PromptLint</h1>
+      </div>
+      <div class="popup-version">v0.1.0</div>
+    </div>
+
+    <!-- Status Section -->
+    <div class="popup-section">
+      <div class="status-card" id="statusCard">
+        <div class="status-indicator" id="statusIndicator">
+          <div class="status-dot"></div>
+          <span class="status-text" id="statusText">Checking...</span>
+        </div>
+        <div class="status-details" id="statusDetails">
+          <div class="status-site" id="statusSite">Detecting site...</div>
+          <div class="status-confidence" id="statusConfidence"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="popup-section">
+      <h3 class="section-title">Extension Stats</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" id="totalActivations">--</div>
+          <div class="stat-label">Activations</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="successfulInits">--</div>
+          <div class="stat-label">Successful</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="errorCount">--</div>
+          <div class="stat-label">Errors</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="activeTabsCount">--</div>
+          <div class="stat-label">Active Tabs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Section (shown when there are errors) -->
+    <div class="popup-section error-section" id="errorSection" style="display: none;">
+      <h3 class="section-title">Recent Issues</h3>
+      <div class="error-list" id="errorList">
+        <!-- Errors will be populated here -->
+      </div>
+      <div class="error-actions">
+        <button class="btn btn-secondary" id="clearErrorsBtn">Clear Errors</button>
+        <button class="btn btn-primary" id="reinjectBtn">Retry</button>
+      </div>
+    </div>
+
+    <!-- Supported Sites -->
+    <div class="popup-section">
+      <h3 class="section-title">Supported Sites</h3>
+      <div class="sites-list">
+        <div class="site-item">
+          <span class="site-icon">🤖</span>
+          <span class="site-name">ChatGPT</span>
+          <span class="site-url">chat.openai.com</span>
+        </div>
+        <div class="site-item">
+          <span class="site-icon">🧠</span>
+          <span class="site-name">Claude</span>
+          <span class="site-url">claude.ai</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="popup-section">
+      <div class="action-buttons">
+        <button class="btn btn-outline" id="refreshBtn">
+          <span class="btn-icon">🔄</span>
+          Refresh
+        </button>
+        <button class="btn btn-outline" id="helpBtn">
+          <span class="btn-icon">❓</span>
+          Help
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="popup-footer">
+      <p class="footer-text">Grammarly for AI prompts</p>
+      <div class="footer-links">
+        <a href="#" id="feedbackLink">Feedback</a>
+        <span class="separator">•</span>
+        <a href="#" id="supportLink">Support</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "@promptlint/extension-chrome",
+  "version": "0.1.0",
+  "description": "PromptLint Chrome Extension - Grammarly for AI prompts",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "package": "npm run build && node scripts/package-extension.js",
+    "create-crx": "npm run package && node scripts/create-crx.js",
+    "test": "echo 'Manual testing required for Chrome extension'"
+  },
+  "dependencies": {
+    "@promptlint/rules-engine": "file:../../packages/rules-engine",
+    "@promptlint/site-adapters": "file:../../packages/site-adapters", 
+    "@promptlint/shared-types": "file:../../packages/shared-types"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.270",
+    "vite": "^5.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "chrome-extension",
+    "ai",
+    "prompts",
+    "linting",
+    "productivity"
+  ],
+  "author": "PromptLint Team",
+  "license": "MIT"
+}

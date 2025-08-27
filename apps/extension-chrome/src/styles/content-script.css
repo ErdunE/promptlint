@@ -1,0 +1,198 @@
+/**
+ * PromptLint Content Script Styles
+ * 
+ * Base styles that are injected into the page
+ * Designed to be non-intrusive and compatible with ChatGPT/Claude
+ */
+
+/* Reset and base styles for PromptLint components */
+.promptlint-panel,
+.promptlint-panel *,
+.promptlint-panel *::before,
+.promptlint-panel *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure our components don't inherit site styles */
+.promptlint-panel {
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #1a1a1a;
+  direction: ltr;
+  text-align: left;
+}
+
+/* Prevent site styles from affecting our panel */
+.promptlint-panel * {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  list-style: none;
+}
+
+/* Override any site-specific interference */
+body .promptlint-panel {
+  position: fixed !important;
+  z-index: 2147483647 !important; /* Maximum z-index */
+}
+
+/* Ensure panel is always visible above site content */
+.promptlint-panel {
+  pointer-events: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+/* Accessibility improvements */
+.promptlint-panel {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Focus styles for keyboard navigation */
+.promptlint-panel__toggle:focus {
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .promptlint-panel {
+    border-width: 2px;
+    border-color: #000000;
+  }
+  
+  .promptlint-panel__score--excellent {
+    background: #000000;
+    color: #ffffff;
+  }
+  
+  .promptlint-panel__score--good {
+    background: #333333;
+    color: #ffffff;
+  }
+  
+  .promptlint-panel__score--fair {
+    background: #666666;
+    color: #ffffff;
+  }
+  
+  .promptlint-panel__score--poor {
+    background: #999999;
+    color: #000000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .promptlint-panel {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .promptlint-panel--entering,
+  .promptlint-panel--entered,
+  .promptlint-panel--exiting {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .promptlint-panel {
+    background: #2d2d2d;
+    border-color: #404040;
+    color: #e1e1e1;
+  }
+  
+  .promptlint-panel__header {
+    background: #1e1e1e;
+    border-color: #404040;
+  }
+  
+  .promptlint-panel__title {
+    color: #e1e1e1;
+  }
+  
+  .promptlint-panel__issue {
+    border-color: #404040;
+  }
+  
+  .promptlint-panel__issue-title {
+    color: #e1e1e1;
+  }
+  
+  .promptlint-panel__issue-description {
+    color: #a1a1a1;
+  }
+  
+  .promptlint-panel__toggle:hover {
+    background: #404040;
+  }
+  
+  .promptlint-panel__no-issues {
+    color: #4ade80;
+  }
+}
+
+/* Site-specific compatibility fixes */
+
+/* ChatGPT compatibility */
+body[class*="chatgpt"] .promptlint-panel,
+body[data-theme] .promptlint-panel,
+[data-testid*="chat"] ~ .promptlint-panel {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Claude compatibility */
+body[class*="claude"] .promptlint-panel,
+[data-testid*="anthropic"] ~ .promptlint-panel {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .promptlint-panel {
+    min-width: 260px !important;
+    max-width: calc(100vw - 40px) !important;
+  }
+  
+  .promptlint-panel--bottom-right,
+  .promptlint-panel--top-right {
+    right: 10px !important;
+  }
+  
+  .promptlint-panel--bottom-left,
+  .promptlint-panel--top-left {
+    left: 10px !important;
+  }
+  
+  .promptlint-panel--bottom-right,
+  .promptlint-panel--bottom-left {
+    bottom: 10px !important;
+  }
+  
+  .promptlint-panel--top-right,
+  .promptlint-panel--top-left {
+    top: 10px !important;
+  }
+}
+
+/* Print styles - hide panel when printing */
+@media print {
+  .promptlint-panel {
+    display: none !important;
+  }
+}
