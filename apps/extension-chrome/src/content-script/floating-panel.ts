@@ -343,12 +343,14 @@ export class FloatingPanel {
         border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 8px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
+        z-index: 2147483647 !important;
         margin-top: 4px;
         min-width: 200px;
         max-height: 300px;
         overflow-y: auto;
         animation: dropdownFadeIn 0.2s ease-out;
+        /* Ensure dropdown can be positioned outside panel boundaries */
+        pointer-events: auto;
       }
 
       @keyframes dropdownFadeIn {
@@ -1541,6 +1543,9 @@ export class FloatingPanel {
       this.aiAgentDropdownMenu.style.display = 'block';
       this.aiAgentDropdown?.classList.add('open');
       
+      // Position dropdown outside panel to avoid clipping
+      this.positionDropdownOutsidePanel();
+      
       // Add click outside listener
       setTimeout(() => {
         document.addEventListener('click', this.handleClickOutside.bind(this), { once: true });
@@ -1550,12 +1555,59 @@ export class FloatingPanel {
     }
   }
 
+  private positionDropdownOutsidePanel(): void {
+    if (!this.aiAgentDropdown || !this.aiAgentDropdownMenu || !this.panel) return;
+    
+    // Get the position of the AI agent dropdown relative to the viewport
+    const dropdownRect = this.aiAgentDropdown.getBoundingClientRect();
+    
+    // Calculate position relative to document body
+    const left = dropdownRect.left;
+    const top = dropdownRect.bottom + 4; // 4px gap
+    
+    // Check if dropdown would go off-screen to the right
+    const dropdownWidth = 200; // min-width from CSS
+    const viewportWidth = window.innerWidth;
+    const adjustedLeft = left + dropdownWidth > viewportWidth ? viewportWidth - dropdownWidth - 8 : left;
+    
+    // Check if dropdown would go off-screen to the bottom
+    const dropdownHeight = 300; // max-height from CSS
+    const viewportHeight = window.innerHeight;
+    const adjustedTop = top + dropdownHeight > viewportHeight ? dropdownRect.top - dropdownHeight - 4 : top;
+    
+    // Position the dropdown relative to document body
+    this.aiAgentDropdownMenu.style.position = 'fixed';
+    this.aiAgentDropdownMenu.style.left = `${adjustedLeft}px`;
+    this.aiAgentDropdownMenu.style.top = `${adjustedTop}px`;
+    this.aiAgentDropdownMenu.style.right = 'auto';
+    this.aiAgentDropdownMenu.style.bottom = 'auto';
+    this.aiAgentDropdownMenu.style.zIndex = '2147483647';
+    
+    // Move dropdown to document body to avoid clipping
+    if (this.aiAgentDropdownMenu.parentElement !== document.body) {
+      document.body.appendChild(this.aiAgentDropdownMenu);
+    }
+  }
+
   private closeAiAgentDropdown(): void {
     if (!this.aiAgentDropdownMenu) return;
     
     this.isDropdownOpen = false;
     this.aiAgentDropdownMenu.style.display = 'none';
     this.aiAgentDropdown?.classList.remove('open');
+    
+    // Reset dropdown positioning and move back to original parent if needed
+    this.aiAgentDropdownMenu.style.position = 'absolute';
+    this.aiAgentDropdownMenu.style.left = '0';
+    this.aiAgentDropdownMenu.style.top = '100%';
+    this.aiAgentDropdownMenu.style.right = 'auto';
+    this.aiAgentDropdownMenu.style.bottom = 'auto';
+    this.aiAgentDropdownMenu.style.zIndex = '2147483647';
+    
+    // Move dropdown back to AI agent dropdown if it was moved to body
+    if (this.aiAgentDropdownMenu.parentElement === document.body && this.aiAgentDropdown) {
+      this.aiAgentDropdown.appendChild(this.aiAgentDropdownMenu);
+    }
   }
 
   private handleClickOutside(event: MouseEvent): void {
@@ -1583,6 +1635,16 @@ export class FloatingPanel {
   }
 
   async cleanup(): Promise<void> {
+    // Close dropdown if open
+    if (this.isDropdownOpen) {
+      this.closeAiAgentDropdown();
+    }
+    
+    // Remove dropdown from body if it's there
+    if (this.aiAgentDropdownMenu && this.aiAgentDropdownMenu.parentElement === document.body) {
+      this.aiAgentDropdownMenu.remove();
+    }
+    
     if (this.panel) {
       this.panel.remove();
       this.panel = null;
@@ -1595,6 +1657,8 @@ export class FloatingPanel {
 
     this.scoreElement = null;
     this.issuesContainer = null;
+    this.aiAgentDropdown = null;
+    this.aiAgentDropdownMenu = null;
     this.isVisible = false;
 
     console.log('[PromptLint] Floating panel cleaned up');
