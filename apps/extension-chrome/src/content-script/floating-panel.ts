@@ -567,13 +567,13 @@ export class FloatingPanel {
 
       .promptlint-panel__issue-title {
         font-weight: 500;
-        color: #1a1a1a;
+        color: rgba(255, 255, 255, 0.9);
         margin-bottom: 2px;
         font-size: 13px;
       }
 
       .promptlint-panel__issue-description {
-        color: #6c757d;
+        color: rgba(255, 255, 255, 0.7);
         font-size: 12px;
         line-height: 1.4;
       }
@@ -581,7 +581,7 @@ export class FloatingPanel {
       .promptlint-panel__no-issues {
         padding: 16px;
         text-align: center;
-        color: #28a745;
+        color: rgba(255, 255, 255, 0.8);
         font-weight: 500;
         font-size: 13px;
       }
