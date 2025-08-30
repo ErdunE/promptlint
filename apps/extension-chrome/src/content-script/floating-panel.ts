@@ -494,6 +494,7 @@ export class FloatingPanel {
 
       /* Rainbow glow effect */
       .promptlint-panel__rephrase-toggle::after {
+
         content: '';
         position: absolute;
         top: -6px;
@@ -1805,3 +1806,4 @@ export class FloatingPanel {
     console.log('[PromptLint] Floating panel cleaned up');
   }
 }
+
