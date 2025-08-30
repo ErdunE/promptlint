@@ -159,7 +159,10 @@ export class FloatingPanel {
     // Create Rephrase toggle button
     this.rephraseToggleButton = document.createElement('button') as HTMLButtonElement;
     this.rephraseToggleButton.className = 'promptlint-panel__rephrase-toggle';
-    this.rephraseToggleButton.textContent = 'Rephrase';
+    this.rephraseToggleButton.innerHTML = `
+      <span class="rephrase-icon">✨</span>
+      <span class="rephrase-text">Rephrase</span>
+    `;
     this.rephraseToggleButton.addEventListener('click', () => this.toggleRephraseMode());
     
     this.scoreElement = document.createElement('div');
@@ -447,40 +450,120 @@ export class FloatingPanel {
       .promptlint-panel__rephrase-toggle {
         background: rgba(59, 130, 246, 0.8);
         color: white;
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 6px;
+        border: 4px solid transparent;
+        border-radius: 8px;
         padding: 8px 12px;
         font-size: 11px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         backdrop-filter: blur(8px);
-        box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
-        min-width: 70px;
+        min-width: 80px;
         text-align: center;
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
         height: 32px;
+        position: relative;
+        background-clip: padding-box;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+      }
+
+      /* Rainbow border animation for initial state */
+      .promptlint-panel__rephrase-toggle::before {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        background: linear-gradient(45deg, 
+          #3b82f6, #8b5cf6, #ec4899, #f97316, 
+          #eab308, #22c55e, #06b6d4, #3b82f6);
+        background-size: 400% 400%;
+        border-radius: 12px;
+        z-index: -1;
+        animation: rainbow-border 4s linear infinite;
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+      }
+
+      /* Rainbow glow effect */
+      .promptlint-panel__rephrase-toggle::after {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: -6px;
+        right: -6px;
+        bottom: -6px;
+        background: linear-gradient(45deg, 
+          #3b82f6, #8b5cf6, #ec4899, #f97316, 
+          #eab308, #22c55e, #06b6d4, #3b82f6);
+        background-size: 400% 400%;
+        border-radius: 14px;
+        z-index: -2;
+        animation: rainbow-glow 4s linear infinite;
+        opacity: 0.3;
+        filter: blur(4px);
+      }
+
+      @keyframes rainbow-border {
+        0% { background-position: 0% 0%; }
+        25% { background-position: 100% 0%; }
+        50% { background-position: 100% 100%; }
+        75% { background-position: 0% 100%; }
+        100% { background-position: 0% 0%; }
+      }
+
+      @keyframes rainbow-glow {
+        0% { background-position: 100% 100%; }
+        25% { background-position: 0% 100%; }
+        50% { background-position: 0% 0%; }
+        75% { background-position: 100% 0%; }
+        100% { background-position: 100% 100%; }
       }
 
       .promptlint-panel__rephrase-toggle:hover {
-        background: rgba(59, 130, 246, 0.9);
-        border-color: rgba(59, 130, 246, 0.3);
         transform: translateY(-1px);
-        box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
 
+      /* Active state - remove shimmer, clean appearance */
       .promptlint-panel__rephrase-toggle.active {
-        background: rgba(239, 68, 68, 0.8);
-        border-color: rgba(239, 68, 68, 0.2);
-        box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .promptlint-panel__rephrase-toggle.active::before {
+        display: none;
       }
 
       .promptlint-panel__rephrase-toggle.active:hover {
-        background: rgba(239, 68, 68, 0.9);
-        border-color: rgba(239, 68, 68, 0.3);
-        box-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Icon and text styling */
+      .promptlint-panel__rephrase-toggle .rephrase-icon {
+        font-size: 14px;
+        transition: transform 0.2s ease;
+      }
+
+      .promptlint-panel__rephrase-toggle:hover .rephrase-icon {
+        transform: scale(1.1);
+      }
+
+      .promptlint-panel__rephrase-toggle .rephrase-text {
+        font-weight: 500;
+        letter-spacing: 0.025em;
       }
 
       .promptlint-panel__score {
@@ -1477,14 +1560,20 @@ export class FloatingPanel {
     if (this.isRephraseMode) {
       this.hideRephrase();
       if (this.rephraseToggleButton) {
-        this.rephraseToggleButton.textContent = 'Rephrase';
+        this.rephraseToggleButton.innerHTML = `
+          <span class="rephrase-icon">✨</span>
+          <span class="rephrase-text">Rephrase</span>
+        `;
         this.rephraseToggleButton.classList.remove('active');
       }
     } else {
       if (this.currentPrompt && this.rephraseCallbacks.onRephraseRequest) {
         this.handleRephraseClick();
         if (this.rephraseToggleButton) {
-          this.rephraseToggleButton.textContent = 'Close';
+          this.rephraseToggleButton.innerHTML = `
+            <span class="rephrase-icon">⬆</span>
+            <span class="rephrase-text">Collapse</span>
+          `;
           this.rephraseToggleButton.classList.add('active');
         }
       }
