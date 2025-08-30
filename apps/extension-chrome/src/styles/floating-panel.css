@@ -159,6 +159,40 @@
   transform: scale(0.95);
 }
 
+/* Drag handle */
+.promptlint-panel__drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 12px;
+  cursor: grab;
+  color: rgba(255, 255, 255, 1);
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1;
+  letter-spacing: -2px;
+  border-radius: 4px;
+  transition: all 150ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.promptlint-panel__drag-handle:hover {
+  color: rgba(255, 255, 255, 1);
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.promptlint-panel__drag-handle:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
+}
+
 /* Issues container */
 .promptlint-panel__issues {
   padding: 0;

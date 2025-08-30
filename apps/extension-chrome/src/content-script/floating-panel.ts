@@ -291,8 +291,8 @@ export class FloatingPanel {
       .promptlint-panel__drag-handle {
         cursor: grab;
         color: rgba(255, 255, 255, 0.9);
-        font-size: 10px;
-        font-weight: 600;
+        font-size: 16px;
+        font-weight: bold;
         padding: 6px;
         border-radius: 4px;
         transition: all 0.2s ease;
@@ -301,6 +301,7 @@ export class FloatingPanel {
         border: none;
         z-index: 1;
         position: relative;
+        letter-spacing: -1px;
       }
 
       .promptlint-panel__drag-handle:hover {
