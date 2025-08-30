@@ -85,6 +85,16 @@
   font-size: 12px;
 }
 
+.promptlint-panel__title-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(1.1) contrast(1.1);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
 /* Score display */
 .promptlint-panel__score {
   font-weight: 700;
