@@ -249,7 +249,7 @@ export class FloatingPanel {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 14px;
         min-width: 320px;
-        max-width: 380px;
+        max-width: 420px;
         transition: all ${this.options.animationDuration}ms ease;
         overflow: hidden;
       }
