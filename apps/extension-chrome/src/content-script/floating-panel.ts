@@ -75,7 +75,43 @@ export class FloatingPanel {
     
     const title = document.createElement('div');
     title.className = 'promptlint-panel__title';
-    title.textContent = 'PromptLint';
+    // Debug icon loading process
+    console.log('[PromptLint DEBUG] Starting icon loading process...');
+    
+    // Check if icon file exists (this will be logged during build time)
+    console.log('[PromptLint DEBUG] Icon file path: ../../appicon/icon-48.png');
+    
+    // Base64 data for icon-48.png (scaled down to 24x24 via CSS)
+    const iconBase64 = 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAMAAABg3Am1AAABqlBMVEVHcExSn/xVn/pXVN5ScudTiO9PivRMfu9QWdtMcu5Mg/NPWOFPVd9Rl/dTl/NQWtxOjPdPYOdRmvlNb+hNdutWmO1RW9hMevBTWNlagd1OaupVmfFRWd9QmPdMaORVoPdWnfJTnPhOlPlRVd5QVeJSnvtRUeFTnvlPY+RSnfpRV+FPlPdOX+VOYeFNlvxOXOZTUuNMk/pPVuRQU+NKfPBPmftOW+ZRnfxPWOVMkPlMkflMg/NQm/xMde9PWeZNiPVOmPxOjPZNivZLfvBMjvhMcu5McOuIiPpMhvSFjvqHi/uLg/pJe+9LgfJMa+pPWuZQY+hOl/xLcexNlftMbetLd+9MZuiqmPuDkfqzi/x7n/xNX+eAlftOXuZMgPGxjvpMaOmvkvpOYeionfxLee96pP1LgvKWuPp6rPuWvPt0cvFQgvl6p/y2h/t9m/qdrPx8mPx8sfuulfqYs/qasPx7e/d7kPqXwfuHdPFnoPeVmflbhPagpfxidu9NjvduhPNok/aUkPlnbu5Vf/ddiflWkvamifmLp/qgoPyTfvRmjfiYhPirlfpmkPlJ5tZ2AAAALnRSTlMA/XGCTE6mpkX19s6sjjkw9vLSpqYQEPUdB/Ucea+mSihg7Gbk9PSopuWOu/2Wf1lYEQAAA75JREFUSMeNlmlfGlcUh6dJF1pQqq3GNlpjXNKkLUYL44KC LBEECSiCRoQYg4ANIJSlQXZkETXfOeecOzOMTbV5fjPn3nvO8x/gFcNxAg/HJ+7dysT4o5+4G/T3DU5/cQfTT5+MyyJDfU8XFlaAhf+GJtNP HknfZky3ogNWboPNFgb7heeP6XRra7r/Z2WQfUbf1taWBu6tNYmbpx5jQ/h7H2s0Xq9XcxsYFvfeCfwAsOe8yBxbhOOcdNT0Zr8NcQ8HYbI8 dxcsTTzuh2+0jEBIKJ+Cprjc47763gosLVEBsLYKsXQ6VtDBwUqN5eUlNl3qg0AFsFaoWvGqFGIn/yDReIvOOLZW2PU1BEyE2WzGajJVCul0 FPQTINYSBpWKmSwKmI3QMxuxwm0CP5ZG+yQajcZNRiNOKIdgAFtGu1GgFUPSpEczmYLxJhD4zi7HXEA/Hs+Qnsl0TKxvtNulgF6OKQ52/Pg4 jnYmm83WqA0RvR0XDEQAfcSFJaJvkX58vN/JEqdJPbYBKvpvIOAKhVwuVlyRGtlIJ3uKJCPUpwoLBkIWSwhurKFQTdD3k/sdFnCFLEwI4TMx YNGiTcViqaGcSkIA6JyWSmchixZnWCACgQe41zJYINVsXn74cNksHpQwoJVhwcAmEAY2N6FRgwenmu+IYv6iVLoo4lxLBcBA2BcO+3w+zIRD qWQqlbpkgebBBVClZ2GBZfNH7ssHqyKQKoKeOsgX352fnxfzZ2+BDZ8cCHy72sN3eUDkm5L/9iwsE1Yx8KLHeZ4F9vby+T3m7+5WZQILbIu8 qJJMbNR30QbqqzRDtrd/gMC6RDkvyMjZLuP6usqm9EwM7OwI/mpV0h2OOtl/A2/q5Z110WEBgeoGw4HUr6/JRq7WJQcCP78UKMt9m+0N4zWS E52XFDiEzeHhjg3FDZJtNqezp79+1S4fIqD9AgG/3w8Hf9nhEJ6N5HJt0Ua6IGDELwSQsk3ECeRyzrZov0okuoKEgQEPo9GzWeCqLeqJxHtB 8vwKgSOGJ+eU6OYajVz36qqdYHQ9ZHiOIKAYOAoE4AoGjxp/iTQ8gYAHj+8ZcAQw9AenHgjOSgSDs0FxQ5WQdoHA76PciHJ2lud5aPK9IM/f XCUGFBz3jOfdBrebl3Aj0o6X4eaVwxynnnIbFg0GA3mGT5F3+Un8UxxdnJ9fvBMcz6OkGsbAsGr+M1Gq2R/1iOrPz0KpEF8Fhu9PPWdAG6u0 kzGjUsteTtTPlDPP72BmSqX41/vMiGJy9P5tTCpGRP0j3JFZCbK4zL0AAAAASUVORK5CYII=';
+    
+    // Debug base64 data
+    console.log('[PromptLint DEBUG] Base64 string length:', iconBase64.length);
+    console.log('[PromptLint DEBUG] Base64 first 50 chars:', iconBase64.substring(0, 50));
+    console.log('[PromptLint DEBUG] Base64 starts with PNG header:', iconBase64.startsWith('iVBORw0KGgo'));
+    
+    // Create data URL
+    const iconDataUrl = `data:image/png;base64,${iconBase64}`;
+    console.log('[PromptLint DEBUG] Data URL length:', iconDataUrl.length);
+    console.log('[PromptLint DEBUG] Data URL starts with:', iconDataUrl.substring(0, 30) + '...');
+    
+    title.innerHTML = `
+      <img src="${iconDataUrl}" alt="PromptLint" class="promptlint-panel__title-icon" 
+           onload="console.log('[PromptLint DEBUG] Icon loaded successfully')" 
+           onerror="console.error('[PromptLint DEBUG] Icon loading failed:', this.src.substring(0, 100) + '...')">
+      <span class="promptlint-panel__title-text">PromptLint</span>
+    `;
+    
+    // Debug DOM element creation
+    console.log('[PromptLint DEBUG] Title element created:', title);
+    console.log('[PromptLint DEBUG] Title innerHTML length:', title.innerHTML.length);
+    
+    // Check if img element was created
+    const imgElement = title.querySelector('img');
+    console.log('[PromptLint DEBUG] Img element found:', !!imgElement);
+    if (imgElement) {
+      console.log('[PromptLint DEBUG] Img src length:', imgElement.src.length);
+      console.log('[PromptLint DEBUG] Img src starts with:', imgElement.src.substring(0, 30) + '...');
+    }
     
     // Create AI Agent dropdown
     this.aiAgentDropdown = document.createElement('div');
@@ -123,7 +159,10 @@ export class FloatingPanel {
     // Create Rephrase toggle button
     this.rephraseToggleButton = document.createElement('button') as HTMLButtonElement;
     this.rephraseToggleButton.className = 'promptlint-panel__rephrase-toggle';
-    this.rephraseToggleButton.textContent = 'Rephrase';
+    this.rephraseToggleButton.innerHTML = `
+      <span class="rephrase-icon">✨</span>
+      <span class="rephrase-text">Rephrase</span>
+    `;
     this.rephraseToggleButton.addEventListener('click', () => this.toggleRephraseMode());
     
     this.scoreElement = document.createElement('div');
@@ -213,7 +252,7 @@ export class FloatingPanel {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 14px;
         min-width: 320px;
-        max-width: 380px;
+        max-width: 420px;
         transition: all ${this.options.animationDuration}ms ease;
         overflow: hidden;
       }
@@ -255,8 +294,8 @@ export class FloatingPanel {
       .promptlint-panel__drag-handle {
         cursor: grab;
         color: rgba(255, 255, 255, 0.9);
-        font-size: 10px;
-        font-weight: 600;
+        font-size: 16px;
+        font-weight: bold;
         padding: 6px;
         border-radius: 4px;
         transition: all 0.2s ease;
@@ -265,6 +304,7 @@ export class FloatingPanel {
         border: none;
         z-index: 1;
         position: relative;
+        letter-spacing: -1px;
       }
 
       .promptlint-panel__drag-handle:hover {
@@ -280,7 +320,6 @@ export class FloatingPanel {
 
       .promptlint-panel__title {
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
         font-size: 13px;
         flex: 1;
         text-align: center;
@@ -289,6 +328,22 @@ export class FloatingPanel {
         align-items: center;
         justify-content: center;
         height: 100%;
+        gap: 8px;
+      }
+
+      .promptlint-panel__title-icon {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+        filter: brightness(1.1) contrast(1.1);
+      }
+
+      .promptlint-panel__title-text {
+        color: #60A5FA;
+        text-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+        font-weight: 600;
+        font-size: 13px;
+        letter-spacing: 0.025em;
       }
 
       .promptlint-panel__ai-agent {
@@ -395,40 +450,121 @@ export class FloatingPanel {
       .promptlint-panel__rephrase-toggle {
         background: rgba(59, 130, 246, 0.8);
         color: white;
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 6px;
+        border: 4px solid transparent;
+        border-radius: 8px;
         padding: 8px 12px;
         font-size: 11px;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         backdrop-filter: blur(8px);
-        box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
-        min-width: 70px;
+        min-width: 80px;
         text-align: center;
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
         height: 32px;
+        position: relative;
+        background-clip: padding-box;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+      }
+
+      /* Rainbow border animation for initial state */
+      .promptlint-panel__rephrase-toggle::before {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        background: linear-gradient(45deg, 
+          #3b82f6, #8b5cf6, #ec4899, #f97316, 
+          #eab308, #22c55e, #06b6d4, #3b82f6);
+        background-size: 400% 400%;
+        border-radius: 12px;
+        z-index: -1;
+        animation: rainbow-border 4s linear infinite;
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+      }
+
+      /* Rainbow glow effect */
+      .promptlint-panel__rephrase-toggle::after {
+
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: -6px;
+        right: -6px;
+        bottom: -6px;
+        background: linear-gradient(45deg, 
+          #3b82f6, #8b5cf6, #ec4899, #f97316, 
+          #eab308, #22c55e, #06b6d4, #3b82f6);
+        background-size: 400% 400%;
+        border-radius: 14px;
+        z-index: -2;
+        animation: rainbow-glow 4s linear infinite;
+        opacity: 0.3;
+        filter: blur(4px);
+      }
+
+      @keyframes rainbow-border {
+        0% { background-position: 0% 0%; }
+        25% { background-position: 100% 0%; }
+        50% { background-position: 100% 100%; }
+        75% { background-position: 0% 100%; }
+        100% { background-position: 0% 0%; }
+      }
+
+      @keyframes rainbow-glow {
+        0% { background-position: 100% 100%; }
+        25% { background-position: 0% 100%; }
+        50% { background-position: 0% 0%; }
+        75% { background-position: 100% 0%; }
+        100% { background-position: 100% 100%; }
       }
 
       .promptlint-panel__rephrase-toggle:hover {
-        background: rgba(59, 130, 246, 0.9);
-        border-color: rgba(59, 130, 246, 0.3);
         transform: translateY(-1px);
-        box-shadow: 0 0 16px rgba(59, 130, 246, 0.6);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
 
+      /* Active state - remove shimmer, clean appearance */
       .promptlint-panel__rephrase-toggle.active {
-        background: rgba(239, 68, 68, 0.8);
-        border-color: rgba(239, 68, 68, 0.2);
-        box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .promptlint-panel__rephrase-toggle.active::before {
+        display: none;
       }
 
       .promptlint-panel__rephrase-toggle.active:hover {
-        background: rgba(239, 68, 68, 0.9);
-        border-color: rgba(239, 68, 68, 0.3);
-        box-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Icon and text styling */
+      .promptlint-panel__rephrase-toggle .rephrase-icon {
+        font-size: 14px;
+        transition: transform 0.2s ease;
+      }
+
+      .promptlint-panel__rephrase-toggle:hover .rephrase-icon {
+        transform: scale(1.1);
+      }
+
+      .promptlint-panel__rephrase-toggle .rephrase-text {
+        font-weight: 500;
+        letter-spacing: 0.025em;
       }
 
       .promptlint-panel__score {
@@ -1425,14 +1561,20 @@ export class FloatingPanel {
     if (this.isRephraseMode) {
       this.hideRephrase();
       if (this.rephraseToggleButton) {
-        this.rephraseToggleButton.textContent = 'Rephrase';
+        this.rephraseToggleButton.innerHTML = `
+          <span class="rephrase-icon">✨</span>
+          <span class="rephrase-text">Rephrase</span>
+        `;
         this.rephraseToggleButton.classList.remove('active');
       }
     } else {
       if (this.currentPrompt && this.rephraseCallbacks.onRephraseRequest) {
         this.handleRephraseClick();
         if (this.rephraseToggleButton) {
-          this.rephraseToggleButton.textContent = 'Close';
+          this.rephraseToggleButton.innerHTML = `
+            <span class="rephrase-icon">⬆</span>
+            <span class="rephrase-text">Collapse</span>
+          `;
           this.rephraseToggleButton.classList.add('active');
         }
       }
@@ -1664,3 +1806,4 @@ export class FloatingPanel {
     console.log('[PromptLint] Floating panel cleaned up');
   }
 }
+
