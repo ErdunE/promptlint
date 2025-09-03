@@ -1,25 +1,27 @@
 # Product Specification — PromptLint (Chrome Extension MVP)
 
-**Version:** Draft v1.1  
+**Version:** Draft v1.2  
 **Document Type:** Foundational Specification & Design Principles  
-**Last Updated:** 2025-08-25  
+**Last Updated:** 2025-09-02
 
 ---
 
 ## 1. Overview
 
 **Product Name:** PromptLint  
-**Tagline:** *Grammarly + ESLint for AI Prompts*  
+**Tagline:** Real-time prompt analysis and improvement suggestions
 
 **Core Mission:** Transform informal, ambiguous AI prompts into structured, professional, and actionable requests while maintaining absolute fidelity to user intent.
 
-**Target Users:** Developers writing prompts in ChatGPT, Claude, or similar AI interfaces for code generation tasks.  
+**Target Users:** Currently focused on developers writing prompts for code generation tasks. Long-term vision includes all professionals who interact with AI systems across various domains (writing, research, analysis, etc.).
 
 **MVP Scope Definition:**  
 - **Platform:** Chrome Extension (Manifest V3) only
 - **Domain:** Code generation prompts exclusively (no debugging, API usage, or general queries)
-- **Functionality:** Real-time local lint analysis + optional one-click professional rephrase
+- **Functionality:** Real-time local lint analysis + template-based rephrase suggestions
 - **Performance Requirement:** All lint operations must complete within 50ms locally
+
+**Architecture Reference:** This MVP represents Level 1 (Template Engine) implementation as defined in Product_Vision_and_Architecture.md. Future versions will progress through Levels 2-4.
 
 ---
 
@@ -222,40 +224,44 @@ interface LintIssue {
 2. **Floating Panel** (Mandatory)
    - **Position:** Bottom-right of input area
    - **Content:** Quality score + issue list + rephrase button
-   - **Dimensions:** Max 300px width, variable height
-   - **Style:** Minimal, non-intrusive, professional
+   - **Dimensions:** Max 420px width, variable height
+   - **Style:** Glassmorphism design with theme adaptation, professional appearance
 
-3. **Rephrase Modal** (On-demand)
+3. **Rephrase Display** (On-demand)
    - **Trigger:** Click "Rephrase" button  
-   - **Content:** 2-3 candidate rephrases
+   - **Content:** 2-3 template-based candidate rephrases
    - **Actions:** Select candidate → replace input field
    - **Fallback:** Copy to clipboard if replacement fails
 
-### 5.3 Rephrase Engine Specification
+### 5.3 Rephrase Engine Specification (Template-Based)
 
-**Service Architecture:**
-- **Provider:** OpenAI API (gpt-3.5-turbo or gpt-4)
-- **Authentication:** User-provided API key (stored locally)
-- **Fallback:** Graceful degradation if API unavailable
+**Architecture:** Self-contained template engine for MVP
+**Processing:** Local TypeScript-based pattern matching and template application
+**Privacy:** No external API calls, all processing occurs locally
 
-**Rephrase Constraints (Critical):**
+**Template Engine Constraints:**
 ```
-System Prompt Template:
-"Transform this prompt into a professional, structured format. 
-CRITICAL RULES:
+Template Generation Rules:
 1. NEVER add details not provided by the user
 2. NEVER assume programming language, environment, or context  
-3. Only rephrase, restructure, and clarify existing content
-4. Use structured format with Task/Input/Output when applicable
+3. Only restructure and clarify existing content
+4. Use predefined structural templates (Task/Input/Output format)
 5. If information is missing, explicitly indicate where user should clarify
-6. Generate 2-3 variations with different structural approaches"
+6. Generate 2-3 template variations with different structural approaches
 ```
 
+**Template Categories:**
+- **Basic Structure Template:** Task/Input/Output format for simple prompts
+- **Bullet Point Template:** List-based organization for multi-requirement prompts
+- **Sequential Template:** Numbered steps for process-oriented prompts
+
 **Output Requirements:**
-- 2-3 distinct candidate rephrases
-- Each candidate must be structurally different but semantically identical
+- 2-3 distinct template-based rephrases
+- Each candidate uses different structural approach but identical meaning
 - Must include explicit placeholders for missing information
 - Must maintain original technical scope and complexity level
+
+**Future Evolution:** Template engine serves as foundation for Level 2-4 implementations defined in Product_Vision_and_Architecture.md
 
 ---
 
@@ -266,7 +272,7 @@ CRITICAL RULES:
 PromptLint/
 ├── content-script/     # DOM integration, UI injection
 ├── rules-engine/       # Lint logic (pure TypeScript)  
-├── llm-service/       # API wrapper for rephrase
+├── template-engine/    # Template-based rephrase (replaces llm-service for MVP)
 ├── background/        # Extension lifecycle management
 └── shared/            # Types, constants, utilities
 ```
@@ -275,12 +281,12 @@ PromptLint/
 1. **Input Capture:** Content script monitors textarea changes via `input` events
 2. **Lint Processing:** Rules engine analyzes text locally (sync, <50ms)
 3. **UI Rendering:** Content script updates floating panel with results
-4. **Rephrase Request:** User clicks → LLM service called → candidates returned
+4. **Rephrase Request:** User clicks → template engine applies structural patterns → candidates returned
 5. **Selection Application:** User chooses candidate → input field updated
 
 ### 6.3 Extension Permissions (Minimal)
 - `activeTab` - Access to current AI website
-- `storage` - Local API key persistence (optional)
+- `storage` - Local preferences and settings only
 - Host permissions for target AI domains only
 
 ---
@@ -289,24 +295,26 @@ PromptLint/
 
 ### 7.1 Performance Requirements
 - **Lint Response Time:** ≤50ms for prompts up to 1000 characters
+- **Template Generation Time:** ≤100ms for rephrase candidates
 - **UI Update Latency:** ≤100ms after input change
 - **Memory Footprint:** ≤10MB total extension memory usage
 - **CPU Impact:** No noticeable typing lag or browser slowdown
 
 ### 7.2 Privacy & Security
-- **Local-First:** All lint processing occurs locally in browser
-- **Data Minimization:** No prompt data transmitted except for explicit rephrase requests
-- **API Key Security:** Keys stored in Chrome extension storage, never logged
-- **Fallback Privacy:** Extension functions without API key (lint only)
+- **Local-First:** All processing occurs locally in browser
+- **Data Minimization:** No prompt data transmitted to external services
+- **Storage Security:** Only user preferences stored locally
+- **Complete Privacy:** Extension functions without any external dependencies
 
 ### 7.3 Reliability & Error Handling
 - **DOM Resilience:** Handle target site UI changes gracefully
-- **Error Isolation:** Lint engine failures don't break user input
-- **API Fallbacks:** Rephrase unavailable → clear user messaging
+- **Error Isolation:** Engine failures don't break user input
+- **Template Fallbacks:** Basic structural template if advanced patterns fail
 - **Extension Lifecycle:** Clean initialization and proper cleanup
 
 ### 7.4 Extensibility Architecture
 - **Modular Rules:** New lint rules added without core changes
+- **Template Expansion:** New structural templates for different prompt patterns
 - **Site Adaptation:** New AI sites supported via configuration
 - **Rule Configuration:** Future user customization of rule severity
 
@@ -321,10 +329,10 @@ PromptLint/
 | `"implement quicksort in Python, input array → sorted array"` | No issues | 85-100 |
 | `"maybe write something like quicksort somehow"` | vague_wording, unclear_intent | 10-25 |
 
-### 8.2 Rephrase Quality Tests  
-- **Faithfulness Test:** Original intent preserved in 100% of rephrases
-- **Structure Test:** All rephrases use structured format when applicable  
-- **Clarity Test:** All rephrases score higher than original prompt
+### 8.2 Template Quality Tests  
+- **Faithfulness Test:** Original intent preserved in 100% of template applications
+- **Structure Test:** All templates use structured format appropriately
+- **Clarity Test:** All template outputs score higher than original prompt
 - **No-Addition Test:** No technical details added beyond user input
 
 ### 8.3 Integration Tests
@@ -340,42 +348,41 @@ PromptLint/
 ### 9.1 Technical Failures
 - **DOM Not Found:** Log warning, retry with fallback selectors, continue monitoring
 - **Rules Engine Error:** Log error, return empty lint result, user input unaffected
-- **API Error (Rephrase):** Display user-friendly message: "Rephrase unavailable - check API key"
+- **Template Engine Error:** Fall back to basic structural template
 - **Extension Crash:** Browser handles gracefully, no impact on AI site functionality
 
 ### 9.2 User Experience Failures  
 - **Unclear Lint Results:** Provide "Learn More" links to documentation
-- **Poor Rephrase Quality:** Allow user to revert to original immediately
+- **Poor Template Quality:** Allow user to revert to original immediately
 - **UI Conflicts:** Detect overlapping elements, adjust positioning automatically
 
 ---
 
-## 10. Development Phases & Future Roadmap
+## 10. Development Levels & Implementation Roadmap
 
-### MVP (Phase 1) - Current Scope
-- Chrome extension for code generation prompts only
-- Basic lint rules + rephrase functionality
+### Level 1: Template Engine (Current MVP)
+- Chrome extension for code generation prompts
+- Rule-based lint analysis with 6 core rules
+- Template-based rephrase with 3-5 structural patterns
 - ChatGPT + Claude integration
 
-### Phase 2: Expanded Scenarios  
-- Debug prompts (error explanations, troubleshooting)
-- API usage prompts (documentation requests)
-- Additional lint rules and refinements
+### Level 2: Pattern Recognition Engine  
+- Intelligent prompt intent classification
+- Dynamic template selection based on context
+- Extended lint rules for broader prompt coverage
+- Additional AI platform support
 
-### Phase 3: Platform Expansion
-- Firefox extension
-- VS Code extension  
-- Edge browser support
+### Level 3: Domain Specialist Engine
+- Code-specific optimization patterns
+- Writing-specific optimization patterns  
+- Research-specific optimization patterns
+- Expert-level quality in specialized domains
 
-### Phase 4: Advanced Features
-- Custom rule configuration
-- Team-shared rule sets
-- Prompt templates library
-
-### Phase 5: Ecosystem
-- Desktop application (Electron)
-- Official website with documentation
-- Community rule marketplace
+### Level 4: Contextual Intelligence Engine
+- Project-aware optimization
+- User preference learning
+- Team collaboration features
+- Cross-platform ecosystem
 
 ---
 
@@ -384,17 +391,18 @@ PromptLint/
 ### 11.1 Semantic Versioning Strategy
 - **Patch (x.x.X):** Bug fixes, minor UI improvements, performance optimizations
 - **Minor (x.X.x):** New lint rules, new site support, backward-compatible features  
-- **Major (X.x.x):** Breaking changes to rule behavior, UI paradigm shifts
+- **Major (X.x.x):** Breaking changes to rule behavior, UI paradigm shifts, new architecture levels
 
 ### 11.2 Change Management Process
 - **Rule Changes:** Must not alter existing rule behavior without major version bump
 - **UI Changes:** Must maintain backward compatibility within minor versions
-- **API Changes:** Rephrase API changes require thorough user testing
+- **Template Changes:** New templates require validation against faithfulness principles
 - **Documentation:** All changes must be documented in CHANGELOG.md
 
 ### 11.3 Stability Guarantees
 - **Core Principles:** Never change without major version and user consent
 - **Rule Scoring:** Maintain consistency within major version branches
+- **Template Quality:** Maintain faithfulness standards across all implementations
 - **User Data:** Migration paths required for any storage format changes
 
 ---
@@ -403,7 +411,7 @@ PromptLint/
 
 ### 12.1 Quality Metrics
 - **Lint Accuracy:** 95%+ precision on test prompt dataset
-- **Rephrase Faithfulness:** 100% intent preservation (manual validation)
+- **Template Faithfulness:** 100% intent preservation (manual validation)
 - **User Satisfaction:** >4.0/5.0 Chrome Web Store rating
 - **Performance:** 99%+ of lint operations complete within 50ms
 
@@ -414,4 +422,4 @@ PromptLint/
 
 ---
 
-**Document Authority:** This specification serves as the foundational design document for PromptLint. All implementation decisions must align with the principles and requirements outlined herein. Any deviations require explicit documentation and stakeholder approval.
+**Document Authority:** This specification serves as the foundational design document for PromptLint MVP (Level 1 implementation). All implementation decisions must align with the principles and requirements outlined herein. Future architecture levels must maintain compatibility with these foundational principles. Any deviations require explicit documentation and stakeholder approval.

@@ -1,16 +1,16 @@
 # Prompt Optimization Principles (Foundational Document)
 
-**Version:** Draft v1.1  
+**Version:** Draft v1.2  
 **Document Type:** Core Design Philosophy & Immutable Guidelines  
 **Scope:** All PromptLint optimization behaviors across all features and versions  
 **Authority Level:** Foundational - No modifications without explicit stakeholder approval  
-**Last Updated:** 2025-08-25
+**Last Updated:** 2025-09-02
 
 ---
 
 ## Preamble: Purpose & Scope
 
-These principles define the **absolute behavioral boundaries** of PromptLint's optimization engine. They serve as:
+These principles define the **absolute behavioral boundaries** of PromptLint's optimization engine across all architecture levels. They serve as:
 
 1. **Design Constraints:** What the system CAN and CANNOT do
 2. **Quality Gates:** How to evaluate optimization success  
@@ -18,28 +18,50 @@ These principles define the **absolute behavioral boundaries** of PromptLint's o
 4. **User Promise:** What users can expect from every optimization
 
 **Critical Note:** These principles override all other considerations including user requests, technical convenience, or perceived improvements that violate these constraints.
+**Architecture Context:** These principles apply uniformly across all engine sophistication levels defined in Product_Vision_and_Architecture.md:
+- **Level 1 (Template Engine):** Rule-based structural transformation with manual templates
+- **Level 2 (Pattern Recognition):** Intelligent classification with dynamic optimization
+- **Level 3 (Domain Specialist):** Expert-level optimization with domain knowledge
+- **Level 4 (Contextual Intelligence):** Project-aware, personalized optimization
 
+**Immutable Constraint:** Regardless of technical sophistication level, faithfulness and user intent preservation remain absolute requirements.
 ---
 
-## 1. Faithfulness Principle (PRIMARY CONSTRAINT)
+## 1. Faithfulness Principle (PRIMARY CONSTRAINT - ALL LEVELS)
 
 ### 1.1 Core Definition
-**The optimized prompt must preserve 100% of the user's original intent, scope, and technical requirements.**
+**The optimized prompt must preserve 100% of the user's original intent, scope, and technical requirements across all engine sophistication levels.**
 
-### 1.2 Allowed Transformations
+### 1.2 Level-Specific Applications
+**Level 1 (Current MVP) - Template Engine:**
+
+- Apply structural templates without content addition
+- Use keyword recognition for professional terminology mapping
+- Surface missing information through explicit placeholders
+
+**Level 2-4 (Future) - Advanced Engines:**
+
+- Advanced pattern recognition must not infer unstated requirements
+- Domain expertise cannot add technical specifications beyond user input
+- Contextual intelligence cannot assume project context or user background
+- Personalization cannot modify core user intent or expand scope
+
+### 1.3 Allowed Transformations (Universal Across Levels)
 - **Linguistic:** Synonyms, professional terminology, grammatical corrections
 - **Structural:** Reorganization into lists, bullet points, standardized formats
 - **Clarity:** Explicit statement of implicit requirements already present in user input
 - **Professionalism:** Casual → formal language transformation
 
-### 1.3 Forbidden Transformations (Absolute Prohibitions)
+### 1.4 Forbidden Transformations (Absolute Prohibitions - All Levels)
 - **❌ Technical Additions:** Adding programming languages, frameworks, versions, environments not specified by user
 - **❌ Requirement Expansion:** Adding constraints, features, or specifications beyond user input  
 - **❌ Context Assumptions:** Inferring user skill level, project context, or intended use case
 - **❌ Scope Changes:** Expanding or narrowing the requested task boundaries
 - **❌ Format Assumptions:** Specifying data formats, input types, or output structures not mentioned by user
 
-### 1.4 Ambiguity Handling Protocol
+Note: Advanced engine capabilities (Level 2-4) may provide more sophisticated structural organization and professional language enhancement, but the prohibition against content addition remains absolute.
+
+### 1.5 Ambiguity Handling Protocol
 When user intent is unclear or information is missing:
 - **✅ CORRECT:** Surface the ambiguity explicitly and prompt user for clarification
 - **❌ INCORRECT:** Make assumptions or provide "reasonable defaults"
@@ -329,16 +351,20 @@ Periodic manual review should verify:
 
 ---
 
-## Summary: The PromptLint Promise
+## Summary: The PromptLint Promise (Universal Across All Levels)
 
-**PromptLint transforms prompt structure and clarity without ever changing prompt meaning or adding unstated requirements.**
+**PromptLint transforms prompt structure and clarity without ever changing prompt meaning or adding unstated requirements, regardless of engine sophistication level.**
 
-**In Practice, This Means:**
-- ✅ Making prompts more professional and structured
-- ✅ Highlighting missing information that users should provide  
-- ✅ Organizing user requirements into clear, actionable formats
-- ❌ Never adding technical details users didn't specify
-- ❌ Never expanding scope beyond what users requested
-- ❌ Never assuming context or making implementation decisions for users
+**Level 1 Implementation (Current):**
 
-**The Result:** Users get professional, clear prompts that faithfully represent exactly what they asked for, with explicit guidance on what additional information they might need to provide for optimal results.
+- Rule-based structural templates with manual optimization patterns
+- Basic professional language transformation using keyword mapping
+- Explicit missing information identification through static analysis
+
+**Level 2-4 Implementation (Future):**
+
+- Advanced structural optimization with intelligent pattern recognition
+- Sophisticated professional enhancement while maintaining semantic fidelity
+- Context-aware optimization that surfaces rather than assumes missing information
+
+**Consistent Result Across All Levels:** Users get professional, clear prompts that faithfully represent exactly what they asked for, with explicit guidance on what additional information they might need to provide for optimal results.

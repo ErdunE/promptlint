@@ -2,7 +2,9 @@
 
 **Document Purpose:** Development priority guide to prevent scope creep and maintain focus during MVP phase.
 
-**Last Updated:** 2025-08-25
+**Last Updated:** 2025-09-02
+
+**Architecture Reference:** This roadmap implements Level 1 (Template Engine) as defined in Product_Vision_and_Architecture.md.
 
 ---
 
@@ -15,7 +17,7 @@
 - `LintResult`, `LintIssue`, `RuleType` interfaces
 - Extension UI component types  
 - Site adapter configuration types
-- API service interfaces
+- Template engine interfaces
 
 **Success Criteria:** Other packages can import types without circular dependencies.
 
@@ -67,16 +69,16 @@
 
 ---
 
-### **Priority 5: packages/llm-service/ (Enhancement Feature)**
+### **Priority 5: packages/template-engine/ (Enhancement Feature)**
 **Why Last:** Rephrase functionality is enhancement, not core MVP requirement.
 
 **Key Deliverables:**
-- OpenAI API integration
-- System prompt templates
-- Error handling and rate limiting
-- API key management
+- Template-based prompt restructuring
+- 3-5 structural template patterns (Task/Input/Output, Bullet Points, Sequential)
+- Pattern matching for template selection
+- Local processing with no external dependencies
 
-**Success Criteria:** Can generate 2-3 professional rephrase candidates while maintaining faithfulness.
+**Success Criteria:** Can generate 2-3 template-based rephrase candidates while maintaining faithfulness principles.
 
 ---
 
@@ -107,9 +109,10 @@ Week 5: Integration & Testing
         → Performance optimization
         → Chrome Web Store preparation
 
-Week 6+: packages/llm-service/
-        → Rephrase functionality (post-MVP)
-        → API integration and error handling
+Week 6+: packages/template-engine/
+        → Template pattern development
+        → Structural transformation logic
+        → Local processing optimization
 ```
 
 ---
@@ -124,13 +127,18 @@ Week 6+: packages/llm-service/
 
 ### **Development Sequence Violations:**
 - ❌ **Don't** start extension-chrome before rules-engine is complete
-- ❌ **Don't** implement llm-service until core lint functionality works
+- ❌ **Don't** implement template-engine until core lint functionality works
 - ❌ **Don't** skip shared-types - it prevents refactoring hell later
 
 ### **Quality Shortcuts:**
 - ❌ **Don't** skip tests for rules-engine (it's the core value)
 - ❌ **Don't** hardcode selectors without fallback strategies
 - ❌ **Don't** ignore the <50ms performance requirement
+
+### **Template Engine Scope Creep:**
+- ❌ **Don't** attempt AI-powered generation in MVP
+- ❌ **Don't** build complex NLP processing for template selection
+- ❌ **Don't** create domain-specific templates beyond basic structural patterns
 
 ---
 
@@ -157,25 +165,31 @@ Week 6+: packages/llm-service/
 - [ ] Professional UI that matches design principles
 - [ ] Ready for initial user testing
 
-### **Milestone 5: Enhanced MVP**
-- [ ] Rephrase functionality working
-- [ ] API key management secure
-- [ ] Full feature set from Product Spec delivered
+### **Milestone 5: Enhanced MVP (Template Engine)**
+- [ ] Template-based rephrase functionality working
+- [ ] 3-5 structural templates implemented
+- [ ] Local processing with <100ms generation time
+- [ ] Full Level 1 feature set from Product Spec delivered
 
 ---
 
-## 🎪 Current Focus Reminder
+## 🎪 Current Focus Areas (v0.3.0 Status)
 
-**RIGHT NOW:** Focus on `packages/shared-types/`
+**Completed:**
+- ✅ **Priority 1:** shared-types complete
+- ✅ **Priority 3:** site-adapters functional for ChatGPT/Claude
+- ✅ **Priority 4:** extension-chrome basic UI complete
+
+**In Progress:**
+- 🟡 **Priority 2:** rules-engine partially complete (basic functionality working, needs expansion)
+- ❌ **Priority 5:** template-engine not started (currently using static placeholder templates)
 
 **Next Steps:**
-1. Define `LintResult` interface structure
-2. Define `LintIssue` types and severity levels  
-3. Define rule type enums
-4. Set up package.json and TypeScript config
-5. Create initial exports and documentation
+1. Complete Priority 2 by expanding rules-engine coverage and validation
+2. Begin Priority 5 by developing template-engine to replace static rephrase templates
+3. Validate performance requirements across all components
 
-**Success Metric:** Other team members can import these types and understand the data flow without explanation.
+**Success Metric:** Deliver a working template-based rephrase system that maintains faithfulness principles while providing valuable prompt restructuring.
 
 ---
 
@@ -185,5 +199,6 @@ Week 6+: packages/llm-service/
 - **When confused:** Return to priority order
 - **When tempted to add features:** Check against anti-patterns
 - **Before starting new package:** Verify prerequisites are complete
+- **After completing milestones:** Update current focus areas
 
-**Remember:** MVP success is measured by delivering a working Chrome extension that provides real-time lint feedback for code generation prompts. Everything else is nice-to-have.
+**Remember:** MVP success is measured by delivering a working Chrome extension with template-based optimization that provides real-time lint feedback and faithful prompt restructuring for code generation tasks. Advanced AI features belong in Level 2+ implementations.
