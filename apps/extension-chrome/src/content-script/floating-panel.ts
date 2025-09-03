@@ -236,19 +236,101 @@ export class FloatingPanel {
     styleElement.id = 'promptlint-panel-styles';
     styleElement.textContent = this.getPanelCSS();
     document.head.appendChild(styleElement);
+    
+    // Set up theme change detection
+    this.setupThemeChangeDetection();
+  }
+
+  private setupThemeChangeDetection(): void {
+    // Listen for theme changes (common in modern apps)
+    const observer = new MutationObserver((mutations) => {
+      let shouldRefresh = false;
+      
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && 
+            (mutation.attributeName === 'class' || mutation.attributeName === 'data-theme')) {
+          shouldRefresh = true;
+        }
+      });
+      
+      if (shouldRefresh) {
+        this.refreshTheme();
+      }
+    });
+    
+    // Observe body and html for theme changes
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+    
+    // Also listen for storage events (for cross-tab theme changes)
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'theme' || event.key === 'color-scheme') {
+        this.refreshTheme();
+      }
+    });
+  }
+
+  private refreshTheme(): void {
+    const styleElement = document.getElementById('promptlint-panel-styles');
+    if (styleElement) {
+      styleElement.textContent = this.getPanelCSS();
+      console.log('[PromptLint] Theme refreshed for current page background');
+    }
+  }
+
+  private detectLightTheme(): boolean {
+    try {
+      // Get the computed background color of the body or html element
+      const body = document.body;
+      const html = document.documentElement;
+      
+      // Try to get background color from body first, then html
+      const bgColor = window.getComputedStyle(body).backgroundColor || 
+                     window.getComputedStyle(html).backgroundColor;
+      
+      if (bgColor) {
+        // Parse RGB values
+        const rgbMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+        if (rgbMatch) {
+          const r = parseInt(rgbMatch[1]);
+          const g = parseInt(rgbMatch[2]);
+          const b = parseInt(rgbMatch[3]);
+          
+          // Calculate perceived brightness using luminance formula
+          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+          
+          // Return true for light themes (luminance > 0.5)
+          return luminance > 0.5;
+        }
+      }
+      
+      // Fallback: check if page has light theme indicators
+      const hasLightTheme = document.body.classList.contains('light') ||
+                           document.body.classList.contains('light-mode') ||
+                           document.documentElement.classList.contains('light') ||
+                           document.documentElement.classList.contains('light-mode');
+      
+      return hasLightTheme;
+    } catch (error) {
+      console.warn('[PromptLint] Error detecting theme:', error);
+      // Default to dark theme for safety
+      return false;
+    }
   }
 
   private getPanelCSS(): string {
+    const isLightTheme = this.detectLightTheme();
+    
     return `
       .promptlint-panel {
         position: fixed;
         z-index: 10000;
-        background: rgba(255, 255, 255, 0.12);
+        background: ${isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.12)'};
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid ${isLightTheme ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.2)'};
         border-radius: 12px;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        box-shadow: ${isLightTheme ? '0 4px 12px rgba(0, 0, 0, 0.05)' : '0 0 20px rgba(59, 130, 246, 0.2)'};
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 14px;
         min-width: 320px;
@@ -282,9 +364,9 @@ export class FloatingPanel {
         align-items: center;
         justify-content: space-between;
         padding: 12px 16px;
-        background: rgba(59, 130, 246, 0.05);
+        background: ${isLightTheme ? 'rgba(59, 130, 246, 0.08)' : 'rgba(59, 130, 246, 0.05)'};
         backdrop-filter: blur(14px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid ${isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.2)'};
         border-radius: 12px 12px 0 0;
         position: relative;
         gap: 12px;
@@ -293,7 +375,7 @@ export class FloatingPanel {
 
       .promptlint-panel__drag-handle {
         cursor: grab;
-        color: rgba(255, 255, 255, 0.9);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
         font-size: 16px;
         font-weight: bold;
         padding: 6px;
@@ -308,7 +390,7 @@ export class FloatingPanel {
       }
 
       .promptlint-panel__drag-handle:hover {
-        color: rgba(255, 255, 255, 1);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 1)' : 'rgba(255, 255, 255, 1)'};
         background: rgba(59, 130, 246, 0.1);
         border-radius: 4px;
       }
@@ -351,7 +433,7 @@ export class FloatingPanel {
         align-items: center;
         gap: 4px;
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.9);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
         cursor: pointer;
         padding: 6px 8px;
         border-radius: 4px;
@@ -437,18 +519,18 @@ export class FloatingPanel {
       .ai-agent-option-name {
         font-weight: 500;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.9);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
         margin-bottom: 2px;
       }
 
       .ai-agent-option-description {
         font-size: 10px;
-        color: rgba(255, 255, 255, 0.6);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)'};
         line-height: 1.3;
       }
 
       .promptlint-panel__rephrase-toggle {
-        background: rgba(59, 130, 246, 0.8);
+        background: ${isLightTheme ? 'rgba(59, 130, 246, 0.9)' : 'rgba(59, 130, 246, 0.8)'};
         color: white;
         border: 4px solid transparent;
         border-radius: 8px;
@@ -467,7 +549,7 @@ export class FloatingPanel {
         height: 32px;
         position: relative;
         background-clip: padding-box;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        box-shadow: ${isLightTheme ? '0 4px 12px rgba(59, 130, 246, 0.2)' : '0 0 20px rgba(59, 130, 246, 0.3)'};
       }
 
       /* Rainbow border animation for initial state */
@@ -572,9 +654,9 @@ export class FloatingPanel {
         font-size: 14px;
         padding: 6px 10px;
         border-radius: 6px;
-        background: rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: ${isLightTheme ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.15)'};
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.9)'};
+        border: 1px solid ${isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.15)'};
         backdrop-filter: blur(8px);
         min-width: 32px;
         text-align: center;
@@ -589,21 +671,21 @@ export class FloatingPanel {
       .promptlint-panel__score--poor {
         background: rgba(239, 68, 68, 0.2);
         border-color: rgba(239, 68, 68, 0.3);
-        color: rgba(255, 255, 255, 0.95);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
         box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
       }
 
       .promptlint-panel__score--fair {
         background: rgba(245, 158, 11, 0.2);
         border-color: rgba(245, 158, 11, 0.3);
-        color: rgba(255, 255, 255, 0.95);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
         box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
       }
 
       .promptlint-panel__score--good {
         background: rgba(34, 197, 94, 0.2);
         border-color: rgba(34, 197, 94, 0.3);
-        color: rgba(255, 255, 255, 0.95);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
         box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
       }
 
@@ -633,7 +715,7 @@ export class FloatingPanel {
         font-size: 14px;
         cursor: pointer;
         padding: 6px;
-        color: rgba(255, 255, 255, 0.9);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
         border-radius: 4px;
         transition: all 0.2s ease;
         width: 24px;
@@ -647,7 +729,7 @@ export class FloatingPanel {
 
       .promptlint-panel__toggle:hover {
         background: rgba(59, 130, 246, 0.1);
-        color: rgba(255, 255, 255, 1);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 1)' : 'rgba(255, 255, 255, 1)'};
         border-radius: 4px;
       }
 
@@ -667,7 +749,7 @@ export class FloatingPanel {
 
       .promptlint-panel__issue {
         padding: 12px 16px;
-        border-bottom: 1px solid #f1f3f4;
+        border-bottom: 1px solid ${isLightTheme ? 'rgba(0, 0, 0, 0.08)' : '#f1f3f4'};
         display: flex;
         align-items: flex-start;
         gap: 8px;
@@ -686,15 +768,15 @@ export class FloatingPanel {
       }
 
       .promptlint-panel__issue-icon--high {
-        background: #dc3545;
+        background: ${isLightTheme ? '#dc2626' : '#dc3545'};
       }
 
       .promptlint-panel__issue-icon--medium {
-        background: #ffc107;
+        background: ${isLightTheme ? '#d97706' : '#ffc107'};
       }
 
       .promptlint-panel__issue-icon--low {
-        background: #17a2b8;
+        background: ${isLightTheme ? '#0891b2' : '#17a2b2'};
       }
 
       .promptlint-panel__issue-content {
@@ -703,13 +785,13 @@ export class FloatingPanel {
 
       .promptlint-panel__issue-title {
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.9);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
         margin-bottom: 2px;
         font-size: 13px;
       }
 
       .promptlint-panel__issue-description {
-        color: rgba(255, 255, 255, 0.7);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)'};
         font-size: 12px;
         line-height: 1.4;
       }
@@ -717,7 +799,7 @@ export class FloatingPanel {
       .promptlint-panel__no-issues {
         padding: 16px;
         text-align: center;
-        color: rgba(255, 255, 255, 0.8);
+        color: ${isLightTheme ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)'};
         font-weight: 500;
         font-size: 13px;
       }
