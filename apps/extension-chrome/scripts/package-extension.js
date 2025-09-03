@@ -108,37 +108,22 @@ class ExtensionPackager {
   }
 
   async createIcons() {
-    console.log('🎯 Creating PNG icon files...');
+    console.log('🎯 Copying prepared icon files...');
     
     const iconSizes = [16, 48, 128];
     
     for (const size of iconSizes) {
-      const pngBuffer = this.generatePngIcon(size);
-      const iconPath = path.join(this.distDir, `icon-${size}.png`);
+      const iconSrc = path.join(this.rootDir, '..', '..', 'appicon', `icon-${size}.png`);
+      const iconDest = path.join(this.distDir, `icon-${size}.png`);
       
-      await fs.writeFile(iconPath, pngBuffer);
-      console.log(`  ✓ Created icon-${size}.png`);
+      try {
+        await fs.copyFile(iconSrc, iconDest);
+        console.log(`  ✓ Copied icon-${size}.png`);
+      } catch (error) {
+        console.error(`  ❌ Failed to copy icon-${size}.png:`, error.message);
+        throw error;
+      }
     }
-  }
-
-  generatePngIcon(size) {
-    // Create a minimal PNG (1x1 transparent pixel)
-    // This is a base64 encoded 1x1 transparent PNG
-    const pngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77yQAAAABJRU5ErkJggg==';
-    return Buffer.from(pngBase64, 'base64');
-  }
-
-  generateIconSvg(size) {
-    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  <rect width="${size}" height="${size}" rx="${size * 0.2}" fill="url(#grad)"/>
-  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="${size * 0.4}" fill="white" text-anchor="middle" dominant-baseline="central">✨</text>
-</svg>`;
   }
 }
 
