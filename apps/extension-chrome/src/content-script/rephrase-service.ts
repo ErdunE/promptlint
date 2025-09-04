@@ -6,7 +6,9 @@
  */
 
 import { createRephraseServiceWithStoredKey, createApiKeyStorage, testApiKey } from '@promptlint/llm-service';
-import { RephraseResult, RephraseRequest, RephraseError, RephraseErrorType } from '@promptlint/shared-types';
+import { RephraseResult, RephraseRequest, RephraseError, RephraseErrorType, LintResult, LintRuleType, LintIssue } from '@promptlint/shared-types';
+import { TemplateEngine, TemplateCandidate } from '@promptlint/template-engine';
+import { analyzePrompt } from '@promptlint/rules-engine';
 
 export interface RephraseServiceStatus {
   available: boolean;
@@ -18,6 +20,7 @@ export class ExtensionRephraseService {
   private rephraseService: any = null;
   private apiKeyStorage = createApiKeyStorage();
   private isInitialized = false;
+  private templateEngine = new TemplateEngine();
 
   /**
    * Initialize the rephrase service
@@ -295,71 +298,183 @@ export class ExtensionRephraseService {
   }
 
   /**
-   * Create offline rephrase result when API is not available
+   * Create offline rephrase result using template engine
    */
   private createOfflineRephraseResult(prompt: string): RephraseResult {
-    const candidates = [];
+    try {
+      // Analyze prompt to get lint result
+      const lintResult = this.createBasicLintResult(prompt);
+      
+      // Generate template candidates
+      const templateCandidates = this.templateEngine.generateCandidates(prompt, lintResult);
+      
+      // Convert template candidates to rephrase candidates
+      const candidates = templateCandidates.map((templateCandidate: TemplateCandidate) => ({
+        id: templateCandidate.id,
+        text: templateCandidate.content,
+        approach: this.mapTemplateTypeToApproach(templateCandidate.type),
+        estimatedScore: Math.round(templateCandidate.score * 100),
+        improvements: this.extractImprovements(templateCandidate),
+        length: templateCandidate.content.length
+      }));
+
+      return {
+        originalPrompt: prompt,
+        candidates,
+        metadata: {
+          processingTime: templateCandidates.reduce((sum: number, c: TemplateCandidate) => sum + c.generationTime, 0),
+          model: 'template-engine-v0.4.0',
+          tokensUsed: 0,
+          estimatedCost: 0,
+          timestamp: Date.now()
+        },
+        warnings: [
+          'Generated using PromptLint Template Engine v0.4.0',
+          'For AI-powered improvements, configure OpenAI API key in extension popup',
+          'Template engine provides intelligent structural improvements based on lint analysis'
+        ]
+      };
+      
+    } catch (error) {
+      console.error('[PromptLint] Template engine failed, using fallback:', error);
+      return this.createFallbackRephraseResult(prompt);
+    }
+  }
+
+  /**
+   * Create basic lint result for template engine
+   */
+  private createBasicLintResult(prompt: string): LintResult {
+    try {
+      // Use the actual rules engine to analyze the prompt
+      return analyzePrompt(prompt);
+    } catch (error) {
+      console.warn('[PromptLint] Rules engine failed, using basic analysis:', error);
+      
+      // Create a basic lint result as fallback
+      const issues: LintIssue[] = [];
+      const score = Math.max(30, Math.min(90, prompt.length * 2)); // Basic scoring
+      
+      // Basic issue detection
+      if (!this.hasActionVerb(prompt)) {
+        issues.push({ type: LintRuleType.MISSING_TASK_VERB, message: 'No clear action verb found', severity: 'medium' as const });
+      }
+      if (!this.hasLanguageSpecification(prompt)) {
+        issues.push({ type: LintRuleType.MISSING_LANGUAGE, message: 'No programming language specified', severity: 'low' as const });
+      }
+      if (!this.hasIOSpecification(prompt)) {
+        issues.push({ type: LintRuleType.MISSING_IO_SPECIFICATION, message: 'Input/output not specified', severity: 'medium' as const });
+      }
+      if (this.hasVagueWording(prompt)) {
+        issues.push({ type: LintRuleType.VAGUE_WORDING, message: 'Contains vague wording', severity: 'medium' as const });
+      }
+
+      return {
+        score,
+        issues,
+        metadata: {
+          processingTime: 0,
+          inputLength: prompt.length,
+          timestamp: new Date()
+        }
+      };
+    }
+  }
+
+  /**
+   * Map template type to rephrase approach
+   */
+  private mapTemplateTypeToApproach(templateType: any): 'structured' | 'conversational' | 'imperative' {
+    switch (templateType) {
+      case 'task_io':
+        return 'structured';
+      case 'bullet':
+        return 'structured';
+      case 'sequential':
+        return 'imperative';
+      case 'minimal':
+        return 'conversational';
+      default:
+        return 'structured';
+    }
+  }
+
+  /**
+   * Extract improvements from template candidate
+   */
+  private extractImprovements(templateCandidate: TemplateCandidate): string[] {
+    const improvements = [];
     
-    // Structured approach
-    candidates.push({
-      id: 'offline-structured',
-      text: `**Task**: ${this.capitalizeFirst(this.extractAction(prompt))}\n\n**Input**: [Specify your input data/requirements here]\n\n**Output**: [Describe the expected output format]\n\n**Additional Context**: [Add any constraints, preferences, or specific requirements]`,
-      approach: 'structured' as const,
-      estimatedScore: 75,
-      improvements: ['Added structured format', 'Included clear sections', 'Made requirements explicit'],
-      length: 200
-    });
+    if (templateCandidate.metadata?.faithfulnessResult?.isValid) {
+      improvements.push('Preserved original intent');
+    }
+    
+    if (templateCandidate.generationTime < 50) {
+      improvements.push('Fast generation');
+    }
+    
+    improvements.push(`Applied ${templateCandidate.type} template structure`);
+    
+    if (templateCandidate.metadata?.warnings?.length === 0) {
+      improvements.push('No performance warnings');
+    }
+    
+    return improvements;
+  }
 
-    // Conversational approach
-    candidates.push({
-      id: 'offline-conversational',
-      text: `I need help with ${this.extractAction(prompt)}. Here's what I'm looking for:
-
-- What I want to accomplish: [Describe your goal]
-- What I'm working with: [Specify your context/data]
-- How I want the result: [Format preferences]
-- Any constraints: [Limitations or requirements]
-
-Could you help me with this?`,
+  /**
+   * Create fallback rephrase result when template engine fails
+   */
+  private createFallbackRephraseResult(prompt: string): RephraseResult {
+    const candidates = [{
+      id: 'fallback-minimal',
+      text: this.capitalizeFirst(prompt.trim()) + (prompt.trim().endsWith('.') ? '' : '.'),
       approach: 'conversational' as const,
-      estimatedScore: 70,
-      improvements: ['Added conversational structure', 'Included guidance prompts', 'Made it more engaging'],
-      length: 180
-    });
-
-    // Imperative approach
-    candidates.push({
-      id: 'offline-imperative',
-      text: `${this.capitalizeFirst(this.extractAction(prompt))} following these steps:
-
-1. [First step - specify what to analyze/process]
-2. [Second step - define the transformation/operation]
-3. [Third step - format the output as needed]
-4. [Final step - validate and present results]
-
-Requirements: [List any specific constraints or preferences]`,
-      approach: 'imperative' as const,
-      estimatedScore: 72,
-      improvements: ['Added step-by-step structure', 'Made process explicit', 'Included requirements section'],
-      length: 190
-    });
+      estimatedScore: 50,
+      improvements: ['Basic formatting applied', 'Capitalized first letter', 'Added punctuation'],
+      length: prompt.length + 2
+    }];
 
     return {
       originalPrompt: prompt,
       candidates,
       metadata: {
-        processingTime: 5,
-        model: 'offline-rules-engine',
+        processingTime: 1,
+        model: 'fallback-formatter',
         tokensUsed: 0,
         estimatedCost: 0,
         timestamp: Date.now()
       },
       warnings: [
-        'Generated using offline template engine',
-        'For AI-powered improvements, configure OpenAI API key in extension popup',
-        'Templates provide structural improvements - AI rephrasing offers more sophisticated results'
+        'Template engine unavailable - using basic formatting',
+        'For better results, ensure all dependencies are properly loaded'
       ]
     };
+  }
+
+  // Helper methods for basic lint analysis
+  private hasActionVerb(prompt: string): boolean {
+    const actionVerbs = ['create', 'build', 'implement', 'write', 'generate', 'develop', 'design', 'make', 'analyze', 'process'];
+    const lowerPrompt = prompt.toLowerCase();
+    return actionVerbs.some(verb => lowerPrompt.includes(verb));
+  }
+
+  private hasLanguageSpecification(prompt: string): boolean {
+    const languages = ['python', 'javascript', 'java', 'c++', 'c#', 'ruby', 'go', 'rust', 'php', 'swift'];
+    const lowerPrompt = prompt.toLowerCase();
+    return languages.some(lang => lowerPrompt.includes(lang));
+  }
+
+  private hasIOSpecification(prompt: string): boolean {
+    const ioKeywords = ['input', 'output', 'return', 'given', 'format', 'data', 'file'];
+    const lowerPrompt = prompt.toLowerCase();
+    return ioKeywords.some(keyword => lowerPrompt.includes(keyword));
+  }
+
+  private hasVagueWording(prompt: string): boolean {
+    const vagueWords = ['something', 'anything', 'stuff', 'things', 'maybe', 'probably', 'kinda', 'sorta'];
+    const lowerPrompt = prompt.toLowerCase();
+    return vagueWords.some(word => lowerPrompt.includes(word));
   }
 
   private extractAction(prompt: string): string {
