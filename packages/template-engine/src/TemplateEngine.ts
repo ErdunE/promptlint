@@ -76,7 +76,7 @@ export class TemplateEngine {
       };
       
       // Select appropriate templates based on lint issues
-      const selectedTemplates = this.patternMatcher.selectTemplates(lintResult);
+      const selectedTemplates = this.patternMatcher.selectTemplates(lintResult, prompt);
       
       // Generate candidates for each selected template
       const candidates: TemplateCandidate[] = [];
