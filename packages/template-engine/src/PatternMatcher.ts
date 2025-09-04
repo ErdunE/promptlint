@@ -14,17 +14,20 @@ export class PatternMatcher {
    * Select appropriate templates based on lint issues and prompt characteristics
    * 
    * @param lintResult - Lint analysis result
+   * @param originalPrompt - Original prompt text (optional, for better analysis)
    * @returns Array of template types ordered by priority
    */
-  selectTemplates(lintResult: LintResult): TemplateType[] {
-    const criteria = this.analyzePrompt(lintResult);
+  selectTemplates(lintResult: LintResult, originalPrompt?: string): TemplateType[] {
+    const criteria = this.analyzePrompt(lintResult, originalPrompt);
     const selectedTemplates: TemplateType[] = [];
     
     // Apply selection rules based on criteria
     
-    // Rule 1: missing_language + missing_io → TaskIOTemplate
+    // Rule 1: missing_language + missing_io → TaskIOTemplate (with complexity check)
     if (criteria.issues.some(i => i.type === LintRuleType.MISSING_LANGUAGE) && 
-        criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION)) {
+        criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION) &&
+        criteria.complexity !== 'complex' &&
+        !criteria.hasVagueWording) {
       selectedTemplates.push(TemplateType.TASK_IO);
     }
     
@@ -39,8 +42,8 @@ export class PatternMatcher {
       selectedTemplates.push(TemplateType.SEQUENTIAL);
     }
     
-    // Rule 4: Minimal issues (score >70) → MinimalTemplate
-    if (criteria.complexity === 'simple' && lintResult.score > 70) {
+    // Rule 4: Minimal issues (score >60) → MinimalTemplate
+    if (criteria.complexity === 'simple' && lintResult.score > 60) {
       selectedTemplates.push(TemplateType.MINIMAL);
     }
     
@@ -51,15 +54,23 @@ export class PatternMatcher {
       selectedTemplates.push(TemplateType.SEQUENTIAL);
     }
     
-    // Rule 6: Missing task verb → TaskIOTemplate
+    // Rule 6: Missing task verb → Context-aware template selection
     if (criteria.issues.some(i => i.type === LintRuleType.MISSING_TASK_VERB)) {
-      if (!selectedTemplates.includes(TemplateType.TASK_IO)) {
-        selectedTemplates.push(TemplateType.TASK_IO);
+      if (criteria.hasVagueWording || criteria.complexity === 'complex') {
+        if (!selectedTemplates.includes(TemplateType.BULLET)) {
+          selectedTemplates.push(TemplateType.BULLET);
+        }
+      } else {
+        if (!selectedTemplates.includes(TemplateType.TASK_IO)) {
+          selectedTemplates.push(TemplateType.TASK_IO);
+        }
       }
     }
     
-    // Rule 7: Needs I/O specification → TaskIOTemplate
-    if (criteria.needsIOSpecification) {
+    // Rule 7: Needs I/O specification → TaskIOTemplate (conditional on context)
+    if (criteria.needsIOSpecification && 
+        criteria.complexity !== 'complex' && 
+        !criteria.hasVagueWording) {
       if (!selectedTemplates.includes(TemplateType.TASK_IO)) {
         selectedTemplates.push(TemplateType.TASK_IO);
       }
@@ -92,10 +103,10 @@ export class PatternMatcher {
   /**
    * Analyze prompt to extract selection criteria
    */
-  private analyzePrompt(lintResult: LintResult): TemplateSelectionCriteria {
+  private analyzePrompt(lintResult: LintResult, originalPrompt?: string): TemplateSelectionCriteria {
     const issues = lintResult.issues.map(i => i.type);
-    const prompt = lintResult.metadata?.inputLength ? 
-      this.reconstructPromptFromLintResult(lintResult) : '';
+    const prompt = originalPrompt || (lintResult.metadata?.inputLength ? 
+      this.reconstructPromptFromLintResult(lintResult) : '');
     
     return {
       issues: lintResult.issues,
