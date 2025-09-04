@@ -2,7 +2,7 @@
 
 All notable changes to PromptLint will be documented in this file.
 
-## [0.4.0] - 2024-01-15
+## [0.4.0] - 2025-09-03
 
 ### Added
 - **Complete Template Engine Architecture** - Dynamic template generation system replacing static placeholder functionality
