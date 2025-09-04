@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PromptLint",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Real-time prompt analysis and improvement suggestions",
   "permissions": [
     "activeTab",

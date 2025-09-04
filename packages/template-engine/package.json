@@ -1,0 +1,48 @@
+{
+  "name": "@promptlint/template-engine",
+  "version": "0.4.0",
+  "description": "Dynamic template generation system for PromptLint rephrase functionality",
+  "type": "module",
+  "main": "dist/template-engine.js",
+  "module": "dist/template-engine.js",
+  "exports": {
+    ".": {
+      "import": "./dist/template-engine.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@promptlint/shared-types": "file:../shared-types"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.4.5",
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "keywords": [
+    "promptlint",
+    "template",
+    "rephrase",
+    "ai",
+    "prompt-engineering",
+    "chrome-extension"
+  ],
+  "author": "PromptLint Team",
+  "license": "MIT"
+}

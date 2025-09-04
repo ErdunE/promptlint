@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/extension-chrome",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "PromptLint Chrome Extension - Grammarly for AI prompts",
   "type": "module",
   "scripts": {
@@ -14,7 +14,8 @@
     "@promptlint/rules-engine": "file:../../packages/rules-engine",
     "@promptlint/site-adapters": "file:../../packages/site-adapters", 
     "@promptlint/shared-types": "file:../../packages/shared-types",
-    "@promptlint/llm-service": "file:../../packages/llm-service"
+    "@promptlint/llm-service": "file:../../packages/llm-service",
+    "@promptlint/template-engine": "file:../../packages/template-engine"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.270",

@@ -2,6 +2,38 @@
 
 All notable changes to PromptLint will be documented in this file.
 
+## [0.4.0] - 2024-01-15
+
+### Added
+- **Complete Template Engine Architecture** - Dynamic template generation system replacing static placeholder functionality
+- **4 Intelligent Template Types**:
+  - TaskIOTemplate: Structured Task/Input/Output format for unclear prompts
+  - BulletTemplate: Organized bullet point format for vague requirements  
+  - SequentialTemplate: Numbered steps format for process-oriented tasks
+  - MinimalTemplate: Basic cleanup and professional formatting
+- **Pattern-Based Template Selection** - Automatic template matching based on lint analysis results
+- **Faithfulness Validation System** - Strict 100% intent preservation with violation detection
+- **Performance Monitoring** - <100ms generation requirement with timeout protection
+- **ES Module Architecture** - Full Chrome extension compatibility with browser-only APIs
+
+### Changed
+- **Rephrase Functionality Enhanced** - Now generates 2-3 intelligent template-based candidates instead of static placeholders
+- **Offline Mode Improved** - Template engine provides sophisticated structural improvements without API dependency
+- **Version Bumped** - Extension and all packages updated to v0.4.0
+
+### Technical
+- Complete ES Module implementation across template engine (no CommonJS syntax)
+- Browser-compatible APIs only (no Node.js dependencies in runtime)
+- Vite build system optimized for Chrome extension environment
+- Type-safe template generation with comprehensive TypeScript definitions
+- Integration with existing rules-engine for intelligent template selection
+- Graceful degradation strategies for API failures
+
+### Performance
+- Template generation completes within 100ms requirement
+- Zero external API calls for template-based rephrasing
+- Efficient pattern matching and candidate scoring system
+
 ## [0.3.0] - 2025-09-03
 
 ### Fixed
@@ -27,7 +59,6 @@ All notable changes to PromptLint will be documented in this file.
 - Fixed package-extension.js to copy real icons instead of generating 1x1 placeholders
 
 ## [0.2.0] - 2025-08-27
-
 ### Added
 - Chrome Web Store release
 - Glassmorphism UI with drag functionality
