@@ -83,7 +83,16 @@ export class PatternMatcher {
       }
     }
     
-    // Rule 9: Has task structure → MinimalTemplate
+    // Rule 9: Has task structure + missing language → TaskIOTemplate (prioritize structured format)
+    if (criteria.hasTaskStructure && 
+        criteria.issues.some(i => i.type === LintRuleType.MISSING_LANGUAGE) &&
+        criteria.complexity === 'simple') {
+      if (!selectedTemplates.includes(TemplateType.TASK_IO)) {
+        selectedTemplates.push(TemplateType.TASK_IO);
+      }
+    }
+    
+    // Rule 10: Has task structure → MinimalTemplate (fallback for well-structured prompts)
     if (criteria.hasTaskStructure && criteria.complexity === 'simple') {
       if (!selectedTemplates.includes(TemplateType.MINIMAL)) {
         selectedTemplates.push(TemplateType.MINIMAL);
@@ -152,8 +161,12 @@ export class PatternMatcher {
    */
   private hasTaskStructure(prompt: string): boolean {
     const taskKeywords = [
+      // Original verbs
       'implement', 'create', 'build', 'develop', 'write', 'generate', 'design',
-      'make', 'construct', 'program', 'code', 'architect', 'engineer'
+      'make', 'construct', 'program', 'code', 'architect', 'engineer',
+      // Missing critical verbs identified in investigation
+      'optimize', 'debug', 'analyze', 'refactor', 'fix', 'improve', 'enhance',
+      'test', 'validate', 'review', 'audit', 'monitor', 'troubleshoot'
     ];
     
     const cleanPrompt = prompt.toLowerCase();

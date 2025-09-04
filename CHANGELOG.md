@@ -2,6 +2,23 @@
 
 All notable changes to PromptLint will be documented in this file.
 
+## [0.4.2] - 2025-09-04
+
+### Fixed
+- **Grammar Construction Errors** - Fixed "Create [verb]" constructions by enhancing verb extraction
+- **Verb Duplication** - Eliminated duplicate verbs in template assembly (e.g., "code debug")
+- **Action Verb Recognition** - Added missing verbs: optimize, debug, analyze, refactor, fix, improve, enhance
+
+### Enhanced
+- **Professional Verb Mapping** - Preserve original verbs when appropriate instead of defaulting to "Create"
+- **Template Construction** - Clean verb-objective combination without duplication
+- **Capitalization Logic** - Proper sentence case handling for professional output
+
+### Technical
+- **Enhanced actionVerbs Array** - Extended verb detection for better extraction accuracy
+- **Deduplication Logic** - Prevent verb repetition in TaskIOTemplate construction
+- **Backward Compatibility** - All v0.4.1 template selection improvements maintained
+
 ## [0.4.1] - 2025-09-04
 
 ### Fixed

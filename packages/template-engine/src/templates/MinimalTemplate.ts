@@ -99,13 +99,6 @@ export class MinimalTemplate extends BaseTemplate {
     return punctuated;
   }
   
-  /**
-   * Capitalize first letter
-   */
-  private capitalizeFirstLetter(prompt: string): string {
-    if (!prompt) return prompt;
-    return prompt.charAt(0).toUpperCase() + prompt.slice(1);
-  }
   
   /**
    * Check if prompt needs basic structure
