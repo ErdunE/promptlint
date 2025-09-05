@@ -250,11 +250,11 @@ export class ExtensionRephraseService {
             return await this.rephrase(prompt);
           } else {
             // Use offline graceful degradation
-            return this.createOfflineRephraseResult(prompt);
+            return await this.createOfflineRephraseResult(prompt);
           }
         } catch (error) {
           console.warn('[PromptLint] Rephrase failed, using offline mode:', error);
-          return this.createOfflineRephraseResult(prompt);
+          return await this.createOfflineRephraseResult(prompt);
         }
       },
       
@@ -300,13 +300,13 @@ export class ExtensionRephraseService {
   /**
    * Create offline rephrase result using template engine
    */
-  private createOfflineRephraseResult(prompt: string): RephraseResult {
+  private async createOfflineRephraseResult(prompt: string): Promise<RephraseResult> {
     try {
       // Analyze prompt to get lint result
       const lintResult = this.createBasicLintResult(prompt);
       
       // Generate template candidates
-      const templateCandidates = this.templateEngine.generateCandidates(prompt, lintResult);
+      const templateCandidates = await this.templateEngine.generateCandidates(prompt, lintResult);
       
       // Convert template candidates to rephrase candidates
       const candidates = templateCandidates.map((templateCandidate: TemplateCandidate) => ({
