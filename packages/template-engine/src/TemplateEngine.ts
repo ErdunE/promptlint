@@ -98,8 +98,10 @@ export class TemplateEngine {
         }
       };
       
-      // Select appropriate templates based on domain classification and lint issues
-      const selectedTemplates = this.patternMatcher.selectTemplates(lintResult, domainResult, prompt);
+      // Select appropriate templates using enhanced selection with metadata
+      const selectionResult = this.patternMatcher.selectTemplatesWithMetadata(lintResult, domainResult, prompt);
+      const selectedTemplates = selectionResult.templates;
+      const selectionMetadata = selectionResult.metadata;
       
       // Generate candidates for each selected template
       const candidates: TemplateCandidate[] = [];
@@ -107,6 +109,11 @@ export class TemplateEngine {
       for (const templateType of selectedTemplates) {
         const candidate = this.generateCandidate(context, templateType);
         if (candidate) {
+          // Add enhanced metadata to candidate
+          if (candidate.metadata) {
+            candidate.metadata.selectionMetadata = selectionMetadata;
+            candidate.metadata.enhancedSelection = true;
+          }
           candidates.push(candidate);
         }
       }

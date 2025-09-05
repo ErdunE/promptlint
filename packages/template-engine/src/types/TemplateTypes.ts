@@ -9,6 +9,68 @@
 import { LintResult, LintIssue } from '@promptlint/shared-types';
 
 /**
+ * Enhanced domain classification result with sub-categories
+ */
+export interface EnhancedDomainResult {
+  /** Primary domain classification */
+  primaryDomain: string;
+  /** Detected sub-category for enhanced context */
+  subCategory: string | undefined;
+  /** Classification confidence (0-100) */
+  confidence: number;
+  /** Domain characteristics detected */
+  characteristics: string[];
+  /** Original domain classification result */
+  originalResult: any; // DomainClassificationResult from domain-classifier
+}
+
+/**
+ * Template selection reasoning
+ */
+export interface SelectionReason {
+  /** Type of reasoning applied */
+  type: 'domain_alignment' | 'confidence_based' | 'lint_analysis' | 'context_match' | 'diversity_optimization';
+  /** Description of the reasoning */
+  description: string;
+  /** Confidence in this reasoning (0-100) */
+  confidence: number;
+}
+
+/**
+ * Enhanced template selection with metadata
+ */
+export interface EnhancedTemplateSelection {
+  /** Selected template type */
+  templateType: TemplateType;
+  /** Overall selection confidence (0-100) */
+  confidence: number;
+  /** Reasoning for this selection */
+  reasons: SelectionReason[];
+  /** Domain alignment score (0-100) */
+  domainAlignment: number;
+  /** Context match score (0-100) */
+  contextMatch: number;
+  /** Composite score for ranking */
+  compositeScore: number;
+}
+
+/**
+ * Template selection metadata for feedback integration
+ */
+export interface TemplateSelectionMetadata {
+  /** Reasoning for template selections */
+  selectionReasoning: SelectionReason[];
+  /** Domain classification context */
+  domainContext: EnhancedDomainResult;
+  /** Alternative templates considered */
+  alternativeTemplates: TemplateType[];
+  /** Whether user feedback integration is enabled */
+  userFeedbackCapable: boolean;
+  /** Selection strategy used */
+  selectionStrategy: 'high_confidence' | 'moderate_confidence' | 'low_confidence_fallback';
+}
+
+/**
  * Template types available for generation
  */
 export enum TemplateType {
@@ -51,6 +113,10 @@ export interface TemplateCandidate {
     };
     /** Performance warnings */
     warnings: string[];
+    /** Enhanced selection metadata (if available) */
+    selectionMetadata?: TemplateSelectionMetadata;
+    /** Whether enhanced selection was used */
+    enhancedSelection?: boolean;
   };
 }
 
@@ -180,6 +246,10 @@ export interface TemplateMetadata {
   engine?: string;
   /** Domain classification result (if available) */
   domainClassification?: any; // Will be typed as DomainClassificationResult when imported
+  /** Enhanced selection metadata (if available) */
+  selectionMetadata?: TemplateSelectionMetadata;
+  /** Whether enhanced selection was used */
+  enhancedSelection?: boolean;
 }
 
 /**

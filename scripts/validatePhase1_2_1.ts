@@ -7,8 +7,8 @@ import { analyzePrompt } from "../packages/rules-engine/dist/index.js";
 
 function printResult(
   prompt: string, 
-  templates: TemplateType[], 
-  expected: TemplateType[], 
+  templates: (keyof typeof TemplateType)[], 
+  expected: (keyof typeof TemplateType)[], 
   domain: string, 
   confidence: number,
   processingTime: number
