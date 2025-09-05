@@ -8,17 +8,108 @@
 
 import { TemplateType, TemplateSelectionCriteria } from './types/TemplateTypes.js';
 import { LintResult, LintRuleType } from '@promptlint/shared-types';
+import { DomainClassificationResult, DomainType } from '@promptlint/domain-classifier';
 
 export class PatternMatcher {
   /**
-   * Select appropriate templates based on lint issues and prompt characteristics
+   * Select appropriate templates based on domain classification, lint issues and prompt characteristics
    * 
    * @param lintResult - Lint analysis result
+   * @param domainResult - Domain classification result
    * @param originalPrompt - Original prompt text (optional, for better analysis)
    * @returns Array of template types ordered by priority
    */
-  selectTemplates(lintResult: LintResult, originalPrompt?: string): TemplateType[] {
+  selectTemplates(lintResult: LintResult, domainResult: DomainClassificationResult, originalPrompt?: string): TemplateType[] {
     const criteria = this.analyzePrompt(lintResult, originalPrompt);
+    const selectedTemplates: TemplateType[] = [];
+    
+    // Apply domain-aware selection strategy based on confidence
+    if (domainResult.confidence >= 90) {
+      // High confidence: Strongly favor domain-specific templates
+      const domainTemplates = this.getDomainTemplatePreferences(domainResult.domain, 'high');
+      selectedTemplates.push(...domainTemplates);
+      
+      // Add lint-based templates that complement domain preferences
+      const lintBasedTemplates = this.getLintBasedTemplates(criteria);
+      const domainPreferences = this.getDomainTemplatePreferences(domainResult.domain, 'secondary');
+      const complementaryTemplates = lintBasedTemplates.filter(t => domainPreferences.includes(t));
+      selectedTemplates.push(...complementaryTemplates);
+      
+    } else if (domainResult.confidence >= 70) {
+      // Moderate confidence: Blend domain preferences with existing rule-based logic
+      const domainTemplates = this.getDomainTemplatePreferences(domainResult.domain, 'moderate');
+      const ruleBasedTemplates = this.applyExistingRules(criteria);
+      
+      selectedTemplates.push(...this.blendTemplateSelections(domainTemplates, ruleBasedTemplates));
+      
+    } else {
+      // Low confidence: Fall back to existing Level 1 logic
+      return this.applyExistingRules(criteria);
+    }
+    
+    // Apply additional lint-based rules for refinement
+    this.applyLintBasedRefinements(selectedTemplates, criteria);
+    
+    // Ensure we have at least one template
+    if (selectedTemplates.length === 0) {
+      selectedTemplates.push(TemplateType.MINIMAL);
+    }
+    
+    // Remove duplicates and limit to 3 templates
+    const uniqueTemplates = [...new Set(selectedTemplates)];
+    return uniqueTemplates.slice(0, 3);
+  }
+
+  /**
+   * Get domain-specific template preferences
+   */
+  private getDomainTemplatePreferences(domain: DomainType, confidence: 'high' | 'moderate' | 'secondary'): TemplateType[] {
+    const preferences = {
+      [DomainType.CODE]: {
+        high: [TemplateType.TASK_IO, TemplateType.SEQUENTIAL],
+        moderate: [TemplateType.TASK_IO, TemplateType.BULLET],
+        secondary: [TemplateType.BULLET, TemplateType.MINIMAL]
+      },
+      [DomainType.WRITING]: {
+        high: [TemplateType.MINIMAL, TemplateType.BULLET],
+        moderate: [TemplateType.MINIMAL, TemplateType.TASK_IO],
+        secondary: [TemplateType.TASK_IO, TemplateType.SEQUENTIAL]
+      },
+      [DomainType.ANALYSIS]: {
+        high: [TemplateType.TASK_IO, TemplateType.BULLET],
+        moderate: [TemplateType.BULLET, TemplateType.SEQUENTIAL],
+        secondary: [TemplateType.SEQUENTIAL, TemplateType.MINIMAL]
+      },
+      [DomainType.RESEARCH]: {
+        high: [TemplateType.BULLET, TemplateType.SEQUENTIAL],
+        moderate: [TemplateType.BULLET, TemplateType.TASK_IO],
+        secondary: [TemplateType.TASK_IO, TemplateType.MINIMAL]
+      }
+    };
+    
+    return preferences[domain]?.[confidence] || [TemplateType.MINIMAL];
+  }
+
+  /**
+   * Blend domain templates with rule-based templates for moderate confidence
+   */
+  private blendTemplateSelections(domainTemplates: TemplateType[], ruleBasedTemplates: TemplateType[]): TemplateType[] {
+    const blended: TemplateType[] = [];
+    
+    // Prioritize domain templates (60% weight)
+    blended.push(...domainTemplates.slice(0, 2));
+    
+    // Add complementary rule-based templates (40% weight)
+    const complementary = ruleBasedTemplates.filter(t => !blended.includes(t));
+    blended.push(...complementary.slice(0, 1));
+    
+    return blended;
+  }
+
+  /**
+   * Apply existing Level 1 rule-based logic (fallback)
+   */
+  private applyExistingRules(criteria: TemplateSelectionCriteria): TemplateType[] {
     const selectedTemplates: TemplateType[] = [];
     
     // Apply selection rules based on criteria
@@ -43,7 +134,7 @@ export class PatternMatcher {
     }
     
     // Rule 4: Minimal issues (score >60) → MinimalTemplate
-    if (criteria.complexity === 'simple' && lintResult.score > 60) {
+    if (criteria.complexity === 'simple' && criteria.issues.length <= 1) {
       selectedTemplates.push(TemplateType.MINIMAL);
     }
     
@@ -107,6 +198,52 @@ export class PatternMatcher {
     // Remove duplicates and limit to 3 templates
     const uniqueTemplates = [...new Set(selectedTemplates)];
     return uniqueTemplates.slice(0, 3);
+  }
+
+  /**
+   * Get lint-based template suggestions
+   */
+  private getLintBasedTemplates(criteria: TemplateSelectionCriteria): TemplateType[] {
+    const templates: TemplateType[] = [];
+    
+    if (criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION)) {
+      templates.push(TemplateType.TASK_IO);
+    }
+    
+    if (criteria.hasVagueWording) {
+      templates.push(TemplateType.BULLET);
+    }
+    
+    if (criteria.hasSequentialKeywords) {
+      templates.push(TemplateType.SEQUENTIAL);
+    }
+    
+    if (criteria.complexity === 'simple' && criteria.issues.length <= 1) {
+      templates.push(TemplateType.MINIMAL);
+    }
+    
+    return templates;
+  }
+
+  /**
+   * Apply lint-based refinements to selected templates
+   */
+  private applyLintBasedRefinements(selectedTemplates: TemplateType[], criteria: TemplateSelectionCriteria): void {
+    // Add TaskIO template if missing I/O specification and not already included
+    if (criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION) && 
+        !selectedTemplates.includes(TemplateType.TASK_IO)) {
+      selectedTemplates.push(TemplateType.TASK_IO);
+    }
+    
+    // Add Bullet template if vague wording and not already included
+    if (criteria.hasVagueWording && !selectedTemplates.includes(TemplateType.BULLET)) {
+      selectedTemplates.push(TemplateType.BULLET);
+    }
+    
+    // Add Sequential template if sequential keywords and not already included
+    if (criteria.hasSequentialKeywords && !selectedTemplates.includes(TemplateType.SEQUENTIAL)) {
+      selectedTemplates.push(TemplateType.SEQUENTIAL);
+    }
   }
   
   /**

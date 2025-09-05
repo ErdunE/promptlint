@@ -15,7 +15,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'DomainClassifier',
       formats: ['es'],
-      fileName: 'domain-classifier'
+      fileName: 'index'
     },
     rollupOptions: {
       external: ['@promptlint/shared-types'],

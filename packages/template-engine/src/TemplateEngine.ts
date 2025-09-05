@@ -22,21 +22,35 @@ import {
   SequentialTemplate, 
   MinimalTemplate 
 } from './templates/index.js';
+import { HybridClassifier } from '@promptlint/domain-classifier';
 
 export class TemplateEngine {
   private patternMatcher: PatternMatcher;
   private faithfulnessValidator: FaithfulnessValidator;
   private performanceTimer: PerformanceTimer;
+  private domainClassifier: HybridClassifier;
   private templates: Map<string, any>;
+  private initialized: boolean = false;
   
   constructor() {
     this.patternMatcher = new PatternMatcher();
     this.faithfulnessValidator = new FaithfulnessValidator();
     this.performanceTimer = new PerformanceTimer();
+    this.domainClassifier = new HybridClassifier();
     this.templates = new Map();
     
     // Initialize template registry
     this.initializeTemplates();
+  }
+
+  /**
+   * Initialize the domain classifier
+   */
+  async initialize(): Promise<void> {
+    if (!this.initialized) {
+      await this.domainClassifier.initialize();
+      this.initialized = true;
+    }
   }
   
   /**
@@ -50,33 +64,42 @@ export class TemplateEngine {
   }
   
   /**
-   * Generate template candidates for a prompt
+   * Generate template candidates for a prompt with domain-aware selection
    * 
    * @param prompt - Original prompt text
    * @param lintResult - Lint analysis result
    * @returns Array of template candidates
    */
-  generateCandidates(prompt: string, lintResult: LintResult): TemplateCandidate[] {
+  async generateCandidates(prompt: string, lintResult: LintResult): Promise<TemplateCandidate[]> {
     const startTime = performance.now();
     
     try {
-      // Create template context
+      // Ensure domain classifier is initialized
+      if (!this.initialized) {
+        await this.initialize();
+      }
+
+      // Classify domain for intelligent template selection
+      const domainResult = await this.domainClassifier.classify(prompt);
+      
+      // Create template context with domain information
       const context: TemplateContext = {
         prompt,
         lintResult,
         metadata: {
           type: 'template_context',
           name: 'TemplateContext',
-          description: 'Context for template generation',
-          version: '0.4.0',
+          description: 'Context for template generation with domain awareness',
+          version: '0.5.0',
           lastModified: Date.now(),
           timestamp: Date.now(),
-          engine: 'TemplateEngine'
+          engine: 'TemplateEngine',
+          domainClassification: domainResult
         }
       };
       
-      // Select appropriate templates based on lint issues
-      const selectedTemplates = this.patternMatcher.selectTemplates(lintResult, prompt);
+      // Select appropriate templates based on domain classification and lint issues
+      const selectedTemplates = this.patternMatcher.selectTemplates(lintResult, domainResult, prompt);
       
       // Generate candidates for each selected template
       const candidates: TemplateCandidate[] = [];

@@ -178,6 +178,8 @@ export interface TemplateMetadata {
   timestamp?: number;
   /** Engine version */
   engine?: string;
+  /** Domain classification result (if available) */
+  domainClassification?: any; // Will be typed as DomainClassificationResult when imported
 }
 
 /**
