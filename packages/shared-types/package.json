@@ -1,6 +1,6 @@
 {
     "name": "@promptlint/shared-types",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "description": "Shared TypeScript interfaces and types for PromptLint",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

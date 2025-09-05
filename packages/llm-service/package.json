@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/llm-service",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "LLM service for PromptLint - AI-powered prompt rephrasing with OpenAI integration",
   "type": "module",
   "main": "dist/index.js",

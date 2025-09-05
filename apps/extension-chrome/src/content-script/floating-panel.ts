@@ -1273,52 +1273,6 @@ export class FloatingPanel {
       }
     });
 
-    // Modern AI Assistant Close Button
-    const closeElement = document.createElement('div');
-    closeElement.className = 'promptlint-panel__issue';
-    closeElement.innerHTML = `
-      <div class="promptlint-panel__issue" style="
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        margin-top: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        overflow: hidden;
-        position: relative;
-        cursor: pointer;
-      ">
-        <!-- Small Badge -->
-        <div style="
-          position: absolute;
-          top: 12px;
-          left: 16px;
-          background: #6b7280;
-          color: white;
-          padding: 4px 8px;
-          border-radius: 6px;
-          font-size: 10px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          z-index: 2;
-        ">Close</div>
-        
-        <!-- Content Area -->
-        <div style="
-          padding: 40px 16px 16px 16px;
-          color: #6b7280;
-          line-height: 1.6;
-          font-size: 14px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        ">Return to lint results</div>
-      </div>
-    `;
-    closeElement.addEventListener('click', () => this.hideRephrase());
-    if (this.rephraseContainer) {
-      this.rephraseContainer.appendChild(closeElement);
-    }
 
     console.log('[PromptLint DEBUG] Final rephraseContainer innerHTML:', this.rephraseContainer.innerHTML);
     // Get actual computed style values
