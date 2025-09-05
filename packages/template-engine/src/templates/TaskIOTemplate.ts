@@ -23,17 +23,20 @@ export class TaskIOTemplate extends BaseTemplate {
     const actionVerb = this.getProfessionalActionVerb(context);
     const prompt = context.prompt;
     
-    // Build structured prompt
+    // Build structured prompt with clean verb-objective combination
     let structuredPrompt = `**Task:** ${actionVerb} `;
     
-    // Add objective if identified
+    // Add objective with verb deduplication
+    let objective: string;
     if (taskInfo.objective) {
-      structuredPrompt += taskInfo.objective;
+      objective = this.cleanObjectiveForVerb(taskInfo.objective, actionVerb);
     } else {
       // Extract main objective from original prompt
-      const objective = this.extractMainObjective(prompt);
-      structuredPrompt += objective;
+      const rawObjective = this.extractMainObjective(prompt);
+      objective = this.cleanObjectiveForVerb(rawObjective, actionVerb);
     }
+    
+    structuredPrompt += objective;
     
     structuredPrompt += '\n\n';
     
@@ -112,5 +115,20 @@ export class TaskIOTemplate extends BaseTemplate {
     }
     
     return cleanPrompt;
+  }
+  
+  /**
+   * Clean objective to prevent verb duplication
+   */
+  private cleanObjectiveForVerb(objective: string, actionVerb: string): string {
+    const cleanObjective = objective.trim();
+    
+    // If objective starts with the same verb, remove the duplicate
+    const verbPattern = new RegExp(`^${actionVerb}\\s+`, 'i');
+    if (verbPattern.test(cleanObjective)) {
+      return cleanObjective.replace(verbPattern, '').trim();
+    }
+    
+    return cleanObjective;
   }
 }

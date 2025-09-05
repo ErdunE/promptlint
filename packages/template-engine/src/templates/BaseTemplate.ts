@@ -75,16 +75,30 @@ export abstract class BaseTemplate implements IBaseTemplate {
     
     // Extract action verb
     const actionVerbs = [
+      // Original verbs
       'implement', 'create', 'build', 'develop', 'write', 'generate', 'design',
-      'make', 'construct', 'program', 'code', 'architect', 'engineer'
+      'make', 'construct', 'program', 'code', 'architect', 'engineer',
+      // Missing critical verbs identified in investigation
+      'optimize', 'debug', 'analyze', 'refactor', 'fix', 'improve', 'enhance',
+      'test', 'validate', 'review', 'audit', 'monitor', 'troubleshoot'
     ];
     
     let actionVerb: string | undefined;
+    let bestMatch: { verb: string; position: number } | null = null;
+    
+    // Find the best verb match (earliest position in prompt)
     for (const verb of actionVerbs) {
-      if (cleanPrompt.includes(verb)) {
-        actionVerb = verb;
-        break;
+      const position = cleanPrompt.indexOf(verb);
+      if (position !== -1) {
+        // Prefer verbs that appear at the beginning of the prompt
+        if (!bestMatch || position < bestMatch.position) {
+          bestMatch = { verb, position };
+        }
       }
+    }
+    
+    if (bestMatch) {
+      actionVerb = bestMatch.verb;
     }
     
     // Extract objective (text after action verb)
@@ -162,7 +176,14 @@ export abstract class BaseTemplate implements IBaseTemplate {
    */
   protected getProfessionalActionVerb(context: TemplateContext): string {
     const taskInfo = this.extractTaskInfo(context);
-    return taskInfo.actionVerb || 'Create';
+    
+    // If we found a verb, capitalize and use it
+    if (taskInfo.actionVerb) {
+      return this.capitalizeFirstLetter(taskInfo.actionVerb);
+    }
+    
+    // Only default to 'Create' if no verb found at all
+    return 'Create';
   }
   
   /**
@@ -171,6 +192,16 @@ export abstract class BaseTemplate implements IBaseTemplate {
   protected cleanPrompt(prompt: string): string {
     return prompt.trim()
       .replace(/\s+/g, ' ')
+      .replace(/[.]{2,}/g, '.')
+      .replace(/[!]{2,}/g, '!')
+      .replace(/[?]{2,}/g, '?');
+  }
+  
+  /**
+   * Clean template content while preserving line breaks
+   */
+  protected cleanTemplateContent(content: string): string {
+    return content.trim()
       .replace(/[.]{2,}/g, '.')
       .replace(/[!]{2,}/g, '!')
       .replace(/[?]{2,}/g, '?');
@@ -187,7 +218,7 @@ export abstract class BaseTemplate implements IBaseTemplate {
     return {
       id: this.generateId(),
       type: this.type,
-      content: this.cleanPrompt(content),
+      content: this.cleanTemplateContent(content),
       score,
       faithfulnessValidated: true,
       generationTime: 0,
@@ -217,5 +248,13 @@ export abstract class BaseTemplate implements IBaseTemplate {
    */
   private generateId(): string {
     return `${this.type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  /**
+   * Capitalize first letter of a string
+   */
+  protected capitalizeFirstLetter(str: string): string {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }

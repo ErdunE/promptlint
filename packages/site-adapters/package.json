@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/site-adapters",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Site integration adapters for PromptLint Chrome Extension",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
