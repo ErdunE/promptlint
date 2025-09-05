@@ -1,0 +1,40 @@
+{
+  "name": "@promptlint/domain-classifier",
+  "version": "0.4.2",
+  "description": "Domain classification engine for PromptLint - intelligent prompt categorization",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest",
+    "dev": "vite build --watch"
+  },
+  "keywords": [
+    "promptlint",
+    "domain-classification",
+    "ai",
+    "prompt-optimization"
+  ],
+  "author": "PromptLint Team",
+  "license": "MIT",
+  "dependencies": {
+    "@promptlint/shared-types": "file:../shared-types"
+  },
+  "devDependencies": {
+    "vite": "^4.5.14",
+    "typescript": "^5.0.2",
+    "vitest": "^0.34.0",
+    "vite-plugin-dts": "^3.6.0"
+  }
+}
