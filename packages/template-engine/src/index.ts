@@ -25,6 +25,12 @@ export {
 // Pattern matching
 export { PatternMatcher } from './PatternMatcher.js';
 
+// Analysis components
+export { SemanticAnalyzer } from './analysis/SemanticAnalyzer.js';
+export { ConfidenceCalibrator } from './analysis/ConfidenceCalibrator.js';
+export { IntelligentTemplateSelector } from './analysis/IntelligentTemplateSelector.js';
+export { SemanticRouter } from './analysis/SemanticRouter.js';
+
 // Types and interfaces
 export type {
   TemplateCandidate,
@@ -39,3 +45,13 @@ export type {
 } from './types/TemplateTypes.js';
 
 export { TemplateType } from './types/TemplateTypes.js';
+
+// Semantic analysis types
+export type {
+  PromptSemantics,
+  IntentType,
+  ComplexityLevel,
+  CompletenessLevel,
+  SpecificityLevel,
+  ContextMarkers
+} from './types/SemanticTypes.js';

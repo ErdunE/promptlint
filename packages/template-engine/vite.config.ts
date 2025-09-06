@@ -18,10 +18,11 @@ export default defineConfig({
       fileName: 'template-engine'
     },
     rollupOptions: {
-      external: ['@promptlint/shared-types'],
+      external: ['@promptlint/shared-types', '@promptlint/domain-classifier'],
       output: {
         globals: {
-          '@promptlint/shared-types': 'SharedTypes'
+          '@promptlint/shared-types': 'SharedTypes',
+          '@promptlint/domain-classifier': 'DomainClassifier'
         }
       }
     },

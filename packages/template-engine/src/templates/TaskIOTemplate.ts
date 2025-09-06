@@ -78,9 +78,21 @@ export class TaskIOTemplate extends BaseTemplate {
    */
   isSuitable(context: TemplateContext): boolean {
     // Suitable when missing task verb or I/O specification
-    return this.hasLintIssue(context, LintRuleType.MISSING_TASK_VERB) ||
-           this.hasLintIssue(context, LintRuleType.MISSING_IO_SPECIFICATION) ||
-           this.hasLintIssue(context, LintRuleType.MISSING_LANGUAGE);
+    const hasLintIssues = this.hasLintIssue(context, LintRuleType.MISSING_TASK_VERB) ||
+                          this.hasLintIssue(context, LintRuleType.MISSING_IO_SPECIFICATION) ||
+                          this.hasLintIssue(context, LintRuleType.MISSING_LANGUAGE);
+    
+    // Also suitable for structured tasks that benefit from clear input/output definition
+    const prompt = context.prompt.toLowerCase();
+    const structuredTaskKeywords = [
+      'implement', 'create', 'build', 'develop', 'design', 'write',
+      'generate', 'process', 'transform', 'convert', 'analyze',
+      'document', 'api', 'function', 'method', 'algorithm', 'system'
+    ];
+    
+    const hasStructuredTask = structuredTaskKeywords.some(keyword => prompt.includes(keyword));
+    
+    return hasLintIssues || hasStructuredTask;
   }
   
   /**
