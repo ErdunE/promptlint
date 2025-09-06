@@ -7,8 +7,7 @@
 
 import { createRephraseServiceWithStoredKey, createApiKeyStorage, testApiKey } from '../../../../packages/llm-service/dist/index.js';
 import { RephraseResult, RephraseRequest, RephraseError, RephraseErrorType, LintResult, LintRuleType, LintIssue } from '../../../../packages/shared-types/dist/index.js';
-import { TemplateEngine } from '../../../../packages/template-engine/dist/template-engine.js';
-import { TemplateCandidate } from '../../../../packages/template-engine/dist/types/TemplateTypes.js';
+import { TemplateEngine, TemplateCandidate } from '../../../../packages/template-engine/dist/index.js';
 import { analyzePrompt } from '../../../../packages/rules-engine/dist/index.js';
 
 export interface RephraseServiceStatus {

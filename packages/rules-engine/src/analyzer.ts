@@ -3,7 +3,7 @@
  */
 
 import { LintResult } from '@promptlint/shared-types';
-import { LintEngine } from './engine';
+import { LintEngine } from './engine.js';
 
 /**
  * Analyzes a prompt and returns structured lint results

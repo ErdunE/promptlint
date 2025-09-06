@@ -6,7 +6,7 @@
  */
 
 import { LintRuleType } from '@promptlint/shared-types';
-import { LintRule, RuleAnalysisResult } from './index';
+import { LintRule, RuleAnalysisResult } from './index.js';
 
 /**
  * Indicators of overly broad or undefined scope

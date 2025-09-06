@@ -13,6 +13,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "moduleResolution": "node",
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,

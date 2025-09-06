@@ -3,8 +3,8 @@
  */
 
 import { LintResult, LintIssue, LintEngineConfig } from '@promptlint/shared-types';
-import { getAllRules, LintRule } from './rules';
-import { calculateScore } from './scoring';
+import { getAllRules, LintRule } from './rules/index.js';
+import { calculateScore } from './scoring.js';
 
 /**
  * Default configuration for the lint engine

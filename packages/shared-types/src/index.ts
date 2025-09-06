@@ -4,31 +4,31 @@
  */
 
 // Lint types
-export * from './lint-types';
+export * from './lint-types.js';
 
 // LLM service types  
-export * from './llm-types';
+export * from './llm-types.js';
 
 // UI types
-export * from './ui-types';
+export * from './ui-types.js';
 
 // Site adapter types
-export * from './site-types';
+export * from './site-types.js';
 
 // Rephrase service types
-export * from './rephrase-types';
+export * from './rephrase-types.js';
 
 // Configuration types
-export * from './config-types';
+export * from './config-types.js';
 
 // Re-export commonly used types for convenience
 export type {
   LintResult,
   LintIssue
-} from './lint-types';
+} from './lint-types.js';
 
 // Export enum as value (not type)
-export { LintRuleType } from './lint-types';
+export { LintRuleType } from './lint-types.js';
 
 export type {
   RephraseResult,
@@ -39,13 +39,13 @@ export type {
   RephraseServiceStatus,
   IRephraseService,
   IApiKeyStorage
-} from './rephrase-types';
+} from './rephrase-types.js';
 
 export {
   RephraseError,
   RephraseErrorType
-} from './rephrase-types';
+} from './rephrase-types.js';
 
 export type {
     ExtensionUIState
-} from './ui-types';
+} from './ui-types.js';
