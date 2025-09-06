@@ -2,7 +2,7 @@
 
 All notable changes to PromptLint will be documented in this file.
 
-## [0.5.0] - 2025-09-04
+## [0.5.0] - 2025-09-06
 
 ### Added
 - **Level 2 Pattern Recognition Engine** - Complete implementation with advanced semantic intelligence
