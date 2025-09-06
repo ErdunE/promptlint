@@ -1,6 +1,7 @@
 {
   "name": "@promptlint/rules-engine",
   "version": "0.4.2",
+  "type": "module",
   "description": "Core lint analysis engine for PromptLint - pure TypeScript implementation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
