@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/template-engine",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "description": "Dynamic template generation system for PromptLint rephrase functionality",
   "type": "module",
   "main": "dist/template-engine.js",

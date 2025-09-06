@@ -70,9 +70,17 @@ export class BulletTemplate extends BaseTemplate {
       'requirements', 'features', 'benefits', 'steps', 'factors', 'aspects'
     ];
     
-    const hasPlanningContent = planningKeywords.some(keyword => prompt.includes(keyword));
+    // Also suitable for analytical tasks that benefit from structured breakdown
+    const analyticalKeywords = [
+      'analyze', 'examine', 'evaluate', 'assess', 'review', 'investigate',
+      'compare', 'contrast', 'study', 'research', 'explore', 'identify',
+      'determine', 'measure', 'track', 'monitor', 'audit', 'inspect'
+    ];
     
-    return hasLintIssues || hasPlanningContent;
+    const hasPlanningContent = planningKeywords.some(keyword => prompt.includes(keyword));
+    const hasAnalyticalContent = analyticalKeywords.some(keyword => prompt.includes(keyword));
+    
+    return hasLintIssues || hasPlanningContent || hasAnalyticalContent;
   }
   
   /**
@@ -94,6 +102,17 @@ export class BulletTemplate extends BaseTemplate {
     // Higher priority for complex issues
     if (context.lintResult.issues.length >= 3) {
       priority += 0.1;
+    }
+    
+    // Higher priority for analytical tasks (structured breakdown is ideal)
+    const prompt = context.prompt.toLowerCase();
+    const analyticalKeywords = [
+      'analyze', 'examine', 'evaluate', 'assess', 'review', 'investigate',
+      'compare', 'contrast', 'study', 'research', 'explore', 'identify'
+    ];
+    
+    if (analyticalKeywords.some(keyword => prompt.includes(keyword))) {
+      priority += 0.3; // Significant boost for analytical tasks
     }
     
     return Math.min(priority, 1.0);
