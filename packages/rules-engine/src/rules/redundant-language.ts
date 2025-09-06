@@ -6,7 +6,7 @@
  */
 
 import { LintRuleType } from '@promptlint/shared-types';
-import { LintRule, RuleAnalysisResult } from './index';
+import { LintRule, RuleAnalysisResult } from './index.js';
 
 /**
  * Common filler words that add no value

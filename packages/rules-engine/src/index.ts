@@ -9,11 +9,11 @@
  * @packageDocumentation
  */
 
-export { analyzePrompt } from './analyzer';
-export { LintEngine } from './engine';
-export * from './rules';
-export * from './scoring';
-export * from './utils';
+export { analyzePrompt } from './analyzer.js';
+export { LintEngine } from './engine.js';
+export * from './rules/index.js';
+export * from './scoring.js';
+export * from './utils.js';
 
 // Re-export commonly used types from shared-types
 export type {

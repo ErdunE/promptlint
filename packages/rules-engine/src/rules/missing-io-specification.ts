@@ -6,7 +6,7 @@
  */
 
 import { LintRuleType } from '@promptlint/shared-types';
-import { LintRule, RuleAnalysisResult } from './index';
+import { LintRule, RuleAnalysisResult } from './index.js';
 
 /**
  * Keywords indicating input specification

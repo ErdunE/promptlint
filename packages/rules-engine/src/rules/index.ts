@@ -36,20 +36,20 @@ export interface LintRule {
 }
 
 // Import all rule implementations
-import { MissingTaskVerbRule } from './missing-task-verb';
-import { MissingLanguageRule } from './missing-language';
-import { MissingIOSpecificationRule } from './missing-io-specification';
-import { VagueWordingRule } from './vague-wording';
-import { UnclearScopeRule } from './unclear-scope';
-import { RedundantLanguageRule } from './redundant-language';
+import { MissingTaskVerbRule } from './missing-task-verb.js';
+import { MissingLanguageRule } from './missing-language.js';
+import { MissingIOSpecificationRule } from './missing-io-specification.js';
+import { VagueWordingRule } from './vague-wording.js';
+import { UnclearScopeRule } from './unclear-scope.js';
+import { RedundantLanguageRule } from './redundant-language.js';
 
 // Export individual rules
-export { MissingTaskVerbRule } from './missing-task-verb';
-export { MissingLanguageRule } from './missing-language';
-export { MissingIOSpecificationRule } from './missing-io-specification';
-export { VagueWordingRule } from './vague-wording';
-export { UnclearScopeRule } from './unclear-scope';
-export { RedundantLanguageRule } from './redundant-language';
+export { MissingTaskVerbRule } from './missing-task-verb.js';
+export { MissingLanguageRule } from './missing-language.js';
+export { MissingIOSpecificationRule } from './missing-io-specification.js';
+export { VagueWordingRule } from './vague-wording.js';
+export { UnclearScopeRule } from './unclear-scope.js';
+export { RedundantLanguageRule } from './redundant-language.js';
 
 /**
  * Get all available lint rules
