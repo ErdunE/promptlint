@@ -60,10 +60,21 @@ export class SequentialTemplate extends BaseTemplate {
     const prompt = context.prompt.toLowerCase();
     const sequentialKeywords = [
       'step', 'steps', 'then', 'first', 'next', 'after', 'before',
-      'sequence', 'process', 'procedure', 'workflow', 'stage', 'phase'
+      'sequence', 'process', 'procedure', 'workflow', 'stage', 'phase',
+      'implement', 'build', 'create', 'develop', 'setup', 'configure',
+      'install', 'deploy', 'execute', 'run', 'perform', 'complete'
     ];
     
-    return sequentialKeywords.some(keyword => prompt.includes(keyword));
+    // Also suitable for multi-domain tasks (research and implement, analyze and document)
+    const multiDomainPatterns = [
+      'and then', 'and implement', 'and create', 'and build', 'and develop',
+      'then implement', 'then create', 'then build', 'then develop'
+    ];
+    
+    const hasSequentialKeywords = sequentialKeywords.some(keyword => prompt.includes(keyword));
+    const hasMultiDomainPattern = multiDomainPatterns.some(pattern => prompt.includes(pattern));
+    
+    return hasSequentialKeywords || hasMultiDomainPattern;
   }
   
   /**

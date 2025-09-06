@@ -16,10 +16,27 @@ import {
 } from './types/TemplateTypes.js';
 import { LintResult, LintRuleType } from '@promptlint/shared-types';
 import { DomainClassificationResult, DomainType } from '@promptlint/domain-classifier';
+import { SemanticAnalyzer } from './analysis/SemanticAnalyzer.js';
+import { ConfidenceCalibrator } from './analysis/ConfidenceCalibrator.js';
+import { IntelligentTemplateSelector } from './analysis/IntelligentTemplateSelector.js';
+import { SemanticRouter } from './analysis/SemanticRouter.js';
+import { PromptSemantics } from './types/SemanticTypes.js';
 
 export class PatternMatcher {
+  private semanticAnalyzer: SemanticAnalyzer;
+  private confidenceCalibrator: ConfidenceCalibrator;
+  private intelligentSelector: IntelligentTemplateSelector;
+  private semanticRouter: SemanticRouter;
+
+  constructor() {
+    this.semanticAnalyzer = new SemanticAnalyzer();
+    this.confidenceCalibrator = new ConfidenceCalibrator();
+    this.intelligentSelector = new IntelligentTemplateSelector();
+    this.semanticRouter = new SemanticRouter();
+  }
   /**
-   * Enhanced template selection with sub-category detection and metadata
+   * Enhanced template selection with semantic analysis and intelligent routing
+   * Phase 1.3 Context-Aware Template Selection Implementation
    * 
    * @param lintResult - Lint analysis result
    * @param domainResult - Domain classification result
@@ -31,20 +48,51 @@ export class PatternMatcher {
     domainResult: DomainClassificationResult, 
     originalPrompt?: string
   ): { templates: TemplateType[], metadata: TemplateSelectionMetadata } {
-    const enhancedDomain = this.enhanceDomainClassification(domainResult, originalPrompt);
+    // Phase 1.3: Semantic Analysis Integration
+    const semantics = originalPrompt ? this.semanticAnalyzer.analyze(originalPrompt) : null;
+    
+    // Enhanced domain classification with semantic context
+    const enhancedDomain = this.enhanceDomainClassification(domainResult, originalPrompt, semantics);
+    
+    // Confidence calibration for edge cases
+    const calibratedConfidence = semantics ? 
+      this.confidenceCalibrator.refineConfidence(enhancedDomain.confidence, domainResult, semantics) :
+      { finalConfidence: enhancedDomain.confidence } as any;
+    
+    // Update enhanced domain with calibrated confidence
+    enhancedDomain.confidence = calibratedConfidence.finalConfidence;
+    
     const criteria = this.analyzePrompt(lintResult, originalPrompt);
     
-    // Apply enhanced confidence-based selection strategy
-    const selectionStrategy = this.determineSelectionStrategy(enhancedDomain.confidence);
-    const selectedTemplates = this.selectOptimalTemplates(enhancedDomain, criteria, selectionStrategy);
+    // Phase 1.3: Intelligent template selection
+    let selectedTemplates: EnhancedTemplateSelection[];
     
-    // Generate metadata for feedback integration
+    if (semantics) {
+      // Use semantic-aware selection
+      selectedTemplates = this.selectTemplatesWithSemanticAnalysis(
+        enhancedDomain, 
+        criteria, 
+        semantics, 
+        lintResult
+      );
+    } else {
+      // Fallback to existing logic
+      const selectionStrategy = this.determineSelectionStrategy(enhancedDomain.confidence);
+      selectedTemplates = this.selectOptimalTemplates(enhancedDomain, criteria, selectionStrategy);
+    }
+    
+    // Generate enhanced metadata with semantic context
     const metadata: TemplateSelectionMetadata = {
-      selectionReasoning: this.generateSelectionReasoning(selectedTemplates, enhancedDomain, criteria),
+      selectionReasoning: this.generateEnhancedSelectionReasoning(
+        selectedTemplates, 
+        enhancedDomain, 
+        criteria, 
+        semantics
+      ),
       domainContext: enhancedDomain,
       alternativeTemplates: this.getAlternativeTemplates(selectedTemplates),
       userFeedbackCapable: true,
-      selectionStrategy
+      selectionStrategy: semantics ? 'semantic_aware' as any : this.determineSelectionStrategy(enhancedDomain.confidence)
     };
     
     return {
@@ -288,17 +336,18 @@ export class PatternMatcher {
    */
   private enhanceDomainClassification(
     domainResult: DomainClassificationResult, 
-    prompt?: string
+    prompt?: string,
+    semantics?: any
   ): EnhancedDomainResult {
     const subCategory = this.detectDomainSubCategory(domainResult.domain, prompt || '', domainResult.confidence);
-    const characteristics = this.extractDomainCharacteristics(domainResult.domain, prompt || '');
     
     return {
-      primaryDomain: domainResult.domain,
+      domain: domainResult.domain,
       subCategory,
       confidence: domainResult.confidence,
-      characteristics,
-      originalResult: domainResult
+      indicators: domainResult.indicators,
+      processingTime: domainResult.processingTime,
+      semanticContext: semantics
     };
   }
 
@@ -452,8 +501,8 @@ export class PatternMatcher {
    * Calculate domain alignment score for template
    */
   private calculateDomainAlignment(templateType: TemplateType, enhancedDomain: EnhancedDomainResult): number {
-    const preferences = this.getDomainTemplatePreferences(enhancedDomain.primaryDomain as DomainType, 'high');
-    const secondaryPreferences = this.getDomainTemplatePreferences(enhancedDomain.primaryDomain as DomainType, 'secondary');
+    const preferences = this.getDomainTemplatePreferences(enhancedDomain.domain as DomainType, 'high');
+    const secondaryPreferences = this.getDomainTemplatePreferences(enhancedDomain.domain as DomainType, 'secondary');
     
     if (preferences.includes(templateType)) return 90;
     if (secondaryPreferences.includes(templateType)) return 70;
@@ -621,7 +670,7 @@ export class PatternMatcher {
     // Domain-based reasoning
     reasoning.push({
       type: 'domain_alignment',
-      description: `Selected templates for ${enhancedDomain.primaryDomain} domain${enhancedDomain.subCategory ? ` (${enhancedDomain.subCategory})` : ''}`,
+      description: `Selected templates for ${enhancedDomain.domain} domain${enhancedDomain.subCategory ? ` (${enhancedDomain.subCategory})` : ''}`,
       confidence: enhancedDomain.confidence
     });
     
@@ -751,6 +800,128 @@ export class PatternMatcher {
     }
   }
   
+  /**
+   * Phase 1.3: Select templates using semantic analysis
+   */
+  private selectTemplatesWithSemanticAnalysis(
+    enhancedDomain: EnhancedDomainResult,
+    criteria: TemplateSelectionCriteria,
+    semantics: PromptSemantics,
+    lintResult: LintResult
+  ): EnhancedTemplateSelection[] {
+    // Use semantic router for primary template selection
+    const domainForRouter = {
+      domain: enhancedDomain.domain as any,
+      confidence: enhancedDomain.confidence,
+      indicators: enhancedDomain.indicators,
+      processingTime: enhancedDomain.processingTime
+    };
+    const routingResult = this.semanticRouter.routeTemplate(semantics, domainForRouter);
+    
+    // Score all available templates using intelligent selector
+    const allTemplates = [
+      TemplateType.TASK_IO,
+      TemplateType.BULLET,
+      TemplateType.SEQUENTIAL,
+      TemplateType.MINIMAL
+    ];
+    
+    const templateScores = allTemplates.map(templateType => 
+      this.intelligentSelector.scoreTemplate(templateType, semantics, domainForRouter, lintResult)
+    );
+    
+    // Sort by overall score and select top templates
+    const sortedScores = templateScores.sort((a, b) => b.factors.overallScore - a.factors.overallScore);
+    
+    // Select top 3 templates with minimum score threshold
+    const selectedTemplates = sortedScores
+      .filter(score => score.factors.overallScore >= 50) // Minimum threshold
+      .slice(0, 3)
+      .map(score => ({
+        templateType: score.templateType as TemplateType,
+        confidence: score.confidence,
+        reasons: [{
+          type: 'template_selection' as any,
+          description: score.reasoning.join('; '),
+          confidence: score.confidence
+        }],
+        domainAlignment: score.factors.domainAlignment,
+        contextMatch: score.factors.contextualRelevance,
+        compositeScore: score.factors.overallScore
+      }));
+    
+    // Ensure we have at least one template
+    if (selectedTemplates.length === 0) {
+      selectedTemplates.push({
+        templateType: TemplateType.MINIMAL,
+        confidence: 30,
+        reasons: [{
+          type: 'template_selection' as any,
+          description: 'Fallback template for low-scoring semantic analysis',
+          confidence: 30
+        }],
+        domainAlignment: 30,
+        contextMatch: 30,
+        compositeScore: 30
+      });
+    }
+    
+    return selectedTemplates;
+  }
+
+
+  /**
+   * Phase 1.3: Generate enhanced selection reasoning with semantic context
+   */
+  private generateEnhancedSelectionReasoning(
+    selectedTemplates: EnhancedTemplateSelection[],
+    enhancedDomain: EnhancedDomainResult,
+    criteria: TemplateSelectionCriteria,
+    semantics?: PromptSemantics | null
+  ): SelectionReason[] {
+    const reasoning: SelectionReason[] = [];
+
+    // Domain-based reasoning
+    reasoning.push({
+      type: 'domain_classification',
+      description: `Domain: ${enhancedDomain.domain} (${enhancedDomain.confidence}% confidence)`,
+      confidence: enhancedDomain.confidence
+    });
+
+    // Semantic reasoning
+    if (semantics) {
+      reasoning.push({
+        type: 'semantic_analysis',
+        description: `Intent: ${semantics.intentType}, Complexity: ${semantics.complexity}, Specificity: ${semantics.specificity}`,
+        confidence: semantics.confidence
+      });
+
+      // Context-based reasoning
+      const activeContexts = Object.entries(semantics.context)
+        .filter(([_, active]) => active)
+        .map(([context, _]) => context);
+
+      if (activeContexts.length > 0) {
+        reasoning.push({
+          type: 'context_analysis',
+          description: `Context markers: ${activeContexts.join(', ')}`,
+          confidence: 80
+        });
+      }
+    }
+
+    // Template-specific reasoning
+    selectedTemplates.forEach((template, index) => {
+      reasoning.push({
+        type: 'template_selection',
+        description: `${index + 1}. ${template.templateType} (${template.compositeScore}% score): ${template.reasons[0]?.description || 'No reasoning available'}`,
+        confidence: template.confidence
+      });
+    });
+
+    return reasoning;
+  }
+
   /**
    * Check if prompt has sequential keywords
    */

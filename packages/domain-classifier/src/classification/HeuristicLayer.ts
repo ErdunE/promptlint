@@ -114,6 +114,11 @@ export class HeuristicLayer implements ClassificationLayer {
         }
       }
     }
+    
+    // Reduce score for comparative evaluation (should favor research domain)
+    if (prompt.includes('evaluate') && (prompt.includes('different') || prompt.includes('platforms') || prompt.includes('tools') || prompt.includes('options'))) {
+      score -= 0.15; // Favor research over analysis for comparative evaluation - increased penalty
+    }
 
     // Business analysis indicators
     const businessTerms = ['market', 'business', 'financial', 'customer', 'sales', 'roi', 'growth'];
@@ -164,6 +169,16 @@ export class HeuristicLayer implements ClassificationLayer {
     const actionCount = researchActions.filter(action => prompt.includes(action)).length;
     score += actionCount * 0.1;
 
+    // Planning and strategy patterns (often research-oriented)
+    const planningTerms = ['outline', 'plan', 'strategy', 'roadmap', 'goals', 'objectives', 'requirements'];
+    const planningCount = planningTerms.filter(term => prompt.includes(term)).length;
+    // Special boost for planning combinations
+    if (prompt.includes('outline') && (prompt.includes('goals') || prompt.includes('objectives'))) {
+      score += 0.4; // Strong planning signal - boosted for reliability
+    } else {
+      score += planningCount * 0.08;
+    }
+
     // Methodology indicators
     const methodologyTerms = ['best practices', 'methodologies', 'approaches', 'techniques', 'methods', 'frameworks'];
     const methodCount = methodologyTerms.filter(term => prompt.includes(term)).length;
@@ -187,6 +202,11 @@ export class HeuristicLayer implements ClassificationLayer {
     // Comparative research patterns
     if (prompt.includes('compare') && (prompt.includes('tools') || prompt.includes('platforms') || prompt.includes('solutions'))) {
       score += 0.2;
+    }
+    
+    // Evaluation and assessment patterns (comparative research)
+    if (prompt.includes('evaluate') && (prompt.includes('different') || prompt.includes('platforms') || prompt.includes('tools') || prompt.includes('options'))) {
+      score += 0.35; // Strong research signal for evaluation tasks - boosted
     }
 
     return Math.min(score, 0.8);

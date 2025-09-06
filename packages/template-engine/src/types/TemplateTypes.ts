@@ -13,15 +13,17 @@ import { LintResult, LintIssue } from '@promptlint/shared-types';
  */
 export interface EnhancedDomainResult {
   /** Primary domain classification */
-  primaryDomain: string;
+  domain: string;
   /** Detected sub-category for enhanced context */
   subCategory: string | undefined;
   /** Classification confidence (0-100) */
   confidence: number;
   /** Domain characteristics detected */
-  characteristics: string[];
-  /** Original domain classification result */
-  originalResult: any; // DomainClassificationResult from domain-classifier
+  indicators: string[];
+  /** Processing time in milliseconds */
+  processingTime: number;
+  /** Semantic analysis context (Phase 1.3) */
+  semanticContext?: any; // PromptSemantics from SemanticTypes
 }
 
 /**
@@ -29,7 +31,7 @@ export interface EnhancedDomainResult {
  */
 export interface SelectionReason {
   /** Type of reasoning applied */
-  type: 'domain_alignment' | 'confidence_based' | 'lint_analysis' | 'context_match' | 'diversity_optimization';
+  type: 'domain_alignment' | 'confidence_based' | 'lint_analysis' | 'context_match' | 'diversity_optimization' | 'domain_classification' | 'semantic_analysis' | 'context_analysis' | 'template_selection';
   /** Description of the reasoning */
   description: string;
   /** Confidence in this reasoning (0-100) */
@@ -67,7 +69,7 @@ export interface TemplateSelectionMetadata {
   /** Whether user feedback integration is enabled */
   userFeedbackCapable: boolean;
   /** Selection strategy used */
-  selectionStrategy: 'high_confidence' | 'moderate_confidence' | 'low_confidence_fallback';
+  selectionStrategy: 'high_confidence' | 'moderate_confidence' | 'low_confidence_fallback' | 'semantic_aware';
 }
 
 /**

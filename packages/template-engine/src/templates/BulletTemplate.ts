@@ -58,9 +58,21 @@ export class BulletTemplate extends BaseTemplate {
    */
   isSuitable(context: TemplateContext): boolean {
     // Suitable for vague wording or unclear scope
-    return this.hasLintIssue(context, LintRuleType.VAGUE_WORDING) ||
-           this.hasLintIssue(context, LintRuleType.UNCLEAR_SCOPE) ||
-           context.lintResult.issues.length >= 3; // Complex multi-issue prompts
+    const hasLintIssues = this.hasLintIssue(context, LintRuleType.VAGUE_WORDING) ||
+                          this.hasLintIssue(context, LintRuleType.UNCLEAR_SCOPE) ||
+                          context.lintResult.issues.length >= 3;
+    
+    // Also suitable for planning, organizing, and listing tasks
+    const prompt = context.prompt.toLowerCase();
+    const planningKeywords = [
+      'outline', 'list', 'organize', 'plan', 'structure', 'breakdown',
+      'categorize', 'summarize', 'points', 'items', 'goals', 'objectives',
+      'requirements', 'features', 'benefits', 'steps', 'factors', 'aspects'
+    ];
+    
+    const hasPlanningContent = planningKeywords.some(keyword => prompt.includes(keyword));
+    
+    return hasLintIssues || hasPlanningContent;
   }
   
   /**

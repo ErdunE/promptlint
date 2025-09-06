@@ -5,10 +5,11 @@
  * Handles API key management and rephrase requests
  */
 
-import { createRephraseServiceWithStoredKey, createApiKeyStorage, testApiKey } from '@promptlint/llm-service';
-import { RephraseResult, RephraseRequest, RephraseError, RephraseErrorType, LintResult, LintRuleType, LintIssue } from '@promptlint/shared-types';
-import { TemplateEngine, TemplateCandidate } from '@promptlint/template-engine';
-import { analyzePrompt } from '@promptlint/rules-engine';
+import { createRephraseServiceWithStoredKey, createApiKeyStorage, testApiKey } from '../../../../packages/llm-service/dist/index.js';
+import { RephraseResult, RephraseRequest, RephraseError, RephraseErrorType, LintResult, LintRuleType, LintIssue } from '../../../../packages/shared-types/dist/index.js';
+import { TemplateEngine } from '../../../../packages/template-engine/dist/template-engine.js';
+import { TemplateCandidate } from '../../../../packages/template-engine/dist/types/TemplateTypes.js';
+import { analyzePrompt } from '../../../../packages/rules-engine/dist/index.js';
 
 export interface RephraseServiceStatus {
   available: boolean;
