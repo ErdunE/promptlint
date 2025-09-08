@@ -649,6 +649,7 @@ export class FloatingPanel {
         letter-spacing: 0.025em;
       }
 
+
       .promptlint-panel__score {
         font-weight: 700;
         font-size: 14px;
@@ -1148,9 +1149,13 @@ export class FloatingPanel {
           copyBtn.style.transform = 'translateY(0)';
           copyBtn.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
         });
-        copyBtn.addEventListener('click', (e) => {
+        copyBtn.addEventListener('click', async (e) => {
           e.stopPropagation();
           console.log(`[PromptLint DEBUG] Copy button ${index} clicked`);
+          
+          // Track template selection when user copies
+          await this.trackTemplateSelection(candidate, this.currentPrompt);
+          
           this.copyToClipboard(candidate.text);
           this.showCopyFeedback(copyBtn);
         });
@@ -1438,11 +1443,93 @@ export class FloatingPanel {
     }
   }
 
-  private handleCandidateSelect(candidate: RephraseCandidate): void {
+  private async handleCandidateSelect(candidate: RephraseCandidate): Promise<void> {
+    // Track user template selection in Chrome storage
+    await this.trackTemplateSelection(candidate, this.currentPrompt);
+    
     if (this.rephraseCallbacks.onRephraseSelect) {
       this.rephraseCallbacks.onRephraseSelect(candidate, this.currentPrompt);
     }
     this.hideRephrase();
+  }
+
+  /**
+   * Track user template selection in Chrome storage for learning user preferences
+   */
+  private async trackTemplateSelection(candidate: RephraseCandidate, originalPrompt: string): Promise<void> {
+    try {
+      // Check if tracking is enabled (respect privacy controls)
+      const privacySettings = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const enableTracking = privacySettings.promptlint_privacy_settings?.enableTracking !== false; // Default to true
+      
+      if (!enableTracking) {
+        console.log('[PromptLint] Template selection tracking disabled by user privacy settings');
+        return;
+      }
+
+      // Get current user data from storage
+      const stored = await chrome.storage.local.get(['promptlint_user_data']);
+      const userData = stored.promptlint_user_data || { 
+        selections: [], 
+        preferences: {},
+        stats: {
+          totalSelections: 0,
+          averagePromptLength: 0,
+          mostUsedApproach: null
+        },
+        lastUpdated: Date.now(),
+        version: '0.6.0'
+      };
+      
+      // Add new selection record
+      const selectionRecord = {
+        timestamp: Date.now(),
+        candidateId: candidate.id,
+        approach: candidate.approach,
+        originalPrompt: originalPrompt.substring(0, 200), // Store first 200 chars for privacy
+        promptLength: originalPrompt.length,
+        estimatedScore: candidate.estimatedScore || 0,
+        improvements: candidate.improvements || [],
+        site: window.location.hostname
+      };
+      
+      userData.selections.push(selectionRecord);
+      
+      // Update preferences based on selection pattern
+      const approach = candidate.approach || 'unknown';
+      userData.preferences[approach] = (userData.preferences[approach] || 0) + 1;
+      
+      // Update statistics
+      userData.stats.totalSelections = userData.selections.length;
+      userData.stats.averagePromptLength = Math.round(
+        userData.selections.reduce((sum: number, sel: any) => sum + sel.promptLength, 0) / userData.selections.length
+      );
+      
+      // Find most used approach
+      const mostUsedApproach = Object.entries(userData.preferences)
+        .sort(([,a], [,b]) => (b as number) - (a as number))[0];
+      userData.stats.mostUsedApproach = mostUsedApproach ? mostUsedApproach[0] : null;
+      
+      userData.lastUpdated = Date.now();
+      
+      // Limit storage size - keep only last 100 selections
+      if (userData.selections.length > 100) {
+        userData.selections = userData.selections.slice(-100);
+      }
+      
+      // Store back to Chrome storage
+      await chrome.storage.local.set({ promptlint_user_data: userData });
+      
+      console.log('[PromptLint] Template selection tracked:', {
+        approach: candidate.approach,
+        totalSelections: userData.stats.totalSelections,
+        preferences: userData.preferences
+      });
+      
+    } catch (error) {
+      console.warn('[PromptLint] Failed to track template selection:', error);
+      // Don't throw - tracking failure shouldn't break user experience
+    }
   }
 
   private async copyToClipboard(text: string): Promise<void> {
@@ -1811,6 +1898,7 @@ export class FloatingPanel {
     
     // TODO: Implement actual functionality change based on selection
   }
+
 
   async cleanup(): Promise<void> {
     // Close dropdown if open

@@ -8,13 +8,15 @@
 </head>
 <body>
   <div class="popup-container">
+    <!-- Main Popup View -->
+    <div id="main-popup-view" class="popup-view">
     <!-- Header -->
     <div class="popup-header">
       <div class="popup-logo">
         <span class="popup-icon">✨</span>
         <h1 class="popup-title">PromptLint</h1>
       </div>
-      <div class="popup-version">v0.2.0</div>
+      <div class="popup-version">v0.6.0</div>
     </div>
 
     <!-- Status Section -->
@@ -66,39 +68,14 @@
       </div>
     </div>
 
-    <!-- API Configuration -->
+    <!-- Privacy Settings Access -->
     <div class="popup-section">
-      <h3 class="section-title">Rephrase Configuration</h3>
-      <div class="config-card">
-        <div class="config-item">
-          <label for="apiKeyInput" class="config-label">
-            <span class="config-icon">🔑</span>
-            OpenAI API Key (Optional)
-          </label>
-          <div class="input-group">
-            <input 
-              type="password" 
-              id="apiKeyInput" 
-              class="config-input" 
-              placeholder="sk-..."
-              autocomplete="off"
-            >
-            <button class="btn btn-icon" id="toggleApiKey" type="button" title="Show/Hide API Key">
-              <span class="toggle-icon">👁️</span>
-            </button>
-          </div>
-          <div class="config-help">
-            Without API key: Uses offline template-based rephrasing<br>
-            With API key: Uses AI-powered GPT rephrasing
-          </div>
-        </div>
-        <div class="config-actions">
-          <button class="btn btn-secondary" id="clearApiKeyBtn">Clear</button>
-          <button class="btn btn-primary" id="saveApiKeyBtn">Save</button>
-        </div>
-        <div class="config-status" id="apiKeyStatus"></div>
-      </div>
+      <button id="open-privacy-settings" class="settings-btn">
+        <span class="settings-icon">⚙️</span>
+        Privacy Settings
+      </button>
     </div>
+
 
     <!-- Supported Sites -->
     <div class="popup-section">
@@ -138,6 +115,74 @@
         <a href="#" id="feedbackLink">Feedback</a>
         <span class="separator">•</span>
         <a href="#" id="supportLink">Support</a>
+      </div>
+    </div>
+    </div> <!-- End Main Popup View -->
+
+    <!-- Privacy Settings Panel -->
+    <div id="privacy-settings-panel" class="popup-view hidden">
+      <div class="privacy-header">
+        <button id="close-privacy-settings" class="back-btn">← Back</button>
+        <h2 class="privacy-title">Privacy Settings</h2>
+      </div>
+
+      <div class="privacy-content">
+        <!-- Behavior Tracking Toggle -->
+        <div class="privacy-toggle-group">
+          <label class="privacy-toggle-label">
+            <input type="checkbox" id="enable-behavior-tracking" checked>
+            <span class="toggle-switch">
+              <span class="toggle-slider"></span>
+            </span>
+            <span class="toggle-text">
+              <span class="toggle-icon">📊</span>
+              Enable Behavior Tracking
+            </span>
+          </label>
+          <p class="setting-description">Track template selections to improve recommendations</p>
+        </div>
+
+        <!-- Preference Learning Toggle -->
+        <div class="privacy-toggle-group">
+          <label class="privacy-toggle-label">
+            <input type="checkbox" id="enable-preference-learning" checked>
+            <span class="toggle-switch">
+              <span class="toggle-slider"></span>
+            </span>
+            <span class="toggle-text">
+              <span class="toggle-icon">🧠</span>
+              Enable Preference Learning
+            </span>
+          </label>
+          <p class="setting-description">Adapt suggestions based on your usage patterns</p>
+        </div>
+
+        <!-- Storage Statistics -->
+        <div class="storage-stats">
+          <div class="stats-header">
+            <strong>Storage Usage:</strong> 
+            <span id="storage-usage">0 KB</span> / 5 MB
+          </div>
+          <div class="storage-bar">
+            <div id="storage-progress" class="storage-fill"></div>
+          </div>
+          <div class="stats-details">
+            <p>Total selections: <span id="total-selections">0</span></p>
+            <p>Most used approach: <span id="most-used-approach">None</span></p>
+          </div>
+        </div>
+
+        <!-- Data Controls -->
+        <div class="data-controls">
+          <button id="export-data-btn" class="control-btn">
+            <span class="btn-icon">📥</span>
+            Export My Data
+          </button>
+          <button id="clear-data-btn" class="control-btn danger">
+            <span class="btn-icon">🗑</span>
+            Clear All Data
+          </button>
+        </div>
       </div>
     </div>
   </div>

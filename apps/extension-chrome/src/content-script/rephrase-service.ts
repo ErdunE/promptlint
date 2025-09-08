@@ -7,7 +7,9 @@
 
 import { createRephraseServiceWithStoredKey, createApiKeyStorage, testApiKey } from '../../../../packages/llm-service/dist/index.js';
 import { RephraseResult, RephraseRequest, RephraseError, RephraseErrorType, LintResult, LintRuleType, LintIssue } from '../../../../packages/shared-types/dist/index.js';
-import { TemplateEngine, TemplateCandidate } from '../../../../packages/template-engine/dist/index.js';
+// @ts-ignore - Template engine JS file doesn't have declaration
+import { TemplateEngine } from '../../../../packages/template-engine/dist/template-engine.js';
+import type { TemplateCandidate } from '../../../../packages/template-engine/dist/index.js';
 import { analyzePrompt } from '../../../../packages/rules-engine/dist/index.js';
 
 export interface RephraseServiceStatus {
@@ -298,7 +300,7 @@ export class ExtensionRephraseService {
   }
 
   /**
-   * Create offline rephrase result using template engine
+   * Create offline rephrase result using template engine with user preference influence
    */
   private async createOfflineRephraseResult(prompt: string): Promise<RephraseResult> {
     try {
@@ -308,8 +310,11 @@ export class ExtensionRephraseService {
       // Generate template candidates
       const templateCandidates = await this.templateEngine.generateCandidates(prompt, lintResult);
       
+      // Apply user preference influence
+      const influencedCandidates = await this.applyUserPreferences(templateCandidates);
+      
       // Convert template candidates to rephrase candidates
-      const candidates = templateCandidates.map((templateCandidate: TemplateCandidate) => ({
+      const candidates = influencedCandidates.map((templateCandidate: TemplateCandidate) => ({
         id: templateCandidate.id,
         text: templateCandidate.content,
         approach: this.mapTemplateTypeToApproach(templateCandidate.type),
@@ -318,20 +323,23 @@ export class ExtensionRephraseService {
         length: templateCandidate.content.length
       }));
 
+      // Track this generation for learning
+      await this.trackTemplateGeneration(prompt, candidates);
+
       return {
         originalPrompt: prompt,
         candidates,
         metadata: {
           processingTime: templateCandidates.reduce((sum: number, c: TemplateCandidate) => sum + c.generationTime, 0),
-          model: 'template-engine-v0.4.0',
+          model: 'template-engine-v0.4.0-with-preferences',
           tokensUsed: 0,
           estimatedCost: 0,
           timestamp: Date.now()
         },
         warnings: [
-          'Generated using PromptLint Template Engine v0.4.0',
+          'Generated using PromptLint Template Engine v0.4.0 with user preferences',
           'For AI-powered improvements, configure OpenAI API key in extension popup',
-          'Template engine provides intelligent structural improvements based on lint analysis'
+          'Template ranking influenced by your selection history'
         ]
       };
       
@@ -497,6 +505,137 @@ export class ExtensionRephraseService {
 
   private capitalizeFirst(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  /**
+   * Apply user preferences to influence template candidate ranking
+   */
+  private async applyUserPreferences(candidates: TemplateCandidate[]): Promise<TemplateCandidate[]> {
+    try {
+      // Check if preference learning is enabled
+      const privacySettings = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const enableLearning = privacySettings.promptlint_privacy_settings?.enableLearning !== false;
+      
+      if (!enableLearning) {
+        console.log('[PromptLint] Preference learning disabled, returning original order');
+        return candidates;
+      }
+
+      // Load user preferences from storage
+      const userData = await chrome.storage.local.get(['promptlint_user_data']);
+      const preferences = userData.promptlint_user_data?.preferences || {};
+      
+      if (Object.keys(preferences).length === 0) {
+        console.log('[PromptLint] No user preferences found, returning original order');
+        return candidates;
+      }
+
+      // Apply preference-based scoring boost
+      const influencedCandidates = candidates.map(candidate => {
+        const approach = this.mapTemplateTypeToApproach(candidate.type);
+        const userPreferenceCount = preferences[approach] || 0;
+        
+        // Calculate preference boost (0-20 points based on usage frequency)
+        const maxPreferenceCount = Math.max(...Object.values(preferences) as number[]);
+        const preferenceBoost = maxPreferenceCount > 0 ? (userPreferenceCount / maxPreferenceCount) * 20 : 0;
+        
+        // Apply boost to candidate score
+        const boostedCandidate = {
+          ...candidate,
+          score: Math.min(100, candidate.score + preferenceBoost),
+          metadata: {
+            ...candidate.metadata,
+            templateType: candidate.metadata?.templateType || approach,
+            faithfulnessResult: candidate.metadata?.faithfulnessResult || { 
+              isValid: true, 
+              violations: [], 
+              score: 100, 
+              report: 'No faithfulness issues detected' 
+            },
+            performanceMetrics: candidate.metadata?.performanceMetrics || {
+              executionTime: 0,
+              maxAllowedTime: 1000,
+              warningThreshold: 500,
+              isAcceptable: true,
+              isWarning: false,
+              performanceRatio: 0
+            },
+            warnings: candidate.metadata?.warnings || [],
+            preferenceBoost,
+            userPreferenceCount,
+            originalScore: candidate.score
+          }
+        };
+        
+        return boostedCandidate;
+      });
+
+      // Sort by boosted score (descending)
+      const sortedCandidates = influencedCandidates.sort((a, b) => b.score - a.score);
+      
+      console.log('[PromptLint] Applied user preferences:', {
+        originalOrder: candidates.map(c => this.mapTemplateTypeToApproach(c.type)),
+        influencedOrder: sortedCandidates.map(c => this.mapTemplateTypeToApproach(c.type)),
+        preferences
+      });
+      
+      return sortedCandidates;
+      
+    } catch (error) {
+      console.warn('[PromptLint] Failed to apply user preferences:', error);
+      return candidates;
+    }
+  }
+
+  /**
+   * Track template generation for learning purposes
+   */
+  private async trackTemplateGeneration(prompt: string, candidates: any[]): Promise<void> {
+    try {
+      // Check if tracking is enabled
+      const privacySettings = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const enableTracking = privacySettings.promptlint_privacy_settings?.enableTracking !== false;
+      
+      if (!enableTracking) {
+        return;
+      }
+
+      // Get current user data
+      const stored = await chrome.storage.local.get(['promptlint_user_data']);
+      const userData = stored.promptlint_user_data || { 
+        generations: [],
+        stats: {}
+      };
+      
+      // Add generation record
+      const generationRecord = {
+        timestamp: Date.now(),
+        promptLength: prompt.length,
+        candidatesGenerated: candidates.length,
+        approaches: candidates.map(c => c.approach),
+        site: window.location.hostname
+      };
+      
+      userData.generations = userData.generations || [];
+      userData.generations.push(generationRecord);
+      
+      // Limit generation history (keep last 50)
+      if (userData.generations.length > 50) {
+        userData.generations = userData.generations.slice(-50);
+      }
+      
+      // Update stats
+      userData.stats.totalGenerations = userData.generations.length;
+      userData.lastUpdated = Date.now();
+      
+      // Store back to Chrome storage
+      await chrome.storage.local.set({ promptlint_user_data: userData });
+      
+      console.log('[PromptLint] Template generation tracked');
+      
+    } catch (error) {
+      console.warn('[PromptLint] Failed to track template generation:', error);
+    }
   }
 }
 

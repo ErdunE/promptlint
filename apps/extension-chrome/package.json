@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/extension-chrome",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "PromptLint Chrome Extension - Grammarly for AI prompts",
   "type": "module",
   "scripts": {
