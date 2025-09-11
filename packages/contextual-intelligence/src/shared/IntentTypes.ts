@@ -597,3 +597,20 @@ export enum ImplementationEffort {
   DIFFICULT = 'difficult',
   COMPLEX = 'complex'
 }
+
+// Week 2 MetaInstruction types (simplified for now)
+
+// Interaction Analysis Types (placeholder for Week 3)
+export interface InteractionAnalysis {
+  communicationStyle: CommunicationStyle;
+  preferredDetailLevel: DetailLevel;
+  urgencyIndicators: UrgencyLevel;
+  collaborationContext: CollaborationContext;
+  confidence: number;
+  processingTime: number;
+}
+
+export type CommunicationStyle = 'direct' | 'conversational' | 'formal' | 'technical';
+export type DetailLevel = 'minimal' | 'balanced' | 'detailed' | 'comprehensive';
+export type UrgencyLevel = 'low' | 'normal' | 'high' | 'urgent';
+export type CollaborationContext = 'individual' | 'team' | 'public' | 'educational';

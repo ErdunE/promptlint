@@ -17,8 +17,12 @@ export interface ProjectContext {
   projectType: ProjectType;
   /** Development stage indicator */
   stage: ProjectStage;
+  /** Project phase (for MetaInstruction analysis) */
+  phase?: ProjectPhase;
   /** Technology stack indicators */
   techStack: TechStackIndicator[];
+  /** Technical stack (for MetaInstruction analysis) */
+  technicalStack?: TechnicalStack;
   /** Team size and structure */
   teamStructure: TeamStructure;
   /** Project complexity assessment */
@@ -352,4 +356,52 @@ export interface DefaultContext {
   fallbackTeam: TeamStandards;
   fallbackPlatform: PlatformConstraints;
   limitations: string[];
+}
+
+// === MetaInstruction Analysis Types ===
+
+export interface MetaInstructionAnalysis {
+  constraints: Constraint[];
+  projectContext: ProjectContext;
+  implicitRequirements: string[];
+  userExpertiseLevel: ExpertiseLevel;
+  confidence: number;
+  processingTime: number;
+}
+
+export interface Constraint {
+  type: ConstraintType;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  extractedFrom: string;
+}
+
+export enum ConstraintType {
+  TIME = 'time',
+  BUDGET = 'budget',
+  TECHNICAL = 'technical',
+  QUALITY = 'quality',
+  SCOPE = 'scope'
+}
+
+export enum ProjectPhase {
+  PLANNING = 'planning',
+  DEVELOPMENT = 'development',
+  TESTING = 'testing',
+  DEPLOYMENT = 'deployment',
+  MAINTENANCE = 'maintenance'
+}
+
+export interface TechnicalStack {
+  languages: string[];
+  frameworks: string[];
+  tools: string[];
+  platforms: string[];
+}
+
+export enum ExpertiseLevel {
+  BEGINNER = 'beginner',
+  INTERMEDIATE = 'intermediate',
+  ADVANCED = 'advanced',
+  EXPERT = 'expert'
 }

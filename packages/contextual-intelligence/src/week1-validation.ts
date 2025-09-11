@@ -86,7 +86,7 @@ async function runWeek1Validation(): Promise<void> {
         success: false,
         processingTime: performance.now() - startTime,
         result: null,
-        issues: [`Error: ${error.message}`]
+        issues: [`Error: ${error instanceof Error ? error.message : String(error)}`]
       });
     }
   }
