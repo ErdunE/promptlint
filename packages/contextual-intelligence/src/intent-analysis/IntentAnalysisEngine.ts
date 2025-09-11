@@ -1,38 +1,33 @@
 import { InstructionAnalyzer } from './InstructionAnalyzer.js';
 import { MetaInstructionAnalyzer } from './MetaInstructionAnalyzer.js';
+import { InteractionAnalyzer } from './InteractionAnalyzer.js';
 import { 
   IntentAnalysis, 
   InstructionIntent,
-  InteractionIntent 
+  InteractionIntent,
+  InteractionAnalysis as InteractionAnalysisType
 } from '../shared/IntentTypes.js';
 import { MetaInstructionAnalysis } from '../shared/ContextualTypes.js';
 
 export class IntentAnalysisEngine {
   private instructionAnalyzer: InstructionAnalyzer;
   private metaInstructionAnalyzer: MetaInstructionAnalyzer;
+  private interactionAnalyzer: InteractionAnalyzer;
 
   constructor() {
     this.instructionAnalyzer = new InstructionAnalyzer();
     this.metaInstructionAnalyzer = new MetaInstructionAnalyzer();
+    this.interactionAnalyzer = new InteractionAnalyzer();
   }
 
   async analyzeIntent(prompt: string, userContext?: any): Promise<IntentAnalysis> {
     const startTime = performance.now();
     
     try {
-      // Parallel analysis of different intent layers
+      // Parallel analysis of all three intent layers
       const instructionAnalysis = await this.instructionAnalyzer.analyzeInstruction(prompt);
       const metaInstructionAnalysis = this.metaInstructionAnalyzer.analyzeMetaInstruction(prompt, userContext);
-      
-      // Placeholder for InteractionAnalyzer (Week 3)
-      const interactionAnalysis: InteractionIntent = {
-        userExpertise: metaInstructionAnalysis.userExpertiseLevel as any,
-        collaborationPattern: 'independent' as any,
-        workflowStage: 'implementation' as any,
-        interactionStyle: 'directive' as any,
-        followUpExpectations: [],
-        confidence: 0.5
-      };
+      const interactionAnalysis = this.interactionAnalyzer.analyzeInteraction(prompt, userContext);
 
       const totalProcessingTime = performance.now() - startTime;
       
@@ -47,7 +42,14 @@ export class IntentAnalysisEngine {
           contextRequirements: [],
           confidence: metaInstructionAnalysis.confidence
         },
-        interaction: interactionAnalysis,
+        interaction: {
+          userExpertise: metaInstructionAnalysis.userExpertiseLevel as any,
+          collaborationPattern: interactionAnalysis.collaborationContext as any,
+          workflowStage: 'implementation' as any,
+          interactionStyle: interactionAnalysis.communicationStyle as any,
+          followUpExpectations: [],
+          confidence: interactionAnalysis.confidence
+        },
         confidence: this.calculateOverallConfidence(
           instructionAnalysis,
           metaInstructionAnalysis,
@@ -58,13 +60,13 @@ export class IntentAnalysisEngine {
           layerTimes: [
             { layer: 'instruction' as any, processingTime: instructionAnalysis.confidence * 10, confidence: instructionAnalysis.confidence, fallbacksUsed: 0 },
             { layer: 'meta_instruction' as any, processingTime: metaInstructionAnalysis.processingTime, confidence: metaInstructionAnalysis.confidence, fallbacksUsed: 0 },
-            { layer: 'interaction' as any, processingTime: 1, confidence: 0.5, fallbacksUsed: 0 }
+            { layer: 'interaction' as any, processingTime: interactionAnalysis.processingTime, confidence: interactionAnalysis.confidence, fallbacksUsed: 0 }
           ],
           memoryUsage: { peakUsage: 1024, averageUsage: 512, allocationCount: 10 },
           confidenceBreakdown: {
             instruction: instructionAnalysis.confidence,
             metaInstruction: metaInstructionAnalysis.confidence,
-            interaction: 0.5,
+            interaction: interactionAnalysis.confidence,
             overall: this.calculateOverallConfidence(instructionAnalysis, metaInstructionAnalysis, interactionAnalysis)
           }
         }
@@ -119,16 +121,106 @@ export class IntentAnalysisEngine {
   private calculateOverallConfidence(
     instruction: InstructionIntent,
     metaInstruction: MetaInstructionAnalysis,
-    interaction: InteractionIntent
+    interaction: InteractionAnalysisType
   ): number {
     // Weighted average of confidence scores
-    const weights = { instruction: 0.5, metaInstruction: 0.3, interaction: 0.2 };
+    const weights = { 
+      instruction: 0.4,      // Primary intent is most important
+      metaInstruction: 0.35, // Context is very important  
+      interaction: 0.25      // Communication style matters but less
+    };
     
     return (
       instruction.confidence * weights.instruction +
       metaInstruction.confidence * weights.metaInstruction +
       interaction.confidence * weights.interaction
     );
+  }
+
+  validateIntentFaithfulness(analysis: IntentAnalysis, originalPrompt: string): boolean {
+    // Validate that analysis preserves original intent across all layers
+    const instruction = analysis.instruction;
+    const interaction = analysis.interaction;
+    const originalLower = originalPrompt.toLowerCase();
+
+    // Check instruction layer faithfulness
+    const categoryKeywords: Record<string, string[]> = {
+      create: ['create', 'build', 'make', 'generate', 'implement'],
+      analyze: ['analyze', 'examine', 'study', 'review', 'assess'],
+      solve: ['solve', 'fix', 'debug', 'resolve', 'troubleshoot'],
+      explain: ['explain', 'describe', 'clarify', 'help understand'],
+      code: ['code', 'program', 'develop', 'implement'],
+      write: ['write', 'compose', 'draft', 'document']
+    };
+
+    const detectedKeywords = categoryKeywords[instruction.category] || [];
+    const hasMatchingKeyword = detectedKeywords.some(keyword => 
+      originalLower.includes(keyword)
+    );
+
+    // Check interaction layer consistency
+    const styleConsistent = this.validateCommunicationStyleConsistency(
+      instruction.category, // Using category as a proxy for communication style
+      originalPrompt
+    );
+
+    // High faithfulness requires both instruction and interaction consistency
+    return (hasMatchingKeyword || instruction.confidence > 0.8) && styleConsistent;
+  }
+
+  generateIntentExplanation(analysis: IntentAnalysis): string {
+    const { instruction, metaInstruction, interaction } = analysis;
+    
+    let explanation = `Intent Analysis Summary:\n\n`;
+    
+    // Instruction layer
+    explanation += `🎯 Instruction Layer:\n`;
+    explanation += `   Task: ${instruction.category} (${(instruction.confidence * 100).toFixed(0)}% confidence)\n`;
+    explanation += `   Action: ${instruction.action}\n`;
+    explanation += `   Subject: ${instruction.subject.type} - ${instruction.subject.domain}\n`;
+    explanation += `   Complexity: ${instruction.complexity}\n\n`;
+    
+    // Meta-instruction layer
+    explanation += `🧠 Meta-Instruction Layer:\n`;
+    explanation += `   Constraints: ${metaInstruction.constraints.length} detected\n`;
+    explanation += `   Confidence: ${(metaInstruction.confidence * 100).toFixed(1)}%\n\n`;
+    
+    // Interaction layer
+    explanation += `💬 Interaction Layer:\n`;
+    explanation += `   Communication Style: ${interaction.interactionStyle}\n`;
+    explanation += `   Collaboration: ${interaction.collaborationPattern}\n`;
+    explanation += `   User Expertise: ${interaction.userExpertise}\n\n`;
+    
+    explanation += `📊 Overall Confidence: ${(analysis.confidence * 100).toFixed(1)}%\n`;
+    explanation += `⚡ Processing Time: ${analysis.performance.totalTime.toFixed(2)}ms`;
+    
+    return explanation;
+  }
+
+  private validateCommunicationStyleConsistency(
+    detectedCategory: string,
+    originalPrompt: string
+  ): boolean {
+    const lowerPrompt = originalPrompt.toLowerCase();
+    
+    // Validate communication style detection accuracy based on category
+    switch (detectedCategory) {
+      case 'create':
+      case 'code':
+        return lowerPrompt.includes('implement') || 
+               lowerPrompt.includes('create') || 
+               lowerPrompt.includes('build');
+      case 'explain':
+        return lowerPrompt.includes('help') || 
+               lowerPrompt.includes('explain') || 
+               lowerPrompt.includes('understand');
+      case 'analyze':
+        return lowerPrompt.includes('analyze') || 
+               lowerPrompt.includes('review') || 
+               lowerPrompt.includes('assess');
+      default:
+        return true; // Default to consistent for other categories
+    }
   }
 
   private getFallbackAnalysis(): IntentAnalysis {

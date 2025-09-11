@@ -10,11 +10,13 @@
 // === Core Intent Analysis Exports ===
 export { InstructionAnalyzer } from './intent-analysis/InstructionAnalyzer.js';
 export { MetaInstructionAnalyzer } from './intent-analysis/MetaInstructionAnalyzer.js';
+export { InteractionAnalyzer } from './intent-analysis/InteractionAnalyzer.js';
 export { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js';
 
 // === Internal Imports for Factory Functions ===
 import { InstructionAnalyzer } from './intent-analysis/InstructionAnalyzer.js';
 import { MetaInstructionAnalyzer } from './intent-analysis/MetaInstructionAnalyzer.js';
+import { InteractionAnalyzer } from './intent-analysis/InteractionAnalyzer.js';
 import { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js';
 import { DefaultContextBridge } from './shared/ContextBridge.js';
 
@@ -45,6 +47,13 @@ export function createInstructionAnalyzer() {
  */
 export function createMetaInstructionAnalyzer() {
   return new MetaInstructionAnalyzer();
+}
+
+/**
+ * Create a new InteractionAnalyzer instance
+ */
+export function createInteractionAnalyzer() {
+  return new InteractionAnalyzer();
 }
 
 /**
@@ -115,6 +124,7 @@ export default {
   version: CONTEXTUAL_INTELLIGENCE_VERSION,
   createInstructionAnalyzer,
   createMetaInstructionAnalyzer,
+  createInteractionAnalyzer,
   createIntentAnalysisEngine,
   createContextBridge
 };
