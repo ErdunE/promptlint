@@ -1,6 +1,16 @@
 {
+	"name": "promptlint-workspace",
+	"private": true,
+	"workspaces": [
+		"packages/*",
+		"apps/*"
+	],
 	"devDependencies": {
 		"ts-node": "^10.9.2",
 		"tsx": "^4.20.5"
+	},
+	"scripts": {
+		"build": "pnpm --filter=@promptlint/* build",
+		"clean": "pnpm --filter=@promptlint/* clean"
 	}
 }
