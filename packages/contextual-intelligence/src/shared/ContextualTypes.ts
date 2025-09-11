@@ -29,6 +29,19 @@ export interface ProjectContext {
   complexity: ProjectComplexity;
   /** Context extraction confidence */
   confidence: number;
+  /** Project timeline information */
+  timeline?: {
+    urgency: 'immediate' | 'short' | 'medium' | 'long';
+    confidence: number;
+  };
+  /** Project constraints */
+  constraints?: Array<{
+    type: string;
+    description: string;
+    severity: 'low' | 'medium' | 'high';
+  }>;
+  /** Processing time for analysis */
+  processingTime?: number;
 }
 
 /**
@@ -487,4 +500,37 @@ export enum ProjectComplexity {
   MEDIUM = 'medium', 
   HIGH = 'high',
   ENTERPRISE = 'enterprise'
+}
+
+// Template Reasoning System Types
+export interface ReasoningChain {
+  steps: ReasoningStep[];
+  overallConfidence: number;
+  documentation: ReasoningDocumentation;
+  processingTime: number;
+  validated: boolean;
+}
+
+export interface ReasoningStep {
+  type: string;
+  reasoning: {
+    decision: string;
+    factors: string[];
+    confidence: number;
+    alternatives: any[];
+  };
+  impact: 'low' | 'medium' | 'high' | 'critical';
+  processingTime?: number;
+}
+
+export interface ReasoningDocumentation {
+  summary: string;
+  keyDecisions: Array<{
+    step: string;
+    decision: string;
+    confidence: number;
+  }>;
+  totalSteps: number;
+  confidenceScore: number;
+  executionTime: number;
 }
