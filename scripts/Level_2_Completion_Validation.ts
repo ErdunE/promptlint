@@ -151,7 +151,7 @@ async function validateLevel2Completion() {
     
     // Use template engine's calibrated confidence (includes confidence calibration)
     const calibratedConfidence = candidates.length > 0 ? 
-      candidates[0].metadata?.selectionMetadata?.domainContext?.confidence || 0 : 0;
+      (candidates[0].metadata as any)?.selectionMetadata?.domainContext?.confidence || 0 : 0;
     
     // Assess template appropriateness (basic criteria)
     const hasAppropriateTemplate = templates.length > 0 && templates.length <= 3;

@@ -1,8 +1,8 @@
 // scripts/validatePhase1_2_2.ts
 
 import { HybridClassifier } from "../packages/domain-classifier/dist/index.js";
-import { TemplateEngine } from "../packages/template-engine/dist/template-engine.js";
-import { TemplateType } from "../packages/template-engine/dist/template-engine.js";
+import { TemplateEngine } from "../packages/template-engine/src/index.js";
+import { TemplateType } from "../packages/shared-types/dist/index.js";
 import { analyzePrompt } from "../packages/rules-engine/dist/index.js";
 
 interface TestCase {
@@ -71,42 +71,42 @@ async function runEnhancedValidation() {
       prompt: "implement binary search algorithm",
       expectedDomain: "code",
       expectedSubCategory: "algorithms",
-      expectedTemplates: [TemplateType.TASK_IO, TemplateType.SEQUENTIAL],
+      expectedTemplates: ["TASK_IO", "SEQUENTIAL"],
       minConfidence: 80
     },
     {
       prompt: "debug memory leak in application", 
       expectedDomain: "code",
       expectedSubCategory: "debugging",
-      expectedTemplates: [TemplateType.TASK_IO, TemplateType.SEQUENTIAL],
+      expectedTemplates: ["TASK_IO", "SEQUENTIAL"],
       minConfidence: 80
     },
     {
       prompt: "implement REST API for user management",
       expectedDomain: "code", 
       expectedSubCategory: "api_development",
-      expectedTemplates: [TemplateType.TASK_IO],
+      expectedTemplates: ["TASK_IO"],
       minConfidence: 90
     },
     {
       prompt: "write blog post about productivity",
       expectedDomain: "writing",
       expectedSubCategory: "content_creation", 
-      expectedTemplates: [TemplateType.MINIMAL, TemplateType.BULLET],
+      expectedTemplates: ["MINIMAL", "BULLET"],
       minConfidence: 80
     },
     {
       prompt: "analyze market trends data",
       expectedDomain: "analysis",
       expectedSubCategory: "data_analysis",
-      expectedTemplates: [TemplateType.TASK_IO, TemplateType.BULLET],
+      expectedTemplates: ["TASK_IO", "BULLET"],
       minConfidence: 80
     },
     {
       prompt: "research best practices for security",
       expectedDomain: "research",
       expectedSubCategory: "best_practices",
-      expectedTemplates: [TemplateType.BULLET, TemplateType.SEQUENTIAL],
+      expectedTemplates: ["BULLET", "SEQUENTIAL"],
       minConfidence: 80
     }
   ];
@@ -127,9 +127,9 @@ async function runEnhancedValidation() {
     const processingTime = endTime - startTime;
     totalProcessingTime += processingTime;
     
-    const templates = candidates.map(c => c.type);
+    const templates = candidates.map(c => c.type as unknown as keyof typeof TemplateType);
     const metadata = candidates[0]?.metadata;
-    const subCategory = metadata?.selectionMetadata?.domainContext?.subCategory;
+    const subCategory = (metadata as any)?.selectionMetadata?.domainContext?.subCategory;
     
     const passed = printTestResult(
       testCase,

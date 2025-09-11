@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { copyFileSync, mkdirSync, existsSync } from 'fs';
 
 export default defineConfig({
   build: {
@@ -19,6 +20,36 @@ export default defineConfig({
     target: 'es2022',
     minify: 'esbuild'
   },
+  plugins: [
+    {
+      name: 'copy-extension-files',
+      generateBundle() {
+        // 确保dist目录存在
+        if (!existsSync('dist')) {
+          mkdirSync('dist', { recursive: true });
+        }
+        
+        // 复制manifest.json
+        copyFileSync('src/assets/manifest.json', 'dist/manifest.json');
+        
+        // 复制popup.html
+        copyFileSync('src/popup/popup.html', 'dist/popup.html');
+        
+        // 复制CSS文件
+        copyFileSync('src/popup/popup.css', 'dist/popup.css');
+        copyFileSync('src/styles/content-script.css', 'dist/content-script.css');
+        copyFileSync('src/styles/floating-panel.css', 'dist/floating-panel.css');
+        
+        // 复制图标文件
+        copyFileSync('src/assets/icon-24.png', 'dist/icon-24.png');
+        
+        // 从根目录复制其他图标
+        copyFileSync('../../appicon/icon-16.png', 'dist/icon-16.png');
+        copyFileSync('../../appicon/icon-48.png', 'dist/icon-48.png');
+        copyFileSync('../../appicon/icon-128.png', 'dist/icon-128.png');
+      }
+    }
+  ],
   resolve: {
     alias: {
       '@promptlint/rules-engine': resolve(__dirname, '../../packages/rules-engine/src'),

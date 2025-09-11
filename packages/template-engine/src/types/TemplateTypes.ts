@@ -4,173 +4,94 @@
  * Core interfaces for dynamic template generation system
  * Enforces faithfulness principles and performance requirements
  * Chrome Extension Compatible - Browser APIs Only
+ * 
+ * NOTE: Core types (TemplateType, TemplateCandidate) moved to @promptlint/shared-types
+ * to break circular dependency with adaptive-engine
  */
 
-import { LintResult, LintIssue } from '@promptlint/shared-types';
+import { LintResult, LintIssue, TemplateType, TemplateCandidate, EnhancedDomainResult, SelectionReason, EnhancedTemplateSelection, TemplateSelectionMetadata } from '@promptlint/shared-types';
 
-/**
- * Enhanced domain classification result with sub-categories
- */
-export interface EnhancedDomainResult {
-  /** Primary domain classification */
-  domain: string;
-  /** Detected sub-category for enhanced context */
-  subCategory: string | undefined;
-  /** Classification confidence (0-100) */
-  confidence: number;
-  /** Domain characteristics detected */
-  indicators: string[];
-  /** Processing time in milliseconds */
-  processingTime: number;
-  /** Semantic analysis context (Phase 1.3) */
-  semanticContext?: any; // PromptSemantics from SemanticTypes
-}
+// Re-export core types for backward compatibility
+export { TemplateType, TemplateCandidate, EnhancedDomainResult, SelectionReason, EnhancedTemplateSelection, TemplateSelectionMetadata };
 
 /**
- * Template selection reasoning
+ * Template selection criteria for pattern matching
  */
-export interface SelectionReason {
-  /** Type of reasoning applied */
-  type: 'domain_alignment' | 'confidence_based' | 'lint_analysis' | 'context_match' | 'diversity_optimization' | 'domain_classification' | 'semantic_analysis' | 'context_analysis' | 'template_selection';
-  /** Description of the reasoning */
-  description: string;
-  /** Confidence in this reasoning (0-100) */
-  confidence: number;
-}
-
-/**
- * Enhanced template selection with metadata
- */
-export interface EnhancedTemplateSelection {
-  /** Selected template type */
-  templateType: TemplateType;
-  /** Overall selection confidence (0-100) */
-  confidence: number;
-  /** Reasoning for this selection */
-  reasons: SelectionReason[];
-  /** Domain alignment score (0-100) */
-  domainAlignment: number;
-  /** Context match score (0-100) */
-  contextMatch: number;
-  /** Composite score for ranking */
-  compositeScore: number;
-}
-
-/**
- * Template selection metadata for feedback integration
- */
-export interface TemplateSelectionMetadata {
-  /** Reasoning for template selections */
-  selectionReasoning: SelectionReason[];
-  /** Domain classification context */
-  domainContext: EnhancedDomainResult;
-  /** Alternative templates considered */
-  alternativeTemplates: TemplateType[];
-  /** Whether user feedback integration is enabled */
-  userFeedbackCapable: boolean;
-  /** Selection strategy used */
-  selectionStrategy: 'high_confidence' | 'moderate_confidence' | 'low_confidence_fallback' | 'semantic_aware';
-}
-
-/**
- * Template types available for generation
- */
-export enum TemplateType {
-  TASK_IO = 'task_io',
-  BULLET = 'bullet',
-  SEQUENTIAL = 'sequential',
-  MINIMAL = 'minimal'
-}
-
-/**
- * Generated template candidate with metadata
- */
-export interface TemplateCandidate {
-  /** Unique identifier for this candidate */
-  id: string;
-  /** Template type used for generation */
-  type: TemplateType;
-  /** Generated prompt content */
-  content: string;
-  /** Quality score (0-100) */
-  score: number;
-  /** Whether faithfulness validation passed */
-  faithfulnessValidated: boolean;
-  /** Generation time in milliseconds */
-  generationTime: number;
-  /** Template-specific metadata */
-  metadata?: {
-    /** Template type used */
-    templateType: string;
-    /** Faithfulness validation result */
-    faithfulnessResult: FaithfulnessResult;
-    /** Performance metrics */
-    performanceMetrics: {
-      executionTime: number;
-      maxAllowedTime: number;
-      warningThreshold: number;
-      isAcceptable: boolean;
-      isWarning: boolean;
-      performanceRatio: number;
-    };
-    /** Performance warnings */
-    warnings: string[];
-    /** Enhanced selection metadata (if available) */
-    selectionMetadata?: TemplateSelectionMetadata;
-    /** Whether enhanced selection was used */
-    enhancedSelection?: boolean;
-  };
+export interface TemplateSelectionCriteria {
+  /** Lint analysis results */
+  lintResult: LintResult;
+  /** Detected issues from linting */
+  issues: LintIssue[];
+  /** Original prompt text */
+  originalPrompt?: string | undefined;
+  /** Domain classification if available */
+  domain?: string;
+  /** Semantic analysis results if available */
+  semantics?: any;
+  /** Complexity level of the prompt */
+  complexity?: string;
+  /** Whether the prompt has vague wording */
+  hasVagueWording?: boolean;
+  /** Whether the prompt has sequential keywords */
+  hasSequentialKeywords?: boolean;
+  /** Whether the prompt needs IO specification */
+  needsIOSpecification?: boolean;
+  /** Whether the prompt has task structure */
+  hasTaskStructure?: boolean;
 }
 
 /**
  * Faithfulness validation result
  */
 export interface FaithfulnessResult {
-  /** Whether validation passed */
-  isValid: boolean;
-  /** Validation score (0-100) */
+  /** Whether faithfulness validation passed */
+  passed: boolean;
+  /** Faithfulness score (0-100) */
   score: number;
-  /** Violations found */
-  violations: FaithfulnessViolation[];
-  /** Detailed validation report */
-  report: string;
+  /** Issues found during validation */
+  issues: string[];
+  /** Validation details */
+  details: {
+    preservedElements: string[];
+    modifiedElements: string[];
+    addedElements: string[];
+    removedElements: string[];
+  };
 }
 
 /**
- * Faithfulness violation types
+ * Template generation configuration
  */
-export type FaithfulnessViolationType = 'added_requirement' | 'changed_scope' | 'added_assumption' | 'technical_addition' | 'context_assumption';
-
-/**
- * Faithfulness violation details
- */
-export interface FaithfulnessViolation {
-  /** Type of violation */
-  type: FaithfulnessViolationType;
-  /** Description of violation */
-  description: string;
-  /** Original text that was changed */
-  originalText?: string;
-  /** Generated text that violates principles */
-  generatedText?: string;
-  /** Severity of violation */
-  severity: 'low' | 'medium' | 'high' | 'critical';
+export interface TemplateGenerationConfig {
+  /** Maximum candidates to generate */
+  maxCandidates: number;
+  /** Enable diversity in results */
+  enableDiversity: boolean;
+  /** Faithfulness threshold (0-100) */
+  faithfulnessThreshold: number;
+  /** Performance timeout in milliseconds */
+  performanceTimeout: number;
+  /** Enable enhanced selection */
+  enableEnhancedSelection: boolean;
 }
 
 /**
- * Template generation request
+ * Template generation context
  */
-export interface TemplateGenerationRequest {
-  /** Original prompt text */
-  originalPrompt: string;
+export interface TemplateGenerationContext {
+  /** Original prompt */
+  prompt: string;
   /** Lint analysis result */
   lintResult: LintResult;
-  /** Maximum generation time in milliseconds */
-  maxGenerationTime?: number;
-  /** Template types to consider */
-  preferredTypes?: TemplateType[];
-  /** Whether to enforce strict faithfulness */
-  strictMode?: boolean;
+  /** Domain classification */
+  domainResult?: EnhancedDomainResult;
+  /** Generation configuration */
+  config: TemplateGenerationConfig;
+  /** User preferences (if available) */
+  userPreferences?: {
+    preferredTypes: TemplateType[];
+    avoidedTypes: TemplateType[];
+  };
 }
 
 /**
@@ -179,117 +100,17 @@ export interface TemplateGenerationRequest {
 export interface TemplateGenerationResult {
   /** Generated candidates */
   candidates: TemplateCandidate[];
-  /** Total generation time */
-  totalGenerationTime: number;
-  /** Whether performance requirement was met */
-  performanceMet: boolean;
-  /** Generation metadata */
-  metadata: {
-    /** Templates attempted */
-    templatesAttempted: TemplateType[];
-    /** Templates that passed validation */
-    templatesPassed: TemplateType[];
-    /** Performance metrics */
-    performance: {
-      averageGenerationTime: number;
-      slowestTemplate: TemplateType | null;
-      fastestTemplate: TemplateType | null;
-    };
+  /** Selection metadata */
+  metadata: TemplateSelectionMetadata;
+  /** Performance metrics */
+  performance: {
+    totalTime: number;
+    candidateCount: number;
+    averageScore: number;
+    faithfulnessRate: number;
   };
-}
-
-/**
- * Template selection criteria
- */
-export interface TemplateSelectionCriteria {
-  /** Lint issues to address */
-  issues: LintIssue[];
-  /** Prompt complexity level */
-  complexity: 'simple' | 'medium' | 'complex';
-  /** Whether prompt contains sequential keywords */
-  hasSequentialKeywords: boolean;
-  /** Whether prompt has clear task structure */
-  hasTaskStructure: boolean;
-  /** Whether prompt needs I/O specification */
-  needsIOSpecification: boolean;
-  /** Whether prompt has vague wording */
-  hasVagueWording: boolean;
-}
-
-/**
- * Template application context
- */
-export interface TemplateContext {
-  /** Original prompt text */
-  prompt: string;
-  /** Lint analysis result */
-  lintResult: LintResult;
-  /** Template metadata */
-  metadata: TemplateMetadata;
-}
-
-/**
- * Template metadata
- */
-export interface TemplateMetadata {
-  /** Template type */
-  type: string;
-  /** Template name */
-  name: string;
-  /** Template description */
-  description: string;
-  /** Template version */
-  version: string;
-  /** Last modified timestamp */
-  lastModified: number;
-  /** Generation timestamp */
-  timestamp?: number;
-  /** Engine version */
-  engine?: string;
-  /** Domain classification result (if available) */
-  domainClassification?: any; // Will be typed as DomainClassificationResult when imported
-  /** Enhanced selection metadata (if available) */
-  selectionMetadata?: TemplateSelectionMetadata;
-  /** Whether enhanced selection was used */
-  enhancedSelection?: boolean;
-}
-
-/**
- * Performance timing result
- */
-export interface TimedResult<T> {
-  /** Result of the operation */
-  result: T;
-  /** Execution time in milliseconds */
-  executionTime: number;
-  /** Whether timeout was exceeded */
-  timeoutExceeded: boolean;
-  /** Performance warnings */
+  /** Any warnings or issues */
   warnings: string[];
-}
-
-/**
- * Template engine configuration
- */
-export interface TemplateEngineConfig {
-  /** Maximum generation time per template */
-  maxGenerationTime: number;
-  /** Maximum total generation time */
-  maxTotalGenerationTime: number;
-  /** Whether to enable strict faithfulness mode */
-  strictFaithfulness: boolean;
-  /** Minimum score for template acceptance */
-  minTemplateScore: number;
-  /** Performance monitoring enabled */
-  performanceMonitoring: boolean;
-  /** Template-specific configurations */
-  templateConfigs: {
-    [K in TemplateType]: {
-      enabled: boolean;
-      priority: number;
-      maxGenerationTime: number;
-    };
-  };
 }
 
 /**
@@ -300,28 +121,46 @@ export interface TemplateRegistryEntry {
   type: TemplateType;
   /** Template class constructor */
   templateClass: new () => IBaseTemplate;
-  /** Template priority (higher = more preferred) */
-  priority: number;
-  /** Whether template is enabled */
-  enabled: boolean;
-  /** Template description */
-  description: string;
+  /** Template metadata */
+  metadata: {
+    name: string;
+    description: string;
+    category: string;
+    complexity: 'low' | 'medium' | 'high';
+    suitableFor: string[];
+  };
 }
 
 /**
- * Base template interface (ES Module)
+ * Base template interface
  */
 export interface IBaseTemplate {
-  /** Template type */
-  readonly type: TemplateType;
-  /** Template name */
-  readonly name: string;
-  /** Template description */
-  readonly description: string;
-  /** Apply template to generate candidate */
-  apply(context: TemplateContext): TemplateCandidate;
-  /** Check if template is suitable for given context */
-  isSuitable(context: TemplateContext): boolean;
-  /** Get template priority for given context */
-  getPriority(context: TemplateContext): number;
+  /** Generate template content */
+  generate(context: TemplateGenerationContext): Promise<string>;
+  /** Validate template faithfulness */
+  validateFaithfulness(original: string, generated: string): Promise<FaithfulnessResult>;
+  /** Get template metadata */
+  getMetadata(): TemplateRegistryEntry['metadata'];
+}
+
+/**
+ * Template selector interface
+ */
+export interface ITemplateSelector {
+  /** Select best template type for given context */
+  selectTemplate(context: TemplateGenerationContext): Promise<EnhancedTemplateSelection>;
+  /** Get multiple template suggestions */
+  suggestTemplates(context: TemplateGenerationContext, count: number): Promise<EnhancedTemplateSelection[]>;
+}
+
+/**
+ * Template engine interface
+ */
+export interface ITemplateEngine {
+  /** Generate template candidates */
+  generateCandidates(prompt: string, lintResult: LintResult, config?: Partial<TemplateGenerationConfig>): Promise<TemplateCandidate[]>;
+  /** Get available template types */
+  getAvailableTypes(): TemplateType[];
+  /** Register custom template */
+  registerTemplate(entry: TemplateRegistryEntry): void;
 }

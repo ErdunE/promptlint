@@ -11,10 +11,12 @@ import { UIInjector } from './ui-injector';
 import { InputMonitor } from './input-monitor';
 import { globalErrorHandler, ErrorType } from './error-handler';
 import { extensionRephraseService } from './rephrase-service';
+import { ContextAwareRephraseService } from '../services/context-aware-rephrase-service.js';
 
 class PromptLintContentScript {
   private uiInjector: UIInjector | null = null;
   private inputMonitor: InputMonitor | null = null;
+  private contextAwareService: ContextAwareRephraseService | null = null;
   private isInitialized = false;
 
   async initialize(): Promise<void> {
@@ -103,6 +105,12 @@ class PromptLintContentScript {
       console.log('[PromptLint] Initializing rephrase service...');
       const rephraseStatus = await extensionRephraseService.initialize();
       console.log('[PromptLint] Rephrase service status:', rephraseStatus);
+
+      // Initialize context-aware rephrase service (Phase 3.1)
+      console.log('[PromptLint] Initializing context-aware rephrase service...');
+      this.contextAwareService = new ContextAwareRephraseService();
+      const contextAwareStatus = await this.contextAwareService.initialize();
+      console.log('[PromptLint] Context-aware service status:', contextAwareStatus);
 
       // Initialize UI components with error handling
       const uiInitialized = await globalErrorHandler.attemptRecovery(

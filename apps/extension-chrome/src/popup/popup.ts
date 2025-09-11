@@ -32,18 +32,29 @@ class PromptLintPopup {
   private errorList!: HTMLElement;
   private currentTabId: number | null = null;
   
-  // API key management elements
-  private apiKeyInput!: HTMLInputElement;
-  private toggleApiKeyBtn!: HTMLElement;
-  private saveApiKeyBtn!: HTMLButtonElement;
-  private clearApiKeyBtn!: HTMLButtonElement;
-  private apiKeyStatus!: HTMLElement;
+  // API key management removed in favor of privacy controls
+
+  // View navigation elements
+  private mainPopupView!: HTMLElement;
+  private privacySettingsPanel!: HTMLElement;
+  private openPrivacySettingsBtn!: HTMLButtonElement;
+  private closePrivacySettingsBtn!: HTMLButtonElement;
+
+  // Privacy controls elements (in secondary panel)
+  private enableBehaviorTrackingCheckbox!: HTMLInputElement;
+  private enablePreferenceLearningCheckbox!: HTMLInputElement;
+  private storageUsageSpan!: HTMLElement;
+  private totalSelectionsSpan!: HTMLElement;
+  private mostUsedApproachSpan!: HTMLElement;
+  private storageProgressBar!: HTMLElement;
+  private exportDataBtn!: HTMLButtonElement;
+  private clearDataBtn!: HTMLButtonElement;
 
   constructor() {
     this.initializeElements();
     this.attachEventListeners();
     this.loadPopupData();
-    this.loadApiKeyStatus();
+    this.loadPrivacySettings();
   }
 
   private initializeElements(): void {
@@ -57,12 +68,21 @@ class PromptLintPopup {
     this.errorSection = this.getElement('errorSection');
     this.errorList = this.getElement('errorList');
     
-    // API key management elements
-    this.apiKeyInput = this.getElement('apiKeyInput') as HTMLInputElement;
-    this.toggleApiKeyBtn = this.getElement('toggleApiKey');
-    this.saveApiKeyBtn = this.getElement('saveApiKeyBtn') as HTMLButtonElement;
-    this.clearApiKeyBtn = this.getElement('clearApiKeyBtn') as HTMLButtonElement;
-    this.apiKeyStatus = this.getElement('apiKeyStatus');
+    // View navigation elements
+    this.mainPopupView = this.getElement('main-popup-view');
+    this.privacySettingsPanel = this.getElement('privacy-settings-panel');
+    this.openPrivacySettingsBtn = this.getElement('open-privacy-settings') as HTMLButtonElement;
+    this.closePrivacySettingsBtn = this.getElement('close-privacy-settings') as HTMLButtonElement;
+
+    // Privacy controls elements (in secondary panel)
+    this.enableBehaviorTrackingCheckbox = this.getElement('enable-behavior-tracking') as HTMLInputElement;
+    this.enablePreferenceLearningCheckbox = this.getElement('enable-preference-learning') as HTMLInputElement;
+    this.storageUsageSpan = this.getElement('storage-usage');
+    this.totalSelectionsSpan = this.getElement('total-selections');
+    this.mostUsedApproachSpan = this.getElement('most-used-approach');
+    this.storageProgressBar = this.getElement('storage-progress');
+    this.exportDataBtn = this.getElement('export-data-btn') as HTMLButtonElement;
+    this.clearDataBtn = this.getElement('clear-data-btn') as HTMLButtonElement;
   }
 
   private getElement(id: string): HTMLElement {
@@ -105,21 +125,30 @@ class PromptLintPopup {
       this.openSupportPage();
     });
 
-    // API key management listeners
-    this.toggleApiKeyBtn.addEventListener('click', () => {
-      this.toggleApiKeyVisibility();
+    // View navigation listeners
+    this.openPrivacySettingsBtn.addEventListener('click', () => {
+      this.showPrivacySettings();
     });
 
-    this.saveApiKeyBtn.addEventListener('click', () => {
-      this.saveApiKey();
+    this.closePrivacySettingsBtn.addEventListener('click', () => {
+      this.showMainView();
     });
 
-    this.clearApiKeyBtn.addEventListener('click', () => {
-      this.clearApiKey();
+    // Privacy controls event listeners
+    this.enableBehaviorTrackingCheckbox.addEventListener('change', () => {
+      this.updatePrivacySetting('enableTracking', this.enableBehaviorTrackingCheckbox.checked);
     });
 
-    this.apiKeyInput.addEventListener('input', () => {
-      this.validateApiKeyInput();
+    this.enablePreferenceLearningCheckbox.addEventListener('change', () => {
+      this.updatePrivacySetting('enableLearning', this.enablePreferenceLearningCheckbox.checked);
+    });
+
+    this.exportDataBtn.addEventListener('click', () => {
+      this.exportUserData();
+    });
+
+    this.clearDataBtn.addEventListener('click', () => {
+      this.clearUserDataWithConfirmation();
     });
   }
 
@@ -481,6 +510,178 @@ class PromptLintPopup {
 
     this.apiKeyStatus.textContent = message;
     this.apiKeyStatus.className = `config-status ${type}`;
+  }
+
+  // View Navigation Methods
+  private showPrivacySettings(): void {
+    this.mainPopupView.classList.add('hidden');
+    this.privacySettingsPanel.classList.remove('hidden');
+    
+    // Load privacy settings when showing the panel
+    this.loadPrivacySettings();
+  }
+
+  private showMainView(): void {
+    this.privacySettingsPanel.classList.add('hidden');
+    this.mainPopupView.classList.remove('hidden');
+  }
+
+  // Privacy Controls Methods
+  private async loadPrivacySettings(): Promise<void> {
+    try {
+      // Load privacy settings
+      const privacySettings = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const settings = privacySettings.promptlint_privacy_settings || {
+        enableTracking: true,
+        enableLearning: true
+      };
+
+      this.enableBehaviorTrackingCheckbox.checked = settings.enableTracking !== false;
+      this.enablePreferenceLearningCheckbox.checked = settings.enableLearning !== false;
+
+      // Load user data stats
+      await this.updatePrivacyStats();
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error loading privacy settings:', error);
+    }
+  }
+
+  private async updatePrivacySetting(setting: string, value: boolean): Promise<void> {
+    try {
+      const stored = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const settings = stored.promptlint_privacy_settings || {};
+      
+      settings[setting] = value;
+      
+      await chrome.storage.local.set({
+        promptlint_privacy_settings: settings
+      });
+
+      console.log(`[PromptLint Popup] Privacy setting updated: ${setting} = ${value}`);
+
+      // Update stats after setting change
+      await this.updatePrivacyStats();
+
+      // Show immediate feedback
+      this.showPrivacyFeedback(setting, value);
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error updating privacy setting:', error);
+    }
+  }
+
+  private showPrivacyFeedback(setting: string, enabled: boolean): void {
+    const message = enabled ? 'enabled' : 'disabled';
+    const settingName = setting === 'enableTracking' ? 'Behavior tracking' : 'Preference learning';
+    console.log(`[PromptLint] ${settingName} ${message}`);
+    
+    // Could add visual feedback here if needed
+  }
+
+  private async updatePrivacyStats(): Promise<void> {
+    try {
+      // Get user data from storage
+      const allData = await chrome.storage.local.get(['promptlint_user_data', 'promptlint_privacy_settings']);
+      const userData = allData.promptlint_user_data || { selections: [], stats: {} };
+
+      // Update total selections
+      this.totalSelectionsSpan.textContent = (userData.selections?.length || 0).toString();
+
+      // Calculate storage usage
+      const dataSize = JSON.stringify(allData).length;
+      const sizeInKB = Math.round(dataSize / 1024 * 100) / 100;
+      const maxKB = 5 * 1024; // 5MB Chrome extension limit
+      
+      this.storageUsageSpan.textContent = `${sizeInKB} KB / 5 MB`;
+      
+      // Update storage progress bar
+      const usagePercent = Math.min((sizeInKB / maxKB) * 100, 100);
+      this.storageProgressBar.style.width = `${usagePercent}%`;
+
+      // Update most used approach
+      const mostUsed = userData.stats?.mostUsedApproach || 'None';
+      this.mostUsedApproachSpan.textContent = mostUsed;
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error updating privacy stats:', error);
+      this.totalSelectionsSpan.textContent = 'Error';
+      this.storageUsageSpan.textContent = 'Error';
+      this.mostUsedApproachSpan.textContent = 'Error';
+    }
+  }
+
+  private async exportUserData(): Promise<void> {
+    try {
+      // Get all user data from storage
+      const allData = await chrome.storage.local.get(['promptlint_user_data', 'promptlint_privacy_settings']);
+      
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        promptlintVersion: '0.6.0',
+        userData: allData.promptlint_user_data || {},
+        privacySettings: allData.promptlint_privacy_settings || {},
+        totalSelections: allData.promptlint_user_data?.selections?.length || 0
+      };
+
+      // Create downloadable file
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      // Create download link
+      const filename = `promptlint_export_${new Date().toISOString().split('T')[0]}.json`;
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = filename;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+
+      console.log('[PromptLint Popup] User data exported successfully');
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error exporting user data:', error);
+      alert('Error exporting data. Please try again.');
+    }
+  }
+
+  private async clearUserDataWithConfirmation(): Promise<void> {
+    try {
+      // Enhanced confirmation dialog
+      const confirmed = confirm(
+        'This will permanently delete all your PromptLint data including:\n\n' +
+        '• Template selection history\n' +
+        '• User preferences and learning data\n' +
+        '• Usage statistics\n\n' +
+        'Privacy settings will be reset to defaults.\n\n' +
+        'Are you sure you want to continue?'
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+
+      // Clear all user data and privacy settings
+      await chrome.storage.local.remove(['promptlint_user_data', 'promptlint_privacy_settings']);
+
+      // Reset privacy toggles to default state
+      this.enableBehaviorTrackingCheckbox.checked = true;
+      this.enablePreferenceLearningCheckbox.checked = true;
+
+      // Update stats display
+      await this.updatePrivacyStats();
+
+      console.log('[PromptLint Popup] All user data cleared successfully');
+      alert('All PromptLint data has been cleared successfully.');
+
+    } catch (error) {
+      console.error('[PromptLint Popup] Error clearing user data:', error);
+      alert('Error clearing data. Please try again.');
+    }
   }
 }
 

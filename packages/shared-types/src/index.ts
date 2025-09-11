@@ -21,6 +21,9 @@ export * from './rephrase-types.js';
 // Configuration types
 export * from './config-types.js';
 
+// Template types (moved from template-engine to break circular dependency)
+export * from './template-types.js';
+
 // Re-export commonly used types for convenience
 export type {
   LintResult,
@@ -49,3 +52,16 @@ export {
 export type {
     ExtensionUIState
 } from './ui-types.js';
+
+// Template types (critical exports)
+export type {
+  TemplateCandidate,
+  EnhancedDomainResult,
+  SelectionReason,
+  EnhancedTemplateSelection,
+  TemplateSelectionMetadata,
+  TemplateGenerationRequest,
+  TemplateGenerationResponse
+} from './template-types.js';
+
+export { TemplateType } from './template-types.js';

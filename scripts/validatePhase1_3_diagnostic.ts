@@ -1,8 +1,8 @@
 // scripts/validatePhase1_3_diagnostic.ts
 
 import { HybridClassifier } from "../packages/domain-classifier/dist/index.js";
-import { TemplateEngine } from "../packages/template-engine/dist/template-engine.js";
-import { TemplateType } from "../packages/template-engine/dist/template-engine.js";
+import { TemplateEngine } from "../packages/template-engine/src/index.js";
+import { TemplateType } from "../packages/shared-types/dist/index.js";
 import { analyzePrompt } from "../packages/rules-engine/dist/index.js";
 
 interface DiagnosticTest {

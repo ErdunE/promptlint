@@ -562,3 +562,630 @@ body {
 .config-status:empty {
   display: none;
 }
+
+/* Privacy Controls */
+.privacy-card {
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.privacy-item {
+  margin-bottom: 16px;
+}
+
+.privacy-item:last-of-type {
+  margin-bottom: 20px;
+}
+
+.privacy-setting {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.privacy-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.privacy-icon {
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.privacy-text {
+  flex: 1;
+}
+
+.privacy-title {
+  font-weight: 500;
+  color: #202124;
+  margin-bottom: 2px;
+}
+
+.privacy-description {
+  font-size: 12px;
+  color: #5f6368;
+  line-height: 1.4;
+}
+
+/* Toggle Switch */
+.privacy-toggle {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.privacy-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .toggle-slider {
+  background-color: #4285f4;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(18px);
+}
+
+.toggle-slider:hover {
+  box-shadow: 0 0 0 8px rgba(66, 133, 244, 0.1);
+}
+
+/* Privacy Stats */
+.privacy-stats {
+  background: white;
+  border: 1px solid #e8eaed;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stats-row:last-child {
+  margin-bottom: 0;
+}
+
+.stats-row .stat-label {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.stats-row .stat-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: #202124;
+}
+
+/* Privacy Actions */
+.privacy-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.privacy-actions .btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+.btn-danger {
+  background: #ea4335;
+  color: white;
+  border: 1px solid #ea4335;
+}
+
+.btn-danger:hover {
+  background: #d33b2c;
+  border-color: #d33b2c;
+}
+
+.btn-danger:active {
+  background: #b52d20;
+  border-color: #b52d20;
+}
+
+/* Modern Privacy Controls */
+.privacy-card {
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.privacy-setting {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.privacy-setting:last-of-type {
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+
+.setting-info {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.setting-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #202124;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.setting-icon {
+  font-size: 16px;
+}
+
+.setting-description {
+  font-size: 12px;
+  color: #5f6368;
+  line-height: 1.4;
+}
+
+/* Modern Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 28px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+input:checked + .toggle-slider {
+  background-color: #4285f4;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-slider:hover {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 8px rgba(66, 133, 244, 0.1);
+}
+
+/* Storage Monitor */
+.storage-monitor {
+  background: white;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.storage-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.storage-label {
+  font-weight: 500;
+  color: #202124;
+  font-size: 13px;
+}
+
+.storage-usage {
+  font-size: 12px;
+  color: #5f6368;
+  font-weight: 500;
+}
+
+.storage-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #e8eaed;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.storage-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4285f4, #34a853);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.storage-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.storage-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #5f6368;
+}
+
+.stat-value {
+  font-size: 11px;
+  font-weight: 500;
+  color: #202124;
+}
+
+/* Data Management Actions */
+.data-management {
+  display: flex;
+  gap: 12px;
+}
+
+.data-action-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  background: white;
+  color: #202124;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.data-action-btn:hover {
+  background: #f8f9fa;
+  border-color: #c4c7c5;
+}
+
+.data-action-btn.danger {
+  background: #fef7f0;
+  border-color: #f9ab00;
+  color: #b06000;
+}
+
+.data-action-btn.danger:hover {
+  background: #fef0e0;
+  border-color: #ea8600;
+}
+
+.data-action-btn .btn-icon {
+  font-size: 14px;
+}
+
+/* View Navigation */
+.popup-view {
+  width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Privacy Settings Button (Main View) */
+.settings-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #4285f4, #34a853);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+}
+
+.settings-btn:hover {
+  background: linear-gradient(135deg, #3367d6, #2e8b57);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+}
+
+.settings-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+}
+
+.settings-icon {
+  font-size: 16px;
+}
+
+/* Privacy Settings Panel */
+.privacy-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8eaed;
+  background: #f8f9fa;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #4285f4;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  font-weight: 500;
+}
+
+.back-btn:hover {
+  background: rgba(66, 133, 244, 0.1);
+}
+
+.privacy-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #202124;
+  margin: 0;
+  flex: 1;
+}
+
+.privacy-content {
+  padding: 20px;
+}
+
+/* Privacy Toggle Groups */
+.privacy-toggle-group {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.privacy-toggle-group:last-of-type {
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+
+.privacy-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.privacy-toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #ccc;
+  border-radius: 24px;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.privacy-toggle-label input:checked + .toggle-switch {
+  background: #4285f4;
+}
+
+.privacy-toggle-label input:checked + .toggle-switch .toggle-slider {
+  transform: translateX(20px);
+}
+
+.toggle-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #202124;
+  font-size: 14px;
+  flex: 1;
+}
+
+.toggle-icon {
+  font-size: 16px;
+}
+
+.setting-description {
+  font-size: 12px;
+  color: #5f6368;
+  line-height: 1.4;
+  margin: 0;
+  padding-left: 56px; /* Align with toggle text */
+}
+
+/* Storage Statistics */
+.storage-stats {
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.stats-header strong {
+  color: #202124;
+}
+
+.storage-bar {
+  width: 100%;
+  height: 6px;
+  background: #e8eaed;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.storage-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4285f4, #34a853);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.stats-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stats-details p {
+  margin: 0;
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.stats-details span {
+  font-weight: 500;
+  color: #202124;
+}
+
+/* Data Controls */
+.data-controls {
+  display: flex;
+  gap: 12px;
+}
+
+.control-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  background: white;
+  color: #202124;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.control-btn:hover {
+  background: #f8f9fa;
+  border-color: #c4c7c5;
+}
+
+.control-btn.danger {
+  background: #fef7f0;
+  border-color: #f9ab00;
+  color: #b06000;
+}
+
+.control-btn.danger:hover {
+  background: #fef0e0;
+  border-color: #ea8600;
+}
+
+.control-btn .btn-icon {
+  font-size: 14px;
+}

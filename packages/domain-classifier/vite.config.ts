@@ -1,30 +1,27 @@
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
-      include: ['src/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts']
+      copyDtsFiles: false
     })
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: 'src/index.ts',
       name: 'DomainClassifier',
-      formats: ['es'],
-      fileName: 'index'
+      fileName: 'index',
+      formats: ['es']
     },
     rollupOptions: {
       external: ['@promptlint/shared-types'],
       output: {
-        globals: {
-          '@promptlint/shared-types': 'SharedTypes'
-        }
+        globals: {}
       }
     },
-    target: 'es2020'
+    target: 'es2022',
+    minify: false
   }
 });

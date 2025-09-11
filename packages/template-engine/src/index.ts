@@ -8,6 +8,9 @@
 // Main orchestration class
 export { TemplateEngine } from './TemplateEngine.js';
 
+// Phase 3.2 - Adaptive template engine (commented out for build compatibility)
+// export { AdaptiveTemplateEngine } from './AdaptiveTemplateEngine.js';
+
 // Template classes
 export { 
   TaskIOTemplate, 
