@@ -405,3 +405,86 @@ export enum ExpertiseLevel {
   ADVANCED = 'advanced',
   EXPERT = 'expert'
 }
+
+// Phase 4.2 Contextual Reasoning Types
+export interface ContextualReasoning {
+  projectContext: ProjectContext;
+  collaborativeContext: CollaborativeContext;
+  platformContext: PlatformContext;
+  overallConfidence: number;
+  processingTime: number;
+}
+
+export interface CollaborativeContext {
+  teamStandards: TeamStandards;
+  roleContext: UserRole;
+  sharedPreferences: SharedPreferences;
+  individualOverrides: any;
+  collaborationLevel: 'individual' | 'team' | 'organization' | 'public';
+  confidence: number;
+  processingTime: number;
+}
+
+export interface TeamStandards {
+  communicationStyle: string;
+  documentationLevel: string;
+  codeStyle: string;
+  reviewProcess: string;
+  qualityGates: string[];
+}
+
+export enum UserRole {
+  DEVELOPER = 'developer',
+  ARCHITECT = 'architect',
+  PROJECT_MANAGER = 'project_manager',
+  DEVOPS = 'devops',
+  QA_ENGINEER = 'qa_engineer',
+  STUDENT = 'student'
+}
+
+export interface SharedPreferences {
+  templateStyle: string;
+  detailLevel: string;
+  technicalLevel: string;
+  responseFormat: string;
+}
+
+export interface PlatformContext {
+  currentPlatform: AIPlatform;
+  capabilities: PlatformCapability[];
+  contextWindow: ContextWindowInfo;
+  optimizationOpportunities: OptimizationOpportunity[];
+  confidence: number;
+  processingTime: number;
+}
+
+export enum AIPlatform {
+  CHATGPT = 'chatgpt',
+  CLAUDE = 'claude',
+  GENERIC = 'generic'
+}
+
+export interface PlatformCapability {
+  feature: string;
+  supported: boolean;
+  limitations?: string[];
+}
+
+export interface ContextWindowInfo {
+  maxTokens: number;
+  currentUsage: number;
+  remainingCapacity: number;
+}
+
+export interface OptimizationOpportunity {
+  type: string;
+  description: string;
+  impact: 'low' | 'medium' | 'high';
+}
+
+export enum ProjectComplexity {
+  LOW = 'low',
+  MEDIUM = 'medium', 
+  HIGH = 'high',
+  ENTERPRISE = 'enterprise'
+}
