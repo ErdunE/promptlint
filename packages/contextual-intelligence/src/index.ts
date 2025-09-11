@@ -9,15 +9,27 @@
 
 // === Core Intent Analysis Exports ===
 export { InstructionAnalyzer } from './intent-analysis/InstructionAnalyzer.js';
+export { MetaInstructionAnalyzer } from './intent-analysis/MetaInstructionAnalyzer.js';
+export { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js';
 
 // === Internal Imports for Factory Functions ===
 import { InstructionAnalyzer } from './intent-analysis/InstructionAnalyzer.js';
+import { MetaInstructionAnalyzer } from './intent-analysis/MetaInstructionAnalyzer.js';
+import { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js';
 import { DefaultContextBridge } from './shared/ContextBridge.js';
 
 // === Shared Types Exports ===
-export * from './shared/ContextualTypes.js';
-export * from './shared/IntentTypes.js';
-export * from './shared/ContextBridge.js';
+export { 
+  // Core contextual types (selective export to avoid conflicts)
+  MetaInstructionAnalysis, Constraint, ConstraintType, ProjectPhase,
+  ExpertiseLevel, ProjectComplexity, TechnicalStack
+} from './shared/ContextualTypes.js';
+
+export { 
+  // Intent analysis types
+  IntentAnalysis, InstructionIntent, InteractionIntent,
+  IntentCategory, ActionType, OutputFormat, IntentComplexity
+} from './shared/IntentTypes.js';
 
 // === Factory Functions ===
 
@@ -26,6 +38,20 @@ export * from './shared/ContextBridge.js';
  */
 export function createInstructionAnalyzer() {
   return new InstructionAnalyzer();
+}
+
+/**
+ * Create a new MetaInstructionAnalyzer instance
+ */
+export function createMetaInstructionAnalyzer() {
+  return new MetaInstructionAnalyzer();
+}
+
+/**
+ * Create a new IntentAnalysisEngine instance
+ */
+export function createIntentAnalysisEngine() {
+  return new IntentAnalysisEngine();
 }
 
 /**
@@ -64,7 +90,7 @@ class InMemoryContextCache {
   }
   
   async invalidate(key: string) {
-    return this.cache.delete(key);
+    this.cache.delete(key);
   }
   
   async clear() {
@@ -88,5 +114,7 @@ export const CONTEXTUAL_INTELLIGENCE_VERSION = '0.1.0';
 export default {
   version: CONTEXTUAL_INTELLIGENCE_VERSION,
   createInstructionAnalyzer,
+  createMetaInstructionAnalyzer,
+  createIntentAnalysisEngine,
   createContextBridge
 };
