@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { analyzePrompt } from '../analyzer';
-import { LintRuleType, LintResult } from '@promptlint/shared-types';
+import { LintRuleType, LintResult, LintIssue } from '../../../shared-types/dist/index.js';
 
 describe('Boundary Condition Testing', () => {
   describe('Score Boundary Cases', () => {
@@ -59,7 +59,7 @@ describe('Boundary Condition Testing', () => {
     it('should handle complex prompt with mixed rule triggers', () => {
       const result = analyzePrompt('maybe write some kind of sorting function that basically just works somehow with whatever input');
       
-      const issueTypes = result.issues.map(issue => issue.type);
+      const issueTypes = result.issues.map((issue: LintIssue) => issue.type);
       
       // Should detect multiple specific issues
       expect(issueTypes).toContain(LintRuleType.VAGUE_WORDING);
@@ -127,7 +127,7 @@ describe('Boundary Condition Testing', () => {
       results.forEach(result => {
         expect(result.score).toBe(firstResult.score);
         expect(result.issues).toHaveLength(firstResult.issues.length);
-        expect(result.issues.map(i => i.type)).toEqual(firstResult.issues.map(i => i.type));
+        expect(result.issues.map((i: LintIssue) => i.type)).toEqual(firstResult.issues.map((i: LintIssue) => i.type));
       });
     });
 
@@ -148,7 +148,7 @@ describe('Boundary Condition Testing', () => {
       }
 
       return Promise.all(promises).then(results => {
-        results.forEach(result => {
+        results.forEach((result: LintResult) => {
           expect(result.score).toBeGreaterThanOrEqual(0);
           expect(result.score).toBeLessThanOrEqual(100);
           expect(result.metadata?.processingTime).toBeLessThan(50);

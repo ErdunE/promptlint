@@ -14,7 +14,7 @@ import {
   SelectionReason,
   TemplateSelectionMetadata
 } from './types/TemplateTypes.js';
-import { LintResult, LintRuleType } from '@promptlint/shared-types';
+import { LintResult, LintRuleType, LintIssue } from '@promptlint/shared-types';
 import { DomainClassificationResult, DomainType } from '@promptlint/domain-classifier';
 import { SemanticAnalyzer } from './analysis/SemanticAnalyzer.js';
 import { ConfidenceCalibrator } from './analysis/ConfidenceCalibrator.js';
@@ -62,6 +62,7 @@ export class PatternMatcher {
     // Update enhanced domain with calibrated confidence
     enhancedDomain.confidence = calibratedConfidence.finalConfidence;
     
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const criteria = this.analyzePrompt(lintResult, originalPrompt);
     
     // Phase 1.3: Intelligent template selection
@@ -105,6 +106,7 @@ export class PatternMatcher {
    * Legacy method for backward compatibility
    */
   selectTemplates(lintResult: LintResult, domainResult: DomainClassificationResult, originalPrompt?: string): TemplateType[] {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const criteria = this.analyzePrompt(lintResult, originalPrompt);
     const selectedTemplates: TemplateType[] = [];
     
@@ -200,16 +202,16 @@ export class PatternMatcher {
     // Apply selection rules based on criteria
     
     // Rule 1: missing_language + missing_io → TaskIOTemplate (with complexity check)
-    if (criteria.issues.some(i => i.type === LintRuleType.MISSING_LANGUAGE) && 
-        criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION) &&
+    if (criteria.issues.some((i: LintIssue) => i.type === LintRuleType.MISSING_LANGUAGE) && 
+        criteria.issues.some((i: LintIssue) => i.type === LintRuleType.MISSING_IO_SPECIFICATION) &&
         criteria.complexity !== 'complex' &&
         !criteria.hasVagueWording) {
       selectedTemplates.push(TemplateType.TASK_IO);
     }
     
     // Rule 2: vague_wording + unclear_scope → BulletTemplate
-    if (criteria.issues.some(i => i.type === LintRuleType.VAGUE_WORDING) && 
-        criteria.issues.some(i => i.type === LintRuleType.UNCLEAR_SCOPE)) {
+    if (criteria.issues.some((i: LintIssue) => i.type === LintRuleType.VAGUE_WORDING) &&
+        criteria.issues.some((i: LintIssue) => i.type === LintRuleType.UNCLEAR_SCOPE)) {
       selectedTemplates.push(TemplateType.BULLET);
     }
     
@@ -231,7 +233,7 @@ export class PatternMatcher {
     }
     
     // Rule 6: Missing task verb → Context-aware template selection
-    if (criteria.issues.some(i => i.type === LintRuleType.MISSING_TASK_VERB)) {
+    if (criteria.issues.some((i: LintIssue) => i.type === LintRuleType.MISSING_TASK_VERB)) {
       if (criteria.hasVagueWording || criteria.complexity === 'complex') {
         if (!selectedTemplates.includes(TemplateType.BULLET)) {
           selectedTemplates.push(TemplateType.BULLET);
@@ -261,7 +263,7 @@ export class PatternMatcher {
     
     // Rule 9: Has task structure + missing language → TaskIOTemplate (prioritize structured format)
     if (criteria.hasTaskStructure && 
-        criteria.issues.some(i => i.type === LintRuleType.MISSING_LANGUAGE) &&
+        criteria.issues.some((i: LintIssue) => i.type === LintRuleType.MISSING_LANGUAGE) &&
         criteria.complexity === 'simple') {
       if (!selectedTemplates.includes(TemplateType.TASK_IO)) {
         selectedTemplates.push(TemplateType.TASK_IO);
@@ -291,7 +293,7 @@ export class PatternMatcher {
   private getLintBasedTemplates(criteria: TemplateSelectionCriteria): TemplateType[] {
     const templates: TemplateType[] = [];
     
-    if (criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION)) {
+    if (criteria.issues.some((i: LintIssue) => i.type === LintRuleType.MISSING_IO_SPECIFICATION)) {
       templates.push(TemplateType.TASK_IO);
     }
     
@@ -315,7 +317,7 @@ export class PatternMatcher {
    */
   private applyLintBasedRefinements(selectedTemplates: TemplateType[], criteria: TemplateSelectionCriteria): void {
     // Add TaskIO template if missing I/O specification and not already included
-    if (criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION) && 
+    if (criteria.issues.some((i: LintIssue) => i.type === LintRuleType.MISSING_IO_SPECIFICATION) && 
         !selectedTemplates.includes(TemplateType.TASK_IO)) {
       selectedTemplates.push(TemplateType.TASK_IO);
     }
@@ -391,6 +393,7 @@ export class PatternMatcher {
   /**
    * Extract domain characteristics for enhanced template selection
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractDomainCharacteristics(domain: DomainType, prompt: string): string[] {
     const characteristics: string[] = [];
     const cleanPrompt = prompt.toLowerCase();
@@ -523,7 +526,7 @@ export class PatternMatcher {
     let score = 50; // Base score
     
     // Lint-based scoring
-    if (criteria.issues.some(i => i.type === LintRuleType.MISSING_IO_SPECIFICATION) && templateType === TemplateType.TASK_IO) {
+    if (criteria.issues.some((i: LintIssue) => i.type === LintRuleType.MISSING_IO_SPECIFICATION) && templateType === TemplateType.TASK_IO) {
       score += 30;
     }
     if (criteria.hasVagueWording && templateType === TemplateType.BULLET) {
@@ -660,6 +663,7 @@ export class PatternMatcher {
   /**
    * Generate selection reasoning for metadata
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private generateSelectionReasoning(
     selectedTemplates: EnhancedTemplateSelection[],
     enhancedDomain: EnhancedDomainResult,
@@ -775,7 +779,9 @@ export class PatternMatcher {
       this.reconstructPromptFromLintResult(lintResult) : '');
     
     return {
+      lintResult,
       issues: lintResult.issues,
+      originalPrompt,
       complexity: this.determineComplexity(prompt, issues),
       hasSequentialKeywords: this.hasSequentialKeywords(prompt),
       hasTaskStructure: this.hasTaskStructure(prompt),
@@ -816,6 +822,7 @@ export class PatternMatcher {
       indicators: enhancedDomain.indicators,
       processingTime: enhancedDomain.processingTime
     };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const routingResult = this.semanticRouter.routeTemplate(semantics, domainForRouter);
     
     // Score all available templates using intelligent selector

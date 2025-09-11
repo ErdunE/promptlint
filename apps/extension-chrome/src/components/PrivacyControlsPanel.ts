@@ -5,7 +5,7 @@
  * Chrome Extension Compatible - User Control Interface
  */
 
-import { UserContextStorage } from '../../../../packages/context-memory/dist/context-memory.es.js';
+import { UserContextStorage } from '../../../../packages/context-memory/dist/index.js';
 
 export interface PrivacyControlsConfig {
   enableBehaviorTracking: boolean;

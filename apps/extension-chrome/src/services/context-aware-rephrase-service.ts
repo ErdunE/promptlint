@@ -7,7 +7,7 @@
 
 import { createRephraseServiceWithStoredKey, createApiKeyStorage, testApiKey } from '../../../../packages/llm-service/dist/index.js';
 import { RephraseResult, RephraseRequest, RephraseError, RephraseErrorType, LintResult, LintRuleType, LintIssue } from '../../../../packages/shared-types/dist/index.js';
-import { TemplateEngine, TemplateCandidate } from '../../../../packages/template-engine/dist/template-engine.js';
+import { TemplateEngine, TemplateCandidate } from '../../../../packages/template-engine/dist/index.js';
 import { analyzePrompt } from '../../../../packages/rules-engine/dist/index.js';
 import { 
   ContextMemoryEngine, 
@@ -18,7 +18,7 @@ import {
   OptimizationHistory,
   generateUserId,
   isStorageAvailable
-} from '../../../../packages/context-memory/dist/context-memory.es.js';
+} from '../../../../packages/context-memory/dist/index.js';
 
 export interface ContextAwareRephraseServiceStatus {
   available: boolean;

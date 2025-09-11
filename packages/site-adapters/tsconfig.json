@@ -1,39 +1,22 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "allowJs": true,
+    "strict": true,
+    "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ],
-  "references": [
-    {
-      "path": "../shared-types"
-    }
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

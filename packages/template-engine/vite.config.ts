@@ -15,14 +15,15 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'TemplateEngine',
       formats: ['es'],
-      fileName: 'template-engine'
+      fileName: 'index'
     },
     rollupOptions: {
-      external: ['@promptlint/shared-types', '@promptlint/domain-classifier'],
+      external: ['@promptlint/shared-types', '@promptlint/domain-classifier', '@promptlint/adaptive-engine'],
       output: {
         globals: {
           '@promptlint/shared-types': 'SharedTypes',
-          '@promptlint/domain-classifier': 'DomainClassifier'
+          '@promptlint/domain-classifier': 'DomainClassifier',
+          '@promptlint/adaptive-engine': 'AdaptiveEngine'
         }
       }
     },

@@ -3,27 +3,31 @@
   "version": "0.5.1",
   "description": "Dynamic template generation system for PromptLint rephrase functionality",
   "type": "module",
-  "main": "dist/template-engine.js",
-  "module": "dist/template-engine.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "exports": {
     ".": {
-      "import": "./dist/template-engine.js",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "vite build",
-    "build:watch": "vite build --watch",
+    "dev": "vite build --watch",
     "clean": "rm -rf dist",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "typecheck": "tsc --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@promptlint/adaptive-engine": "file:../adaptive-engine",
     "@promptlint/domain-classifier": "file:../domain-classifier",
     "@promptlint/shared-types": "file:../shared-types"
   },
@@ -33,8 +37,8 @@
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
     "typescript": "^5.0.0",
-    "vite": "^4.4.5",
-    "vite-plugin-dts": "^4.5.4",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.0.0",
     "vitest": "^1.0.0"
   },
   "keywords": [

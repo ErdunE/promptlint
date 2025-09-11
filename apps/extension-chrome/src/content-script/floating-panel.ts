@@ -1455,6 +1455,7 @@ export class FloatingPanel {
 
   /**
    * Track user template selection in Chrome storage for learning user preferences
+   * Enhanced for Phase 3.2 adaptive learning
    */
   private async trackTemplateSelection(candidate: RephraseCandidate, originalPrompt: string): Promise<void> {
     try {
@@ -1481,7 +1482,7 @@ export class FloatingPanel {
         version: '0.6.0'
       };
       
-      // Add new selection record
+      // Add new selection record with enhanced data for adaptive learning
       const selectionRecord = {
         timestamp: Date.now(),
         candidateId: candidate.id,
@@ -1490,7 +1491,16 @@ export class FloatingPanel {
         promptLength: originalPrompt.length,
         estimatedScore: candidate.estimatedScore || 0,
         improvements: candidate.improvements || [],
-        site: window.location.hostname
+        site: window.location.hostname,
+        // Enhanced Phase 3.2 tracking data
+        selectionTime: Date.now() - this.rephraseStartTime, // Time to select
+        contextTags: this.extractContextTags(originalPrompt),
+        promptComplexity: this.assessPromptComplexity(originalPrompt),
+        userSatisfactionIndicators: {
+          quickSelection: (Date.now() - this.rephraseStartTime) < 5000,
+          noModifications: true, // Assume no modifications for now
+          repeatedUse: await this.checkRepeatedUse(candidate.approach, userData)
+        }
       };
       
       userData.selections.push(selectionRecord);
@@ -1499,16 +1509,22 @@ export class FloatingPanel {
       const approach = candidate.approach || 'unknown';
       userData.preferences[approach] = (userData.preferences[approach] || 0) + 1;
       
-      // Update statistics
+      // Update statistics with enhanced Phase 3.2 metrics
       userData.stats.totalSelections = userData.selections.length;
       userData.stats.averagePromptLength = Math.round(
         userData.selections.reduce((sum: number, sel: any) => sum + sel.promptLength, 0) / userData.selections.length
+      );
+      userData.stats.averageSelectionTime = Math.round(
+        userData.selections.reduce((sum: number, sel: any) => sum + (sel.selectionTime || 5000), 0) / userData.selections.length
       );
       
       // Find most used approach
       const mostUsedApproach = Object.entries(userData.preferences)
         .sort(([,a], [,b]) => (b as number) - (a as number))[0];
       userData.stats.mostUsedApproach = mostUsedApproach ? mostUsedApproach[0] : null;
+      
+      // Calculate learning confidence based on selection consistency
+      userData.stats.learningConfidence = this.calculateLearningConfidence(userData.selections);
       
       userData.lastUpdated = Date.now();
       
@@ -1520,16 +1536,149 @@ export class FloatingPanel {
       // Store back to Chrome storage
       await chrome.storage.local.set({ promptlint_user_data: userData });
       
-      console.log('[PromptLint] Template selection tracked:', {
+      // Notify adaptive engine of selection for learning
+      await this.notifyAdaptiveEngine(selectionRecord, userData);
+      
+      console.log('[PromptLint] Enhanced template selection tracked:', {
         approach: candidate.approach,
         totalSelections: userData.stats.totalSelections,
-        preferences: userData.preferences
+        preferences: userData.preferences,
+        selectionTime: selectionRecord.selectionTime + 'ms',
+        learningConfidence: userData.stats.learningConfidence?.toFixed(3)
       });
       
     } catch (error) {
       console.warn('[PromptLint] Failed to track template selection:', error);
       // Don't throw - tracking failure shouldn't break user experience
     }
+  }
+
+  // Enhanced tracking helper methods for Phase 3.2
+  private rephraseStartTime = Date.now();
+
+  private extractContextTags(prompt: string): string[] {
+    const tags: string[] = [];
+    const lowerPrompt = prompt.toLowerCase();
+    
+    // Domain tags
+    if (lowerPrompt.includes('code') || lowerPrompt.includes('program')) tags.push('coding');
+    if (lowerPrompt.includes('data') || lowerPrompt.includes('analysis')) tags.push('data-analysis');
+    if (lowerPrompt.includes('design') || lowerPrompt.includes('ui')) tags.push('design');
+    if (lowerPrompt.includes('write') || lowerPrompt.includes('content')) tags.push('writing');
+    
+    // Intent tags
+    if (lowerPrompt.includes('create') || lowerPrompt.includes('build')) tags.push('creation');
+    if (lowerPrompt.includes('analyze') || lowerPrompt.includes('review')) tags.push('analysis');
+    if (lowerPrompt.includes('optimize') || lowerPrompt.includes('improve')) tags.push('optimization');
+    
+    return tags;
+  }
+
+  private assessPromptComplexity(prompt: string): number {
+    let complexity = 0;
+    
+    // Length factor
+    complexity += Math.min(0.3, prompt.length / 1000);
+    
+    // Technical terms
+    const technicalTerms = ['implement', 'analyze', 'optimize', 'algorithm', 'architecture', 'framework'];
+    const techTermCount = technicalTerms.filter(term => prompt.toLowerCase().includes(term)).length;
+    complexity += techTermCount * 0.1;
+    
+    // Sentence complexity
+    const sentences = prompt.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    if (sentences.length > 0) {
+      const avgSentenceLength = sentences.reduce((sum, s) => sum + s.length, 0) / sentences.length;
+      complexity += Math.min(0.2, avgSentenceLength / 100);
+    }
+    
+    return Math.min(1.0, complexity);
+  }
+
+  private async checkRepeatedUse(approach: string, userData: any): Promise<boolean> {
+    const recentSelections = userData.selections
+      .filter((s: any) => Date.now() - s.timestamp < 7 * 24 * 60 * 60 * 1000) // Last 7 days
+      .map((s: any) => s.approach);
+    
+    const recentUseCount = recentSelections.filter((a: string) => a === approach).length;
+    return recentUseCount >= 2; // Used 2+ times recently
+  }
+
+  private calculateLearningConfidence(selections: any[]): number {
+    if (selections.length < 5) return 0.3; // Low confidence with few selections
+    
+    // Calculate consistency in approach preferences
+    const approaches: Record<string, number> = {};
+    selections.forEach(s => {
+      approaches[s.approach] = (approaches[s.approach] || 0) + 1;
+    });
+    
+    // Higher confidence if user has clear preferences
+    const maxCount = Math.max(...Object.values(approaches));
+    const totalCount = selections.length;
+    const dominanceRatio = maxCount / totalCount;
+    
+    // Scale confidence based on sample size and preference consistency
+    const sampleSizeConfidence = Math.min(1.0, selections.length / 20);
+    const consistencyConfidence = dominanceRatio > 0.5 ? dominanceRatio : 0.5;
+    
+    return (sampleSizeConfidence * 0.6 + consistencyConfidence * 0.4);
+  }
+
+  private async notifyAdaptiveEngine(selectionRecord: any, userData: any): Promise<void> {
+    try {
+      // Store selection event for adaptive engine consumption
+      const adaptiveSelection = {
+        timestamp: selectionRecord.timestamp,
+        templateType: this.mapApproachToTemplateType(selectionRecord.approach),
+        originalPrompt: selectionRecord.originalPrompt,
+        selectedTemplate: selectionRecord.candidateId,
+        alternativesShown: [], // Would need to track alternatives shown
+        selectionTime: selectionRecord.selectionTime,
+        contextTags: selectionRecord.contextTags,
+        domain: this.detectDomain(selectionRecord.originalPrompt),
+        promptComplexity: selectionRecord.promptComplexity,
+        userSatisfactionIndicators: selectionRecord.userSatisfactionIndicators
+      };
+
+      // Store for adaptive engine to process
+      const adaptiveData = await chrome.storage.local.get(['promptlint_adaptive_selections']);
+      const adaptiveSelections = adaptiveData.promptlint_adaptive_selections || [];
+      adaptiveSelections.push(adaptiveSelection);
+      
+      // Keep last 50 adaptive selections
+      if (adaptiveSelections.length > 50) {
+        adaptiveSelections.splice(0, adaptiveSelections.length - 50);
+      }
+      
+      await chrome.storage.local.set({ promptlint_adaptive_selections: adaptiveSelections });
+      
+    } catch (error) {
+      console.warn('[PromptLint] Failed to notify adaptive engine:', error);
+    }
+  }
+
+  private mapApproachToTemplateType(approach: string): string {
+    const mapping: Record<string, string> = {
+      'structured': 'task_io',
+      'conversational': 'minimal',
+      'imperative': 'sequential',
+      'clarifying': 'bullet',
+      'detailed': 'task_io'
+    };
+    return mapping[approach] || 'task_io';
+  }
+
+  private detectDomain(prompt: string): string {
+    const lowerPrompt = prompt.toLowerCase();
+    
+    if (lowerPrompt.includes('code') || lowerPrompt.includes('program')) return 'coding';
+    if (lowerPrompt.includes('data') || lowerPrompt.includes('analysis')) return 'data-analysis';
+    if (lowerPrompt.includes('design') || lowerPrompt.includes('ui')) return 'design';
+    if (lowerPrompt.includes('write') || lowerPrompt.includes('content')) return 'writing';
+    if (lowerPrompt.includes('business') || lowerPrompt.includes('strategy')) return 'business';
+    
+    return 'general';
   }
 
   private async copyToClipboard(text: string): Promise<void> {
@@ -1692,6 +1841,8 @@ export class FloatingPanel {
       }
     } else {
       if (this.currentPrompt && this.rephraseCallbacks.onRephraseRequest) {
+        // Record start time for selection tracking
+        this.rephraseStartTime = Date.now();
         this.handleRephraseClick();
         if (this.rephraseToggleButton) {
           this.rephraseToggleButton.innerHTML = `

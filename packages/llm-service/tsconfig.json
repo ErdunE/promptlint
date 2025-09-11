@@ -1,36 +1,22 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
     "lib": ["ES2022"],
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": true,
+    "noEmit": false,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "strict": true,
-    "esModuleInterop": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": false,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "composite": true,
-    "baseUrl": ".",
-    "paths": {
-      "@promptlint/shared-types": ["../shared-types/src/index.ts"],
-      "@promptlint/shared-types/*": ["../shared-types/src/*"]
-    }
+    "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "tests"
-  ],
-  "references": [
-    { "path": "../shared-types" }
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

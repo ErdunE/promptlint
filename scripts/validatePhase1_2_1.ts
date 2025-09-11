@@ -1,8 +1,8 @@
 // scripts/validatePhase1_2_1.ts
 
 import { HybridClassifier } from "../packages/domain-classifier/dist/index.js";
-import { TemplateEngine } from "../packages/template-engine/dist/template-engine.js";
-import { TemplateType } from "../packages/template-engine/dist/template-engine.js";
+import { TemplateEngine } from "../packages/template-engine/src/index.js";
+import { TemplateType } from "../packages/shared-types/dist/index.js";
 import { analyzePrompt } from "../packages/rules-engine/dist/index.js";
 
 function printResult(
@@ -37,22 +37,22 @@ async function runValidation() {
     {
       prompt: "implement binary search algorithm",
       domain: "code",
-      expectedTemplates: [TemplateType.TASK_IO, TemplateType.SEQUENTIAL],
+      expectedTemplates: ["TASK_IO", "SEQUENTIAL"] as (keyof typeof TemplateType)[],
     },
     {
       prompt: "write blog post about productivity",
       domain: "writing", 
-      expectedTemplates: [TemplateType.MINIMAL, TemplateType.BULLET],
+      expectedTemplates: ["MINIMAL", "BULLET"] as (keyof typeof TemplateType)[],
     },
     {
       prompt: "analyze market trends data",
       domain: "analysis",
-      expectedTemplates: [TemplateType.TASK_IO, TemplateType.BULLET],
+      expectedTemplates: ["TASK_IO", "BULLET"] as (keyof typeof TemplateType)[],
     },
     {
       prompt: "research best practices for security", 
       domain: "research",
-      expectedTemplates: [TemplateType.BULLET, TemplateType.SEQUENTIAL],
+      expectedTemplates: ["BULLET", "SEQUENTIAL"] as (keyof typeof TemplateType)[],
     },
   ];
 
@@ -75,7 +75,7 @@ async function runValidation() {
     const processingTime = endTime - startTime;
     totalProcessingTime += processingTime;
     
-    const templates = candidates.map(c => c.type);
+    const templates = candidates.map(c => c.type as unknown as keyof typeof TemplateType);
     
     const passed = printResult(
       prompt, 

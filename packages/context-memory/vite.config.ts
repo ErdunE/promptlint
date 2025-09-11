@@ -5,29 +5,23 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
-      rollupTypes: true,
-    }),
+      copyDtsFiles: false
+    })
   ],
   build: {
     lib: {
       entry: './src/index.ts',
       name: 'ContextMemory',
-      fileName: (format) => `context-memory.${format}.js`,
+      fileName: 'index',
       formats: ['es'],
     },
     rollupOptions: {
-      external: [
-        '@promptlint/shared-types',
-        '@promptlint/template-engine'
-      ],
+      external: ['@promptlint/*'],
       output: {
-        globals: {
-          '@promptlint/shared-types': 'SharedTypes',
-          '@promptlint/template-engine': 'TemplateEngine'
-        },
-      },
+        globals: {}
+      }
     },
     target: 'es2022',
-    sourcemap: true,
+    minify: false
   },
 });
