@@ -1,0 +1,30 @@
+{
+  "name": "@promptlint/level5-predictive",
+  "version": "0.8.0.0",
+  "description": "Level 5 Predictive Intent Engine - Anticipates user needs based on workflow patterns",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@promptlint/shared-types": "workspace:*",
+    "@promptlint/level5-memory": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "predictive",
+    "intent",
+    "patterns",
+    "autocomplete",
+    "level5"
+  ],
+  "author": "PromptLint Team",
+  "license": "MIT"
+}
