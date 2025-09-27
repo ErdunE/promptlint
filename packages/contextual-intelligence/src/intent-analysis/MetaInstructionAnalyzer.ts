@@ -3,11 +3,11 @@ import {
   ProjectContext, 
   Constraint, 
   ExpertiseLevel,
-  ConstraintType,
   ProjectPhase,
   TechnicalStack,
   ProjectComplexity 
 } from '../shared/ContextualTypes.js';
+import { ConstraintType } from '../shared/IntentTypes.js';
 
 export class MetaInstructionAnalyzer {
   private constraintPatterns!: Map<ConstraintType, RegExp[]>;

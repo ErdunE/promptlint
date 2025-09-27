@@ -18,30 +18,54 @@ export const TEMPLATE_REGISTRY: TemplateRegistryEntry[] = [
   {
     type: TemplateType.TASK_IO,
     templateClass: TaskIOTemplate,
+    metadata: {
+      name: 'Task I/O Template',
+      description: 'Structured format with clear task definition and I/O specifications',
+      category: 'structured',
+      complexity: 'medium' as const,
+      suitableFor: ['programming', 'analysis', 'data processing']
+    },
     priority: 80,
-    enabled: true,
-    description: 'Structured format with clear task definition and I/O specifications'
+    enabled: true
   },
   {
     type: TemplateType.BULLET,
     templateClass: BulletTemplate,
+    metadata: {
+      name: 'Bullet Point Template',
+      description: 'Structured format using bullet points for clear requirements',
+      category: 'structured',
+      complexity: 'low' as const,
+      suitableFor: ['general', 'writing', 'planning']
+    },
     priority: 70,
-    enabled: true,
-    description: 'Structured format using bullet points for clear requirements'
+    enabled: true
   },
   {
     type: TemplateType.SEQUENTIAL,
     templateClass: SequentialTemplate,
+    metadata: {
+      name: 'Sequential Steps Template',
+      description: 'Numbered steps format for sequential processes',
+      category: 'process',
+      complexity: 'medium' as const,
+      suitableFor: ['procedures', 'workflows', 'tutorials']
+    },
     priority: 60,
-    enabled: true,
-    description: 'Numbered steps format for sequential processes'
+    enabled: true
   },
   {
     type: TemplateType.MINIMAL,
     templateClass: MinimalTemplate,
+    metadata: {
+      name: 'Minimal Template',
+      description: 'Basic cleanup for well-structured prompts',
+      category: 'minimal',
+      complexity: 'low' as const,
+      suitableFor: ['simple', 'well-formed', 'quick']
+    },
     priority: 50,
-    enabled: true,
-    description: 'Basic cleanup for well-structured prompts'
+    enabled: true
   }
 ];
 

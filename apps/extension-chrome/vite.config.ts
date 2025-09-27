@@ -54,7 +54,10 @@ export default defineConfig({
     alias: {
       '@promptlint/rules-engine': resolve(__dirname, '../../packages/rules-engine/src'),
       '@promptlint/site-adapters': resolve(__dirname, '../../packages/site-adapters/src'),  
-      '@promptlint/shared-types': resolve(__dirname, '../../packages/shared-types/src')
+      '@promptlint/shared-types': resolve(__dirname, '../../packages/shared-types/src'),
+      '@promptlint/contextual-intelligence': resolve(__dirname, '../../packages/contextual-intelligence/src'),
+      '@promptlint/template-engine': resolve(__dirname, '../../packages/template-engine/src'),
+      '@promptlint/llm-service': resolve(__dirname, '../../packages/llm-service/src')
     }
   },
   define: {

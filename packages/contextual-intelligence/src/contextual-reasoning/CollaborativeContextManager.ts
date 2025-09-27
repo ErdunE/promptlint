@@ -1,10 +1,10 @@
 import { 
   CollaborativeContext,
-  TeamStandards,
+  SimpleTeamStandards,
   UserRole,
-  SharedPreferences,
-  IntentAnalysis 
+  SharedPreferences
 } from '../shared/ContextualTypes.js';
+import { IntentAnalysis } from '../shared/IntentTypes.js';
 
 export class CollaborativeContextManager {
   private roleIndicators!: Map<UserRole, string[]>;
@@ -95,11 +95,11 @@ export class CollaborativeContextManager {
     }
   }
 
-  private detectTeamStandards(prompt: string, teamSettings?: any): TeamStandards {
+  private detectTeamStandards(prompt: string, teamSettings?: any): SimpleTeamStandards {
     const lowerPrompt = prompt.toLowerCase();
     
     // Default standards that can be overridden by team settings
-    const standards: TeamStandards = {
+    const standards: SimpleTeamStandards = {
       communicationStyle: 'professional',
       documentationLevel: 'standard',
       codeStyle: 'consistent',
@@ -252,7 +252,7 @@ export class CollaborativeContextManager {
   }
 
   private calculateCollaborativeConfidence(
-    teamStandards: TeamStandards,
+    teamStandards: SimpleTeamStandards,
     roleContext: UserRole,
     sharedPreferences: SharedPreferences,
     prompt: string

@@ -13,6 +13,17 @@ export { MetaInstructionAnalyzer } from './intent-analysis/MetaInstructionAnalyz
 export { InteractionAnalyzer } from './intent-analysis/InteractionAnalyzer.js';
 export { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js';
 
+// === Contextual Reasoning Exports ===
+export { ProjectContextAnalyzer } from './contextual-reasoning/ProjectContextAnalyzer.js';
+export { CollaborativeContextManager } from './contextual-reasoning/CollaborativeContextManager.js';
+
+// === Template Reasoning Exports ===
+export { ReasoningChainGenerator } from './template-reasoning/ReasoningChainGenerator.js';
+
+// === Meta-Information Exports ===
+export { ReferenceHistoryManager } from './meta-information/ReferenceHistoryManager.js';
+export { PlatformStateAnalyzer } from './meta-information/PlatformStateAnalyzer.js';
+
 // === Internal Imports for Factory Functions ===
 import { InstructionAnalyzer } from './intent-analysis/InstructionAnalyzer.js';
 import { MetaInstructionAnalyzer } from './intent-analysis/MetaInstructionAnalyzer.js';
@@ -23,15 +34,20 @@ import { DefaultContextBridge } from './shared/ContextBridge.js';
 // === Shared Types Exports ===
 export { 
   // Core contextual types (selective export to avoid conflicts)
-  MetaInstructionAnalysis, Constraint, ConstraintType, ProjectPhase,
+  Constraint, ProjectPhase,
   ExpertiseLevel, ProjectComplexity, TechnicalStack
 } from './shared/ContextualTypes.js';
+
+export { ConstraintType } from './shared/IntentTypes.js';
 
 export { 
   // Intent analysis types
   IntentAnalysis, InstructionIntent, InteractionIntent,
   IntentCategory, ActionType, OutputFormat, IntentComplexity
 } from './shared/IntentTypes.js';
+
+// Export IntentAnalysis from ContextualTypes for compatibility
+export type { IntentAnalysis as IntentAnalysisType } from './shared/IntentTypes.js';
 
 // === Factory Functions ===
 

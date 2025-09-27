@@ -1,10 +1,10 @@
 import { 
-  IntentAnalysis,
   ContextualReasoning,
   ReasoningChain,
   ReasoningStep,
   ReasoningDocumentation 
 } from '../shared/ContextualTypes.js';
+import { IntentAnalysis } from '../shared/IntentTypes.js';
 
 export class ReasoningChainGenerator {
   private reasoningPatterns!: Map<string, ReasoningPattern>;

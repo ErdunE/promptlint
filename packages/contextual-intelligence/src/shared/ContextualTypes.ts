@@ -383,19 +383,13 @@ export interface MetaInstructionAnalysis {
 }
 
 export interface Constraint {
-  type: ConstraintType;
+  type: import('./IntentTypes.js').ConstraintType;
   description: string;
   severity: 'low' | 'medium' | 'high';
   extractedFrom: string;
 }
 
-export enum ConstraintType {
-  TIME = 'time',
-  BUDGET = 'budget',
-  TECHNICAL = 'technical',
-  QUALITY = 'quality',
-  SCOPE = 'scope'
-}
+// ConstraintType moved to IntentTypes.ts to avoid duplication
 
 export enum ProjectPhase {
   PLANNING = 'planning',
@@ -429,7 +423,7 @@ export interface ContextualReasoning {
 }
 
 export interface CollaborativeContext {
-  teamStandards: TeamStandards;
+  teamStandards: SimpleTeamStandards;
   roleContext: UserRole;
   sharedPreferences: SharedPreferences;
   individualOverrides: any;
@@ -438,7 +432,8 @@ export interface CollaborativeContext {
   processingTime: number;
 }
 
-export interface TeamStandards {
+// Simplified TeamStandards for CollaborativeContextManager
+export interface SimpleTeamStandards {
   communicationStyle: string;
   documentationLevel: string;
   codeStyle: string;
@@ -471,12 +466,6 @@ export interface PlatformContext {
   processingTime: number;
 }
 
-export enum AIPlatform {
-  CHATGPT = 'chatgpt',
-  CLAUDE = 'claude',
-  GENERIC = 'generic'
-}
-
 export interface PlatformCapability {
   feature: string;
   supported: boolean;
@@ -493,13 +482,7 @@ export interface OptimizationOpportunity {
   type: string;
   description: string;
   impact: 'low' | 'medium' | 'high';
-}
-
-export enum ProjectComplexity {
-  LOW = 'low',
-  MEDIUM = 'medium', 
-  HIGH = 'high',
-  ENTERPRISE = 'enterprise'
+  feasibility?: 'low' | 'medium' | 'high';
 }
 
 // Template Reasoning System Types
@@ -533,4 +516,53 @@ export interface ReasoningDocumentation {
   totalSteps: number;
   confidenceScore: number;
   executionTime: number;
+}
+
+// Meta-Information Engine Types
+export interface ReferenceHistory {
+  projectHistory: ProjectOptimizationHistory;
+  userPatterns: UserOptimizationPatterns;
+  successfulInteractions: any[];
+  learningTrajectory: LearningTrajectory;
+  confidence: number;
+  lastUpdated: number;
+  processingTime: number;
+}
+
+export interface ProjectOptimizationHistory {
+  projectId: string;
+  totalInteractions: number;
+  optimizationPatterns: any[];
+  templateEffectiveness: any;
+  evolutionTimeline: any[];
+  lastActive: number;
+}
+
+export interface UserOptimizationPatterns {
+  userId: string;
+  templatePreferences: any;
+  communicationStyle: string;
+  expertiseProgression: any[];
+  domainFocus: any[];
+  consistency: number;
+  adaptationRate: number;
+}
+
+export interface LearningTrajectory {
+  userId: string;
+  improvementMetrics: any;
+  skillDevelopment: any[];
+  adaptationSpeed: number;
+  trajectoryConfidence: number;
+  predictedNeeds: any[];
+}
+
+export interface PlatformState {
+  currentPlatform: AIPlatform;
+  capabilities: PlatformCapability[];
+  contextWindow: ContextWindowInfo;
+  optimizationOpportunities: OptimizationOpportunity[];
+  confidence: number;
+  analysisTimestamp: number;
+  processingTime: number;
 }

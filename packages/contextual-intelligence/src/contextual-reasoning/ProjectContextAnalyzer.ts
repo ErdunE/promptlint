@@ -2,9 +2,9 @@ import {
   ProjectContext,
   ProjectPhase,
   TechnicalStack,
-  ProjectComplexity,
-  IntentAnalysis 
+  ProjectComplexity
 } from '../shared/ContextualTypes.js';
+import { IntentAnalysis } from '../shared/IntentTypes.js';
 
 export class ProjectContextAnalyzer {
   private workflowIndicators!: Map<ProjectPhase, string[]>;

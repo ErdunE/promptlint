@@ -571,10 +571,10 @@ export class AdaptiveTemplateGenerator {
       const affinity = preferences.templateAffinities?.[candidate.type] || 0.5;
       if (affinity > 0.8) {
         adaptiveTemplate.personalizations = [{
-          type: PersonalizationType.STRUCTURAL,
+          type: PersonalizationType.STRUCTURAL_PREFERENCE,
+          strength: affinity,
           description: `High user affinity (${(affinity * 100).toFixed(0)}%) for ${candidate.type} templates`,
-          confidence: affinity,
-          impact: 'template_prioritization'
+          appliedAt: Date.now()
         }];
       }
       
@@ -611,8 +611,8 @@ export class AdaptiveTemplateGenerator {
     const originalWords = new Set(originalContent.toLowerCase().split(/\W+/).filter(w => w.length > 2));
     const adaptedWords = new Set(adaptedContent.toLowerCase().split(/\W+/).filter(w => w.length > 2));
     
-    const intersection = new Set([...originalWords].filter(word => adaptedWords.has(word)));
-    const union = new Set([...originalWords, ...adaptedWords]);
+    const intersection = new Set(Array.from(originalWords).filter(word => adaptedWords.has(word)));
+    const union = new Set([...Array.from(originalWords), ...Array.from(adaptedWords)]);
     
     return intersection.size / union.size; // Jaccard similarity
   }

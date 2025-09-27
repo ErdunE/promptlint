@@ -7,7 +7,7 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       include: ['src/**/*'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts']
+      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'src/AdaptiveTemplateEngine.ts']
     })
   ],
   build: {
@@ -25,6 +25,9 @@ export default defineConfig({
           '@promptlint/domain-classifier': 'DomainClassifier',
           '@promptlint/adaptive-engine': 'AdaptiveEngine'
         }
+      },
+      input: {
+        index: resolve(__dirname, 'src/index.ts')
       }
     },
     target: 'es2020'

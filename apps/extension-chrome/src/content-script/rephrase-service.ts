@@ -477,7 +477,7 @@ export class ExtensionRephraseService {
   private extractImprovements(templateCandidate: TemplateCandidate): string[] {
     const improvements = [];
     
-    if (templateCandidate.metadata?.faithfulnessResult?.isValid) {
+    if (templateCandidate.faithfulnessValidated) {
       improvements.push('Preserved original intent');
     }
     
@@ -487,8 +487,10 @@ export class ExtensionRephraseService {
     
     improvements.push(`Applied ${templateCandidate.type} template structure`);
     
-    if (templateCandidate.metadata?.warnings?.length === 0) {
-      improvements.push('No performance warnings');
+    // Note: warnings moved out of metadata due to type constraints
+    // Using faithfulness validation as proxy for quality
+    if (templateCandidate.faithfulnessValidated && templateCandidate.score > 80) {
+      improvements.push('High quality generation');
     }
     
     return improvements;
@@ -644,24 +646,15 @@ export class ExtensionRephraseService {
           metadata: {
             ...candidate.metadata,
             templateType: candidate.metadata?.templateType || approach,
-            faithfulnessResult: candidate.metadata?.faithfulnessResult || { 
-              isValid: true, 
-              violations: [], 
-              score: 100, 
-              report: 'No faithfulness issues detected' 
-            },
-            performanceMetrics: candidate.metadata?.performanceMetrics || {
-              executionTime: 0,
-              maxAllowedTime: 1000,
-              warningThreshold: 500,
-              isAcceptable: true,
-              isWarning: false,
-              performanceRatio: 0
-            },
-            warnings: candidate.metadata?.warnings || [],
-            preferenceBoost,
-            userPreferenceCount,
-            originalScore: candidate.score
+            // Note: faithfulnessResult, performanceMetrics, warnings removed due to type constraints
+            // This info is available in other fields: faithfulnessValidated, score, etc.
+            domainAlignment: candidate.metadata?.domainAlignment,
+            contextualRelevance: candidate.metadata?.contextualRelevance,
+            originalAnalysis: {
+              preferenceBoost,
+              userPreferenceCount,
+              originalScore: candidate.score
+            }
           }
         };
         

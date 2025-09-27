@@ -14,8 +14,8 @@ import {
   SelectionReason,
   TemplateSelectionMetadata
 } from './types/TemplateTypes.js';
-import { LintResult, LintRuleType, LintIssue } from '@promptlint/shared-types';
-import { DomainClassificationResult, DomainType } from '@promptlint/domain-classifier';
+import { LintResult, LintRuleType, LintIssue } from '../../shared-types/dist/index.js';
+import { DomainClassificationResult, DomainType } from '../../domain-classifier/dist/index.js';
 import { SemanticAnalyzer } from './analysis/SemanticAnalyzer.js';
 import { ConfidenceCalibrator } from './analysis/ConfidenceCalibrator.js';
 import { IntelligentTemplateSelector } from './analysis/IntelligentTemplateSelector.js';
@@ -143,7 +143,7 @@ export class PatternMatcher {
     }
     
     // Remove duplicates and limit to 3 templates
-    const uniqueTemplates = [...new Set(selectedTemplates)];
+    const uniqueTemplates = Array.from(new Set(selectedTemplates));
     return uniqueTemplates.slice(0, 3);
   }
 
@@ -283,7 +283,7 @@ export class PatternMatcher {
     }
     
     // Remove duplicates and limit to 3 templates
-    const uniqueTemplates = [...new Set(selectedTemplates)];
+    const uniqueTemplates = Array.from(new Set(selectedTemplates));
     return uniqueTemplates.slice(0, 3);
   }
 
@@ -680,7 +680,7 @@ export class PatternMatcher {
     
     // Template-specific reasoning
     selectedTemplates.forEach(template => {
-      template.reasons.forEach(reason => {
+      template.reasons.forEach((reason: any) => {
         reasoning.push({
           ...reason,
           description: `${template.templateType}: ${reason.description}`

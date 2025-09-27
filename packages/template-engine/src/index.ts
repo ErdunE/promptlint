@@ -19,11 +19,11 @@ export {
   MinimalTemplate 
 } from './templates/index.js';
 
-// Validators
-export { 
-  FaithfulnessValidator, 
-  PerformanceTimer 
-} from './validators/index.js';
+// Validators (temporarily disabled)
+// export { 
+//   FaithfulnessValidator, 
+//   PerformanceTimer 
+// } from './validators/index.js';
 
 // Pattern matching
 export { PatternMatcher } from './PatternMatcher.js';

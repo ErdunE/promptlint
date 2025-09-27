@@ -1,0 +1,14 @@
+{
+  "files": [],
+  "references": [
+    {"path": "./packages/shared-types"},
+    {"path": "./packages/domain-classifier"},
+    {"path": "./packages/template-engine"},
+    {"path": "./packages/rules-engine"},
+    {"path": "./packages/llm-service"},
+    {"path": "./packages/site-adapters"},
+    {"path": "./packages/context-memory"},
+    {"path": "./packages/adaptive-engine"},
+    {"path": "./apps/extension-chrome"}
+  ]
+}
