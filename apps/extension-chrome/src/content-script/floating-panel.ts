@@ -7,6 +7,7 @@
 
 import { LintResult, LintIssue, RephraseResult, RephraseCandidate } from '@promptlint/shared-types';
 import { Level4IntegrationService } from './contextual-integration.js';
+import { ChromeMemoryIntegration, createChromeMemoryIntegration, ExtensionInteractionData } from '../level5/MemoryIntegration.js';
 
 export interface FloatingPanelOptions {
   position?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left';
@@ -37,6 +38,7 @@ export class FloatingPanel {
   private options: Required<FloatingPanelOptions>;
   private rephraseCallbacks: RephraseCallbacks;
   private level4Service: Level4IntegrationService;
+  private memoryIntegration: ChromeMemoryIntegration;
 
   constructor(options: FloatingPanelOptions = {}, callbacks: RephraseCallbacks = {}) {
     this.options = {
@@ -47,12 +49,28 @@ export class FloatingPanel {
     };
     this.rephraseCallbacks = callbacks;
     this.level4Service = new Level4IntegrationService();
+    this.memoryIntegration = createChromeMemoryIntegration({
+      enableAutoCapture: true,
+      debugMode: false
+    });
   }
 
   async initialize(): Promise<void> {
     try {
       this.createPanel();
       this.attachStyles();
+      
+      // Initialize Level 4 service
+      await this.level4Service.initialize();
+      
+      // Initialize Level 5 memory integration
+      try {
+        await this.memoryIntegration.initializeForExtension();
+        console.log('[PromptLint] Level 5 memory integration initialized');
+      } catch (memoryError) {
+        console.warn('[PromptLint] Level 5 memory initialization failed, continuing without memory:', memoryError);
+      }
+      
       console.log('[PromptLint] Floating panel initialized');
     } catch (error) {
       console.error('[PromptLint] Failed to initialize floating panel:', error);
@@ -864,6 +882,11 @@ export class FloatingPanel {
       this.currentPrompt = originalPrompt;
       this.runLevel4Analysis(originalPrompt).catch(error => {
         console.warn('[FloatingPanel] Level 4 analysis failed:', error);
+      });
+      
+      // Capture interaction in Level 5 memory
+      this.captureInteractionInMemory(originalPrompt, result).catch(error => {
+        console.warn('[FloatingPanel] Memory capture failed:', error);
       });
     }
     
@@ -2261,6 +2284,55 @@ export class FloatingPanel {
       }
     `;
     document.head.appendChild(style);
+  }
+
+  /**
+   * Capture user interaction in Level 5 memory system
+   */
+  private async captureInteractionInMemory(prompt: string, lintResult: LintResult): Promise<void> {
+    try {
+      const interactionData: ExtensionInteractionData = {
+        prompt,
+        response: this.generateResponseSummary(lintResult),
+        platform: this.detectPlatform(),
+        url: window.location.href,
+        timestamp: Date.now(),
+        level4Analysis: undefined // Will be populated when Level 4 analysis completes
+      };
+
+      await this.memoryIntegration.captureUserInteraction(interactionData);
+      
+    } catch (error) {
+      console.warn('[FloatingPanel] Failed to capture interaction in memory:', error);
+    }
+  }
+
+  private generateResponseSummary(lintResult: LintResult): string {
+    const issues = lintResult.issues.length;
+    const score = lintResult.score;
+    
+    if (issues === 0) {
+      return `Prompt analysis complete. Score: ${score}/100. No issues found.`;
+    } else {
+      return `Prompt analysis complete. Score: ${score}/100. Found ${issues} issue${issues > 1 ? 's' : ''}.`;
+    }
+  }
+
+  private detectPlatform(): string {
+    const hostname = window.location.hostname.toLowerCase();
+    
+    if (hostname.includes('github.com')) return 'GitHub';
+    if (hostname.includes('stackoverflow.com')) return 'Stack Overflow';
+    if (hostname.includes('docs.google.com')) return 'Google Docs';
+    if (hostname.includes('notion.so')) return 'Notion';
+    if (hostname.includes('slack.com')) return 'Slack';
+    if (hostname.includes('discord.com')) return 'Discord';
+    if (hostname.includes('figma.com')) return 'Figma';
+    if (hostname.includes('openai.com') || hostname.includes('chat.openai.com')) return 'ChatGPT';
+    if (hostname.includes('claude.ai')) return 'Claude';
+    if (hostname.includes('bard.google.com')) return 'Bard';
+    
+    return 'Web Browser';
   }
 }
 
