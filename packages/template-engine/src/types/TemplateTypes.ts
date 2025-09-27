@@ -9,10 +9,141 @@
  * to break circular dependency with adaptive-engine
  */
 
-import { LintResult, LintIssue, TemplateType, TemplateCandidate, EnhancedDomainResult, SelectionReason, EnhancedTemplateSelection, TemplateSelectionMetadata } from '@promptlint/shared-types';
+import { LintResult, LintIssue } from '../../../shared-types/dist/index.js';
 
-// Re-export core types for backward compatibility
-export { TemplateType, TemplateCandidate, EnhancedDomainResult, SelectionReason, EnhancedTemplateSelection, TemplateSelectionMetadata };
+// Define core template types locally to avoid circular dependencies
+export enum TemplateType {
+  TASK_IO = 'task_io',
+  BULLET = 'bullet',
+  SEQUENTIAL = 'sequential',
+  MINIMAL = 'minimal'
+}
+
+export interface TemplateCandidate {
+  id: string;
+  type: TemplateType;
+  content: string;
+  score: number;
+  faithfulnessValidated: boolean;
+  generationTime: number;
+  metadata?: {
+    templateType: string;
+    domainAlignment?: number;
+    contextualRelevance?: number;
+    originalAnalysis?: any;
+    selectionMetadata?: any;
+    enhancedSelection?: boolean;
+    faithfulnessResult?: any;
+    // Allow additional properties for flexibility
+    [key: string]: unknown;
+  };
+}
+
+export interface EnhancedDomainResult {
+  domain: string;
+  subCategory: string | undefined;
+  confidence: number;
+  indicators: string[];
+  processingTime: number;
+  semanticContext?: any;
+}
+
+export interface SelectionReason {
+  type: string;
+  description: string;
+  confidence: number;
+}
+
+export interface EnhancedTemplateSelection {
+  templateType: TemplateType;
+  confidence: number;
+  reasons: SelectionReason[];
+  domainAlignment: number;
+  contextMatch: number;
+  compositeScore: number;
+}
+
+export interface TemplateSelectionMetadata {
+  selectionReasoning: SelectionReason[];
+  domainContext: EnhancedDomainResult;
+  alternativeTemplates: TemplateType[];
+  userFeedbackCapable: boolean;
+  selectionStrategy: string;
+}
+
+// Type aliases for backward compatibility
+export type TemplateContext = TemplateGenerationContext;
+export type TemplateGenerationRequest = TemplateGenerationContext;
+
+/**
+ * Template metadata for analysis results
+ */
+export interface TemplateMetadata {
+  templateType: string;
+  domainAlignment?: number;
+  contextualRelevance?: number;
+  originalAnalysis?: any;
+  faithfulnessResult?: FaithfulnessResult;
+  performanceMetrics?: PerformanceMetrics;
+  warnings?: string[];
+  selectionMetadata?: any;
+  enhancedSelection?: boolean;
+  type?: string;
+}
+
+/**
+ * Faithfulness validation result
+ */
+export interface FaithfulnessResult {
+  passed: boolean;
+  issues: FaithfulnessViolation[];
+  details: string;
+  score?: number;
+  // Backward compatibility
+  isValid?: boolean;
+  violations?: FaithfulnessViolation[];
+  report?: string;
+}
+
+/**
+ * Faithfulness violation details
+ */
+export interface FaithfulnessViolation {
+  type: FaithfulnessViolationType;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  location?: string;
+}
+
+/**
+ * Types of faithfulness violations
+ */
+export enum FaithfulnessViolationType {
+  CONTENT_DRIFT = 'content_drift',
+  INTENT_CHANGE = 'intent_change',
+  CONTEXT_LOSS = 'context_loss',
+  SCOPE_CREEP = 'scope_creep'
+}
+
+/**
+ * Performance metrics for template operations
+ */
+export interface PerformanceMetrics {
+  executionTime: number;
+  memoryUsage: number;
+  processingSteps: number;
+}
+
+/**
+ * Timed operation result
+ */
+export interface TimedResult<T> {
+  result: T;
+  executionTime: number;
+  timestamp: number;
+  warnings?: string[];
+  timeoutExceeded?: boolean;
+}
 
 /**
  * Template selection criteria for pattern matching
@@ -40,24 +171,7 @@ export interface TemplateSelectionCriteria {
   hasTaskStructure?: boolean;
 }
 
-/**
- * Faithfulness validation result
- */
-export interface FaithfulnessResult {
-  /** Whether faithfulness validation passed */
-  passed: boolean;
-  /** Faithfulness score (0-100) */
-  score: number;
-  /** Issues found during validation */
-  issues: string[];
-  /** Validation details */
-  details: {
-    preservedElements: string[];
-    modifiedElements: string[];
-    addedElements: string[];
-    removedElements: string[];
-  };
-}
+// Duplicate FaithfulnessResult removed - using the first definition
 
 /**
  * Template generation configuration
@@ -92,6 +206,8 @@ export interface TemplateGenerationContext {
     preferredTypes: TemplateType[];
     avoidedTypes: TemplateType[];
   };
+  /** Additional metadata */
+  metadata?: any;
 }
 
 /**
@@ -129,6 +245,10 @@ export interface TemplateRegistryEntry {
     complexity: 'low' | 'medium' | 'high';
     suitableFor: string[];
   };
+  /** Template priority for selection */
+  priority?: number;
+  /** Whether template is enabled */
+  enabled?: boolean;
 }
 
 /**

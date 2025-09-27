@@ -137,6 +137,66 @@ export class IntentAnalysisEngine {
     );
   }
 
+  validateIntentFaithfulness(analysis: IntentAnalysis, originalPrompt: string): boolean {
+    // Validate that analysis preserves original intent across all layers
+    const instruction = analysis.instruction;
+    const interaction = analysis.interaction;
+    const originalLower = originalPrompt.toLowerCase();
+
+    // Check instruction layer faithfulness
+    const categoryKeywords: Record<string, string[]> = {
+      create: ['create', 'build', 'make', 'generate', 'implement'],
+      analyze: ['analyze', 'examine', 'study', 'review', 'assess'],
+      solve: ['solve', 'fix', 'debug', 'resolve', 'troubleshoot'],
+      explain: ['explain', 'describe', 'clarify', 'help understand'],
+      code: ['code', 'program', 'develop', 'implement'],
+      write: ['write', 'compose', 'draft', 'document']
+    };
+
+    const detectedKeywords = categoryKeywords[instruction.category] || [];
+    const hasMatchingKeyword = detectedKeywords.some(keyword => 
+      originalLower.includes(keyword)
+    );
+
+    // Check interaction layer consistency
+    const styleConsistent = this.validateCommunicationStyleConsistency(
+      instruction.category, // Using category as a proxy for communication style
+      originalPrompt
+    );
+
+    // High faithfulness requires both instruction and interaction consistency
+    return (hasMatchingKeyword || instruction.confidence > 0.8) && styleConsistent;
+  }
+
+  generateIntentExplanation(analysis: IntentAnalysis): string {
+    const { instruction, metaInstruction, interaction } = analysis;
+    
+    let explanation = `Intent Analysis Summary:\n\n`;
+    
+    // Instruction layer
+    explanation += `🎯 Instruction Layer:\n`;
+    explanation += `   Task: ${instruction.category} (${(instruction.confidence * 100).toFixed(0)}% confidence)\n`;
+    explanation += `   Action: ${instruction.action}\n`;
+    explanation += `   Subject: ${instruction.subject.type} - ${instruction.subject.domain}\n`;
+    explanation += `   Complexity: ${instruction.complexity}\n\n`;
+    
+    // Meta-instruction layer
+    explanation += `🧠 Meta-Instruction Layer:\n`;
+    explanation += `   Constraints: ${metaInstruction.constraints.length} detected\n`;
+    explanation += `   Confidence: ${(metaInstruction.confidence * 100).toFixed(1)}%\n\n`;
+    
+    // Interaction layer
+    explanation += `💬 Interaction Layer:\n`;
+    explanation += `   Communication Style: ${interaction.interactionStyle}\n`;
+    explanation += `   Collaboration: ${interaction.collaborationPattern}\n`;
+    explanation += `   User Expertise: ${interaction.userExpertise}\n\n`;
+    
+    explanation += `📊 Overall Confidence: ${(analysis.confidence * 100).toFixed(1)}%\n`;
+    explanation += `⚡ Processing Time: ${analysis.performance.totalTime.toFixed(2)}ms`;
+    
+    return explanation;
+  }
+
   private validateCommunicationStyleConsistency(
     detectedCategory: string,
     originalPrompt: string

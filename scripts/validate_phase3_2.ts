@@ -3,7 +3,7 @@
 import { AdaptiveTemplateGenerator } from "../packages/adaptive-engine/src/AdaptiveTemplateGenerator.js";
 import { PreferenceLearningEngine } from "../packages/adaptive-engine/src/PreferenceLearningEngine.js";
 import { EffectivenessTracker } from "../packages/adaptive-engine/src/EffectivenessTracker.js";
-import { TemplateType } from "@promptlint/shared-types";
+import { TemplateType } from "../packages/shared-types/src/template-types.js";
 
 interface ValidationTest {
   name: string;

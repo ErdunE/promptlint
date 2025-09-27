@@ -15,7 +15,8 @@
     "@promptlint/site-adapters": "file:../../packages/site-adapters", 
     "@promptlint/shared-types": "file:../../packages/shared-types",
     "@promptlint/llm-service": "file:../../packages/llm-service",
-    "@promptlint/template-engine": "file:../../packages/template-engine"
+    "@promptlint/template-engine": "file:../../packages/template-engine",
+    "@promptlint/contextual-intelligence": "file:../../packages/contextual-intelligence"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.270",

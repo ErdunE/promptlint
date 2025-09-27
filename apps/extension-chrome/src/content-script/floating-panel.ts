@@ -6,6 +6,7 @@
  */
 
 import { LintResult, LintIssue, RephraseResult, RephraseCandidate } from '@promptlint/shared-types';
+import { Level4IntegrationService } from './contextual-integration.js';
 
 export interface FloatingPanelOptions {
   position?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left';
@@ -35,6 +36,7 @@ export class FloatingPanel {
   private currentPrompt = '';
   private options: Required<FloatingPanelOptions>;
   private rephraseCallbacks: RephraseCallbacks;
+  private level4Service: Level4IntegrationService;
 
   constructor(options: FloatingPanelOptions = {}, callbacks: RephraseCallbacks = {}) {
     this.options = {
@@ -44,6 +46,7 @@ export class FloatingPanel {
       enableRephrase: options.enableRephrase !== false
     };
     this.rephraseCallbacks = callbacks;
+    this.level4Service = new Level4IntegrationService();
   }
 
   async initialize(): Promise<void> {
@@ -855,6 +858,14 @@ export class FloatingPanel {
     
     // Update issues
     this.updateIssues(result.issues);
+
+    // Run Level 4 contextual intelligence analysis in parallel
+    if (originalPrompt) {
+      this.currentPrompt = originalPrompt;
+      this.runLevel4Analysis(originalPrompt).catch(error => {
+        console.warn('[FloatingPanel] Level 4 analysis failed:', error);
+      });
+    }
     
     // Update prompt for rephrase functionality
     if (originalPrompt) {
@@ -2079,6 +2090,177 @@ export class FloatingPanel {
     this.isVisible = false;
 
     console.log('[PromptLint] Floating panel cleaned up');
+  }
+
+  private async runLevel4Analysis(prompt: string): Promise<void> {
+    try {
+      const analysis = await this.level4Service.enhancePromptWithContextualIntelligence(prompt);
+      this.displayLevel4Insights(analysis.contextualInsights, analysis.optimizationSuggestions);
+    } catch (error) {
+      console.warn('[FloatingPanel] Level 4 analysis failed:', error);
+    }
+  }
+
+  private displayLevel4Insights(insights: any, suggestions: string[]): void {
+    if (!this.panel) return;
+
+    // Find or create Level 4 insights container
+    let insightsContainer = this.panel.querySelector('.level4-insights') as HTMLElement;
+    if (!insightsContainer) {
+      insightsContainer = document.createElement('div');
+      insightsContainer.className = 'level4-insights';
+      insightsContainer.innerHTML = `
+        <div class="insights-header">
+          <span class="insights-icon">🧠</span>
+          <span class="insights-title">Contextual Intelligence</span>
+          <span class="insights-confidence"></span>
+        </div>
+        <div class="insights-content"></div>
+      `;
+      
+      // Insert after issues container
+      const issuesContainer = this.panel.querySelector('.issues-container');
+      if (issuesContainer) {
+        issuesContainer.insertAdjacentElement('afterend', insightsContainer);
+      } else {
+        this.panel.appendChild(insightsContainer);
+      }
+    }
+
+    // Update insights content
+    const confidenceElement = insightsContainer.querySelector('.insights-confidence') as HTMLElement;
+    const contentElement = insightsContainer.querySelector('.insights-content') as HTMLElement;
+
+    if (confidenceElement) {
+      confidenceElement.textContent = `${Math.round(insights.confidence * 100)}%`;
+      confidenceElement.className = `insights-confidence ${insights.confidence > 0.8 ? 'high' : insights.confidence > 0.6 ? 'medium' : 'low'}`;
+    }
+
+    if (contentElement) {
+      contentElement.innerHTML = `
+        <div class="insight-item">
+          <span class="insight-label">Intent:</span>
+          <span class="insight-value">${insights.intent}</span>
+        </div>
+        <div class="insight-item">
+          <span class="insight-label">Complexity:</span>
+          <span class="insight-value">${insights.complexity}</span>
+        </div>
+        <div class="insight-item">
+          <span class="insight-label">Style:</span>
+          <span class="insight-value">${insights.style}</span>
+        </div>
+        <div class="insight-item">
+          <span class="insight-label">Processing:</span>
+          <span class="insight-value">${insights.processingTime.toFixed(1)}ms</span>
+        </div>
+        ${suggestions.length > 0 ? `
+          <div class="optimization-suggestions">
+            <div class="suggestions-title">Optimizations:</div>
+            ${suggestions.map(suggestion => `<div class="suggestion-item">• ${suggestion}</div>`).join('')}
+          </div>
+        ` : ''}
+      `;
+    }
+
+    // Add Level 4 specific styles
+    this.addLevel4Styles();
+  }
+
+  private addLevel4Styles(): void {
+    if (document.querySelector('#promptlint-level4-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'promptlint-level4-styles';
+    style.textContent = `
+      .level4-insights {
+        margin-top: 12px;
+        padding: 12px;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 8px;
+        border-left: 4px solid #3b82f6;
+      }
+
+      .insights-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+
+      .insights-icon {
+        font-size: 16px;
+      }
+
+      .insights-title {
+        color: #1e293b;
+        font-size: 13px;
+      }
+
+      .insights-confidence {
+        margin-left: auto;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+
+      .insights-confidence.high {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .insights-confidence.medium {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .insights-confidence.low {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .insights-content {
+        font-size: 12px;
+      }
+
+      .insight-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+
+      .insight-label {
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      .insight-value {
+        color: #1e293b;
+        font-weight: 400;
+      }
+
+      .optimization-suggestions {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .suggestions-title {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 4px;
+      }
+
+      .suggestion-item {
+        color: #475569;
+        font-size: 11px;
+        margin-bottom: 2px;
+        line-height: 1.3;
+      }
+    `;
+    document.head.appendChild(style);
   }
 }
 

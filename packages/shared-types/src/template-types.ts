@@ -37,6 +37,15 @@ export interface TemplateCandidate {
     domainAlignment?: number;
     contextualRelevance?: number;
     originalAnalysis?: any;
+    faithfulnessResult?: any;
+    performanceMetrics?: any;
+    warnings?: string[];
+    selectionMetadata?: any;
+    enhancedSelection?: boolean;
+    type?: string;
+    name?: string;
+    description?: string;
+    version?: string;
   };
 }
 

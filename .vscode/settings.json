@@ -1,0 +1,7 @@
+{
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.tsserver.log": "verbose",
+  "typescript.tsserver.trace": "verbose"
+}

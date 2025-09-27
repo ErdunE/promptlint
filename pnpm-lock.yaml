@@ -17,6 +17,9 @@ importers:
 
   apps/extension-chrome:
     dependencies:
+      '@promptlint/contextual-intelligence':
+        specifier: file:../../packages/contextual-intelligence
+        version: file:packages/contextual-intelligence
       '@promptlint/llm-service':
         specifier: file:../../packages/llm-service
         version: link:../../packages/llm-service
@@ -863,6 +866,9 @@ packages:
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
+
+  '@promptlint/contextual-intelligence@file:packages/contextual-intelligence':
+    resolution: {directory: packages/contextual-intelligence, type: directory}
 
   '@rollup/pluginutils@5.3.0':
     resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
@@ -2867,6 +2873,12 @@ snapshots:
       fastq: 1.19.1
 
   '@polka/url@1.0.0-next.29': {}
+
+  '@promptlint/contextual-intelligence@file:packages/contextual-intelligence':
+    dependencies:
+      '@promptlint/adaptive-engine': link:packages/adaptive-engine
+      '@promptlint/shared-types': link:packages/shared-types
+      '@promptlint/template-engine': link:packages/template-engine
 
   '@rollup/pluginutils@5.3.0(rollup@4.50.1)':
     dependencies:

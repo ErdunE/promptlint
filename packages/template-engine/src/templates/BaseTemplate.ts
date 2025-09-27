@@ -6,13 +6,16 @@
  * Chrome Extension Compatible - Browser APIs Only
  */
 
-import { 
-  TemplateType, 
-  TemplateCandidate, 
-  TemplateContext, 
-  IBaseTemplate 
+import {
+  TemplateType,
+  TemplateCandidate,
+  TemplateContext,
+  TemplateGenerationContext,
+  FaithfulnessResult,
+  FaithfulnessViolationType,
+  IBaseTemplate
 } from '../types/TemplateTypes.js';
-import { LintRuleType } from '@promptlint/shared-types';
+import { LintRuleType } from '../../../shared-types/dist/index.js';
 
 /**
  * Abstract base class for all template implementations
@@ -40,6 +43,56 @@ export abstract class BaseTemplate implements IBaseTemplate {
    * @returns Generated template candidate
    */
   abstract apply(context: TemplateContext): TemplateCandidate;
+
+  /**
+   * Generate template content (required by IBaseTemplate)
+   */
+  async generate(context: TemplateGenerationContext): Promise<string> {
+    const candidate = this.apply(context);
+    return candidate.content;
+  }
+
+  /**
+   * Validate template faithfulness (required by IBaseTemplate)
+   */
+  async validateFaithfulness(original: string, generated: string): Promise<FaithfulnessResult> {
+    // Basic faithfulness check - can be overridden by subclasses
+    const originalWords = new Set(original.toLowerCase().split(/\s+/));
+    const generatedWords = new Set(generated.toLowerCase().split(/\s+/));
+    
+    const commonWords = Array.from(originalWords).filter(word => generatedWords.has(word));
+    const faithfulnessScore = commonWords.length / originalWords.size * 100;
+    
+    return {
+      passed: faithfulnessScore >= 70, // 70% word overlap threshold
+      issues: faithfulnessScore < 70 ? [{
+        type: FaithfulnessViolationType.CONTENT_DRIFT,
+        description: `Low content overlap: ${faithfulnessScore.toFixed(1)}%`,
+        severity: 'medium' as const
+      }] : [],
+      details: `Faithfulness score: ${faithfulnessScore.toFixed(1)}% (${commonWords.length}/${originalWords.size} words)`,
+      score: faithfulnessScore,
+      // Backward compatibility
+      isValid: faithfulnessScore >= 70,
+      violations: faithfulnessScore < 70 ? [{
+        type: FaithfulnessViolationType.CONTENT_DRIFT,
+        description: `Low content overlap: ${faithfulnessScore.toFixed(1)}%`,
+        severity: 'medium' as const
+      }] : [],
+      report: `Faithfulness score: ${faithfulnessScore.toFixed(1)}% (${commonWords.length}/${originalWords.size} words)`
+    };
+  }
+
+  /**
+   * Get template metadata (required by IBaseTemplate)
+   */
+  getMetadata(): any {
+    return {
+      templateType: this.constructor.name,
+      capabilities: ['basic_generation'],
+      version: '1.0.0'
+    };
+  }
   
   /**
    * Check if template is suitable for given context
@@ -104,10 +157,29 @@ export abstract class BaseTemplate implements IBaseTemplate {
     // Extract objective (text after action verb)
     let objective: string | undefined;
     if (actionVerb) {
-      const verbIndex = cleanPrompt.indexOf(actionVerb);
-      const afterVerb = cleanPrompt.substring(verbIndex + actionVerb.length).trim();
-      if (afterVerb) {
-        objective = afterVerb.split('.')[0].trim();
+      // FIX: Use word boundary regex instead of indexOf for proper verb matching
+      const verbRegex = new RegExp(`\\b${actionVerb}\\b`, 'i');
+      const match = cleanPrompt.match(verbRegex);
+      
+      if (match && match.index !== undefined) {
+        // Use word boundary match
+        const verbIndex = match.index;
+        const afterVerb = cleanPrompt.substring(verbIndex + actionVerb.length).trim();
+        if (afterVerb) {
+          objective = afterVerb.split('.')[0].trim();
+        }
+      } else {
+        // Fallback: if no word boundary match, use the full prompt as objective
+        // This handles cases where partial matches would cause corruption
+        objective = cleanPrompt.split('.')[0].trim();
+        
+        // Remove the verb if it appears at the start
+        if (objective) {
+          const startsWithVerb = new RegExp(`^${actionVerb}\\s+`, 'i');
+          if (startsWithVerb.test(objective)) {
+            objective = objective.replace(startsWithVerb, '').trim();
+          }
+        }
       }
     }
     
@@ -168,7 +240,7 @@ export abstract class BaseTemplate implements IBaseTemplate {
    * Check if context has specific lint issue
    */
   protected hasLintIssue(context: TemplateContext, issueType: LintRuleType): boolean {
-    return context.lintResult.issues.some(issue => issue.type === issueType);
+    return context.lintResult.issues.some((issue: any) => issue.type === issueType);
   }
   
   /**
@@ -223,22 +295,7 @@ export abstract class BaseTemplate implements IBaseTemplate {
       faithfulnessValidated: true,
       generationTime: 0,
       metadata: {
-        templateType: this.type,
-        faithfulnessResult: {
-          isValid: true,
-          violations: [],
-          score: 100,
-          report: 'Template applied successfully'
-        },
-        performanceMetrics: {
-          executionTime: 0,
-          maxAllowedTime: 100,
-          warningThreshold: 80,
-          isAcceptable: true,
-          isWarning: false,
-          performanceRatio: 0
-        },
-        warnings: []
+        templateType: this.type
       }
     };
   }
