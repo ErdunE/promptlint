@@ -10,10 +10,16 @@
 // Core Predictive Engine
 export { PredictiveIntentEngine } from './PredictiveIntentEngine.js';
 
-// Type Definitions
+// Behavioral Pattern Recognition
+export { BehavioralPatternRecognizer } from './BehavioralPatternRecognizer.js';
+
+// Ghost Text Generation
+export { GhostTextGenerator, createGhostTextGenerator } from './GhostTextGenerator.js';
+
+// Type Definitions - Predictive Types
 export type {
   PredictedIntent,
-  BehavioralPatternRecognizer,
+  BehavioralPatternRecognizer as BehavioralPatternRecognizerInterface,
   SequencePattern,
   WorkflowStage,
   GhostTextSuggestion,
@@ -21,12 +27,31 @@ export type {
   PredictionPerformanceMetrics
 } from './types/PredictiveTypes.js';
 
+// Type Definitions - Pattern Types
+export type {
+  WorkflowPattern,
+  DetectedPatterns,
+  PreferencePattern,
+  TemporalPattern,
+  WorkflowContext,
+  PredictedAction,
+  EmergingPattern,
+  PatternLearningMetrics,
+  NextActionPrediction,
+  InteractionEvidence
+} from './types/PatternTypes.js';
+
 // Factory Functions
 import { PersistentMemoryManager } from '@promptlint/level5-memory';
 import { PredictiveIntentEngine } from './PredictiveIntentEngine.js';
+import { BehavioralPatternRecognizer } from './BehavioralPatternRecognizer.js';
 
 export function createPredictiveIntentEngine(memoryManager: PersistentMemoryManager): PredictiveIntentEngine {
   return new PredictiveIntentEngine(memoryManager);
+}
+
+export function createBehavioralPatternRecognizer(): BehavioralPatternRecognizer {
+  return new BehavioralPatternRecognizer();
 }
 
 // Version Information
@@ -36,5 +61,9 @@ export const LEVEL5_PREDICTIVE_VERSION = '0.8.0.0';
 export default {
   version: LEVEL5_PREDICTIVE_VERSION,
   createPredictiveIntentEngine,
-  PredictiveIntentEngine
+  createBehavioralPatternRecognizer,
+  createGhostTextGenerator,
+  PredictiveIntentEngine,
+  BehavioralPatternRecognizer,
+  GhostTextGenerator
 };

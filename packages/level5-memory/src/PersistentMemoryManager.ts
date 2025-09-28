@@ -16,11 +16,19 @@ import {
   MemoryPerformanceMetrics
 } from './types/MemoryTypes.js';
 
+// Import pattern recognition types
+import { 
+  EmergingPattern, 
+  PatternLearningMetrics 
+} from '../../level5-predictive/src/types/PatternTypes.js';
+
 export class PersistentMemoryManager {
   private db: IDBDatabase | null = null;
   private readonly DB_NAME = 'PromptLintMemory';
   private readonly DB_VERSION = 1;
   private performanceMetrics: MemoryPerformanceMetrics;
+  private emergingPatterns: Map<string, EmergingPattern> = new Map();
+  private patternLearningMetrics: PatternLearningMetrics;
   
   // Memory stores configuration
   private readonly STORES: MemoryStore[] = [
@@ -89,6 +97,15 @@ export class PersistentMemoryManager {
       retrievalTime: 0,
       cacheHitRate: 0,
       memoryUsage: 0
+    };
+    
+    this.patternLearningMetrics = {
+      totalPatterns: 0,
+      establishedPatterns: 0,
+      emergingPatterns: 0,
+      predictionAccuracy: 0,
+      learningRate: 0,
+      sessionPatterns: 0
     };
   }
 
@@ -219,6 +236,9 @@ export class PersistentMemoryManager {
       // Extract and update semantic patterns
       await this.updateSemanticMemory(interaction);
       
+      // Extract and store behavioral patterns (Level 5 enhancement)
+      await this.extractAndStorePatterns(interaction);
+      
       // Update working memory
       await this.updateWorkingMemory(interaction);
       
@@ -283,6 +303,20 @@ export class PersistentMemoryManager {
    */
   getPerformanceMetrics(): MemoryPerformanceMetrics {
     return { ...this.performanceMetrics };
+  }
+
+  /**
+   * Get pattern learning metrics
+   */
+  getPatternLearningMetrics(): PatternLearningMetrics {
+    return { ...this.patternLearningMetrics };
+  }
+
+  /**
+   * Get emerging patterns that haven't been established yet
+   */
+  getEmergingPatterns(): EmergingPattern[] {
+    return Array.from(this.emergingPatterns.values());
   }
 
   /**
@@ -648,12 +682,293 @@ export class PersistentMemoryManager {
           deletedCount++;
           cursor.continue();
         } else {
-          console.log(`[Level5Memory] Pruned ${deletedCount} entries from ${storeName}`);
-          resolve();
-        }
-      };
-      
-      request.onerror = () => reject(request.error);
-    });
+      console.log(`[Level5Memory] Pruned ${deletedCount} entries from ${storeName}`);
+      resolve();
+    }
+  };
+  
+  request.onerror = () => reject(request.error);
+});
+}
+
+/**
+ * Extract and store behavioral patterns from user interaction
+ * Real-time pattern extraction for Level 5 predictive intelligence
+ */
+private async extractAndStorePatterns(interaction: UserInteraction): Promise<void> {
+  try {
+    console.log(`[Level5Memory] Extracting patterns from interaction: ${interaction.id}`);
+    
+    // Extract different types of patterns
+    const patterns: EmergingPattern[] = [];
+    
+    // Intent-domain pattern
+    const intentDomainPattern = this.extractIntentDomainPattern(interaction);
+    if (intentDomainPattern) patterns.push(intentDomainPattern);
+    
+    // Template preference pattern
+    const templatePattern = this.extractTemplatePreferencePattern(interaction);
+    if (templatePattern) patterns.push(templatePattern);
+    
+    // Temporal pattern
+    const temporalPattern = this.extractTemporalPattern(interaction);
+    if (temporalPattern) patterns.push(temporalPattern);
+    
+    // Complexity preference pattern
+    const complexityPattern = this.extractComplexityPattern(interaction);
+    if (complexityPattern) patterns.push(complexityPattern);
+    
+    // Update emerging patterns
+    for (const pattern of patterns) {
+      await this.updateEmergingPattern(pattern);
+    }
+    
+    // Update pattern learning metrics
+    this.updatePatternLearningMetrics();
+    
+    console.log(`[Level5Memory] Extracted ${patterns.length} patterns from interaction`);
+    
+  } catch (error) {
+    console.warn('[Level5Memory] Pattern extraction failed:', error);
+    // Don't throw - pattern extraction failure shouldn't break memory storage
   }
+}
+
+/**
+ * Detect emerging patterns from recent interactions
+ * Identifies new patterns forming from user behavior
+ */
+async detectEmergingPatterns(): Promise<EmergingPattern[]> {
+  try {
+    console.log('[Level5Memory] Detecting emerging patterns from recent interactions');
+    
+    // Get recent interactions for pattern analysis
+    const recentContext = await this.retrieveContext('recent_analysis');
+    const recentInteractions = recentContext.episodic.slice(0, 20); // Last 20 interactions
+    
+    if (recentInteractions.length < 3) {
+      return [];
+    }
+    
+    const emergingPatterns: EmergingPattern[] = [];
+    
+    // Detect sequence patterns
+    const sequencePatterns = this.detectSequencePatterns(recentInteractions);
+    emergingPatterns.push(...sequencePatterns);
+    
+    // Detect preference patterns
+    const preferencePatterns = this.detectPreferencePatterns(recentInteractions);
+    emergingPatterns.push(...preferencePatterns);
+    
+    // Filter patterns that require more occurrences to establish
+    const validPatterns = emergingPatterns.filter(pattern => 
+      pattern.occurrences >= 2 && !pattern.isEstablished
+    );
+    
+    console.log(`[Level5Memory] Detected ${validPatterns.length} emerging patterns`);
+    return validPatterns;
+    
+  } catch (error) {
+    console.error('[Level5Memory] Emerging pattern detection failed:', error);
+    return [];
+  }
+}
+
+// Private pattern extraction methods
+
+private extractIntentDomainPattern(interaction: UserInteraction): EmergingPattern | null {
+  const patternId = `intent_domain_${interaction.intent}_${interaction.context.domain}`;
+  
+  return {
+    id: patternId,
+    type: 'intent_domain',
+    description: `User frequently uses ${interaction.intent} intent in ${interaction.context.domain} domain`,
+    occurrences: 1,
+    requiredOccurrences: 3,
+    confidence: 0.3,
+    firstSeen: interaction.timestamp,
+    lastSeen: interaction.timestamp,
+    isEstablished: false
+  };
+}
+
+private extractTemplatePreferencePattern(interaction: UserInteraction): EmergingPattern | null {
+  if (!interaction.templateSelected) return null;
+  
+  const patternId = `template_pref_${interaction.templateSelected}_${interaction.context.domain}`;
+  
+  return {
+    id: patternId,
+    type: 'template_preference',
+    description: `User prefers ${interaction.templateSelected} template for ${interaction.context.domain} tasks`,
+    occurrences: 1,
+    requiredOccurrences: 3,
+    confidence: 0.4,
+    firstSeen: interaction.timestamp,
+    lastSeen: interaction.timestamp,
+    isEstablished: false
+  };
+}
+
+private extractTemporalPattern(interaction: UserInteraction): EmergingPattern | null {
+  const hour = new Date(interaction.timestamp).getHours();
+  let timeOfDay: string;
+  
+  if (hour >= 6 && hour < 12) timeOfDay = 'morning';
+  else if (hour >= 12 && hour < 18) timeOfDay = 'afternoon';
+  else if (hour >= 18 && hour < 22) timeOfDay = 'evening';
+  else timeOfDay = 'night';
+  
+  const patternId = `temporal_${timeOfDay}_${interaction.intent}`;
+  
+  return {
+    id: patternId,
+    type: 'temporal',
+    description: `User typically does ${interaction.intent} activities in the ${timeOfDay}`,
+    occurrences: 1,
+    requiredOccurrences: 4,
+    confidence: 0.25,
+    firstSeen: interaction.timestamp,
+    lastSeen: interaction.timestamp,
+    isEstablished: false
+  };
+}
+
+private extractComplexityPattern(interaction: UserInteraction): EmergingPattern | null {
+  const patternId = `complexity_${interaction.complexity}_${interaction.intent}`;
+  
+  return {
+    id: patternId,
+    type: 'complexity_preference',
+    description: `User tends to work on ${interaction.complexity} ${interaction.intent} tasks`,
+    occurrences: 1,
+    requiredOccurrences: 5,
+    confidence: 0.2,
+    firstSeen: interaction.timestamp,
+    lastSeen: interaction.timestamp,
+    isEstablished: false
+  };
+}
+
+private async updateEmergingPattern(pattern: EmergingPattern): Promise<void> {
+  if (this.emergingPatterns.has(pattern.id)) {
+    const existing = this.emergingPatterns.get(pattern.id)!;
+    existing.occurrences += 1;
+    existing.lastSeen = pattern.lastSeen;
+    existing.confidence = Math.min(existing.occurrences / existing.requiredOccurrences, 1.0);
+    
+    // Check if pattern should be established
+    if (existing.occurrences >= existing.requiredOccurrences && !existing.isEstablished) {
+      existing.isEstablished = true;
+      await this.promoteToSemanticMemory(existing);
+      console.log(`[Level5Memory] Pattern established: ${existing.description}`);
+    }
+  } else {
+    this.emergingPatterns.set(pattern.id, pattern);
+  }
+}
+
+private async promoteToSemanticMemory(pattern: EmergingPattern): Promise<void> {
+  try {
+    // Convert emerging pattern to semantic memory entry
+    const semanticMemory: SemanticMemory = {
+      id: `semantic_${pattern.id}`,
+      pattern: {
+        type: pattern.type as any,
+        description: pattern.description,
+        triggers: [pattern.type],
+        outcomes: ['established'],
+        successRate: pattern.confidence
+      },
+      frequency: pattern.occurrences,
+      confidence: pattern.confidence,
+      lastUpdated: pattern.lastSeen,
+      contexts: ['general']
+    };
+    
+    await this.storeInObjectStore('semantic_memory', semanticMemory);
+    
+    // Remove from emerging patterns
+    this.emergingPatterns.delete(pattern.id);
+    
+  } catch (error) {
+    console.warn('[Level5Memory] Failed to promote pattern to semantic memory:', error);
+  }
+}
+
+private detectSequencePatterns(interactions: EpisodicMemory[]): EmergingPattern[] {
+  const patterns: EmergingPattern[] = [];
+  
+  // Look for 2-step sequences
+  for (let i = 0; i < interactions.length - 1; i++) {
+    const current = interactions[i].interaction;
+    const next = interactions[i + 1].interaction;
+    
+    const sequenceId = `sequence_${current.intent}_${next.intent}`;
+    const timeDiff = next.timestamp - current.timestamp;
+    
+    // Only consider sequences within reasonable time (< 1 hour)
+    if (timeDiff < 3600000) {
+      patterns.push({
+        id: sequenceId,
+        type: 'sequence',
+        description: `User often does ${next.intent} after ${current.intent}`,
+        occurrences: 1,
+        requiredOccurrences: 3,
+        confidence: 0.3,
+        firstSeen: current.timestamp,
+        lastSeen: next.timestamp,
+        isEstablished: false
+      });
+    }
+  }
+  
+  return patterns;
+}
+
+private detectPreferencePatterns(interactions: EpisodicMemory[]): EmergingPattern[] {
+  const patterns: EmergingPattern[] = [];
+  
+  // Detect template preferences
+  const templateUsage = new Map<string, number>();
+  interactions.forEach(episodic => {
+    const template = episodic.interaction.templateSelected;
+    if (template) {
+      templateUsage.set(template, (templateUsage.get(template) || 0) + 1);
+    }
+  });
+  
+  templateUsage.forEach((count, template) => {
+    if (count >= 2) {
+      patterns.push({
+        id: `preference_template_${template}`,
+        type: 'template_preference',
+        description: `User frequently chooses ${template} template`,
+        occurrences: count,
+        requiredOccurrences: 3,
+        confidence: count / interactions.length,
+        firstSeen: interactions[0].timestamp,
+        lastSeen: interactions[interactions.length - 1].timestamp,
+        isEstablished: false
+      });
+    }
+  });
+  
+  return patterns;
+}
+
+private updatePatternLearningMetrics(): void {
+  this.patternLearningMetrics.emergingPatterns = this.emergingPatterns.size;
+  this.patternLearningMetrics.totalPatterns = this.emergingPatterns.size;
+  
+  const establishedCount = Array.from(this.emergingPatterns.values())
+    .filter(p => p.isEstablished).length;
+  this.patternLearningMetrics.establishedPatterns = establishedCount;
+  
+  // Calculate learning rate (patterns per interaction)
+  const totalOccurrences = Array.from(this.emergingPatterns.values())
+    .reduce((sum, p) => sum + p.occurrences, 0);
+  this.patternLearningMetrics.learningRate = totalOccurrences > 0 ? 
+    this.emergingPatterns.size / totalOccurrences : 0;
+}
 }
