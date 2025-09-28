@@ -390,10 +390,10 @@ export class UnifiedLevel5Experience {
       })),
       decisionProcess: (transparency.decisionProcess || []).map((step: any) => step.description),
       confidenceBreakdown: {
-        baseConfidence: transparency.confidenceBreakdown.baseConfidence,
-        consensusBoost: transparency.confidenceBreakdown.consensusBoost,
-        finalConfidence: transparency.confidenceBreakdown.finalConfidence,
-        explanation: this.generateConfidenceExplanation(transparency.confidenceBreakdown)
+        baseConfidence: transparency.confidenceBreakdown?.baseConfidence || 0,
+        consensusBoost: transparency.confidenceBreakdown?.consensusBoost || 0,
+        finalConfidence: transparency.confidenceBreakdown?.finalConfidence || 0,
+        explanation: this.generateConfidenceExplanation(transparency.confidenceBreakdown || {})
       },
       alternativeReasons: transparency.alternativeReasons
     };
@@ -570,11 +570,11 @@ export class UnifiedLevel5Experience {
   private generateConfidenceExplanation(breakdown: any): string {
     const parts = [];
     
-    if (breakdown.baseConfidence > 0) {
+    if (breakdown?.baseConfidence > 0) {
       parts.push(`Base: ${(breakdown.baseConfidence * 100).toFixed(0)}%`);
     }
     
-    if (breakdown.consensusBoost > 0) {
+    if (breakdown?.consensusBoost > 0) {
       parts.push(`Consensus boost: +${(breakdown.consensusBoost * 100).toFixed(0)}%`);
     }
     
@@ -797,10 +797,10 @@ export class UnifiedLevel5Experience {
           `Integration: Unified confidence ${(unifiedIntelligence.confidence * 100).toFixed(1)}%`
         ],
         confidenceBreakdown: {
-          baseConfidence: result.confidence,
-          consensusBoost: result.consensusResult.overallConfidence - result.confidence,
-          finalConfidence: unifiedIntelligence.confidence,
-          explanation: `Level 4 + Level 5 integration enhanced confidence from ${(result.confidence * 100).toFixed(1)}% to ${(unifiedIntelligence.confidence * 100).toFixed(1)}%`
+          baseConfidence: result.confidence || 0,
+          consensusBoost: (result.consensusResult?.overallConfidence || result.confidence || 0) - (result.confidence || 0),
+          finalConfidence: unifiedIntelligence.confidence || 0,
+          explanation: `Level 4 + Level 5 integration enhanced confidence from ${((result.confidence || 0) * 100).toFixed(1)}% to ${((unifiedIntelligence.confidence || 0) * 100).toFixed(1)}%`
         },
         alternativeReasons: (unifiedIntelligence.suggestions || []).slice(1).map((s: any) => s.reasoning)
       },

@@ -2388,7 +2388,7 @@ export class FloatingPanel {
    * Display Level 5 unified intelligence insights
    */
   private displayLevel5Insights(unifiedResult: any): void {
-    if (!this.panel) return;
+    if (!this.panel || !unifiedResult) return;
 
     // Find or create Level 5 insights container
     let insightsContainer = this.panel.querySelector('.level5-insights') as HTMLElement;
@@ -2423,25 +2423,26 @@ export class FloatingPanel {
     const ghostTextContainer = insightsContainer.querySelector('.ghost-text-container') as HTMLElement;
 
     if (confidenceElement) {
-      confidenceElement.textContent = `${Math.round(unifiedResult.confidence * 100)}%`;
-      confidenceElement.className = `insights-confidence ${unifiedResult.confidence > 0.8 ? 'high' : unifiedResult.confidence > 0.6 ? 'medium' : 'low'}`;
+      const confidence = unifiedResult.confidence || 0;
+      confidenceElement.textContent = `${Math.round(confidence * 100)}%`;
+      confidenceElement.className = `insights-confidence ${confidence > 0.8 ? 'high' : confidence > 0.6 ? 'medium' : 'low'}`;
     }
 
     if (contentElement) {
       contentElement.innerHTML = `
         <div class="insight-item">
           <span class="insight-label">Primary:</span>
-          <span class="insight-value">${unifiedResult.primarySuggestion}</span>
+          <span class="insight-value">${unifiedResult.primarySuggestion || 'No suggestion available'}</span>
         </div>
         <div class="insight-item">
           <span class="insight-label">Processing:</span>
-          <span class="insight-value">${unifiedResult.processingTime.toFixed(1)}ms</span>
+          <span class="insight-value">${(unifiedResult.processingTime || 0).toFixed(1)}ms</span>
         </div>
         ${unifiedResult.alternatives && unifiedResult.alternatives.length > 0 ? `
           <div class="alternatives-container">
             <div class="alternatives-title">Alternatives:</div>
             ${unifiedResult.alternatives.slice(0, 2).map((alt: string) => 
-              `<div class="alternative-item">• ${alt}</div>`
+              `<div class="alternative-item">• ${alt || 'Alternative suggestion'}</div>`
             ).join('')}
           </div>
         ` : ''}
