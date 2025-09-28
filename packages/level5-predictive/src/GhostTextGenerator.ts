@@ -12,6 +12,11 @@ import {
   PredictedAction
 } from './types/PatternTypes.js';
 
+import {
+  WorkflowState,
+  WorkflowPhase
+} from './types/WorkflowTypes.js';
+
 export interface GhostTextOptions {
   maxSuggestionLength: number;
   minConfidenceThreshold: number;
@@ -139,6 +144,71 @@ export class GhostTextGenerator {
     }
 
     console.log(`[GhostText] Updated pattern completion for "${partialInput}": acceptance=${wasAccepted}`);
+  }
+
+  /**
+   * Generate workflow-aware ghost text based on current workflow state
+   * Provides context-sensitive autocomplete that adapts to workflow phase
+   */
+  async generateWorkflowAwareGhostText(
+    partialInput: string,
+    workflowState: WorkflowState,
+    patterns: DetectedPatterns
+  ): Promise<GhostTextSuggestion> {
+    const startTime = performance.now();
+
+    try {
+      console.log(`[GhostText] Generating workflow-aware suggestion for "${partialInput}" in ${workflowState.phase} phase`);
+
+      // Quick return for very short inputs
+      if (partialInput.length < 2) {
+        return this.createEmptySuggestion();
+      }
+
+      const suggestions: GhostTextSuggestion[] = [];
+
+      // Workflow-specific suggestions (highest priority)
+      const workflowSuggestion = this.generateWorkflowSpecificSuggestion(
+        partialInput, workflowState
+      );
+      if (workflowSuggestion) suggestions.push(workflowSuggestion);
+
+      // Phase-transition suggestions
+      const transitionSuggestion = this.generatePhaseTransitionSuggestion(
+        partialInput, workflowState
+      );
+      if (transitionSuggestion) suggestions.push(transitionSuggestion);
+
+      // Context-aware suggestions enhanced with workflow
+      const contextualSuggestion = this.generateWorkflowContextualSuggestion(
+        partialInput, workflowState
+      );
+      if (contextualSuggestion) suggestions.push(contextualSuggestion);
+
+      // Pattern-based suggestions with workflow filtering
+      const patternSuggestion = await this.generateWorkflowPatternSuggestion(
+        partialInput, patterns, workflowState
+      );
+      if (patternSuggestion) suggestions.push(patternSuggestion);
+
+      // Select best workflow-aware suggestion
+      const bestSuggestion = this.selectBestWorkflowSuggestion(suggestions, workflowState);
+
+      const generationTime = performance.now() - startTime;
+
+      // Ensure we meet the 50ms performance target
+      if (generationTime > 50) {
+        console.warn(`[GhostText] Workflow generation exceeded 50ms target: ${generationTime.toFixed(2)}ms`);
+      }
+
+      console.log(`[GhostText] Generated workflow-aware suggestion in ${generationTime.toFixed(2)}ms: "${bestSuggestion.text}"`);
+
+      return bestSuggestion;
+
+    } catch (error) {
+      console.error('[GhostText] Workflow-aware generation failed:', error);
+      return this.createEmptySuggestion();
+    }
   }
 
   /**
@@ -473,6 +543,324 @@ export class GhostTextGenerator {
         lastUsed: Date.now()
       });
     });
+  }
+
+  // Workflow-aware ghost text helper methods
+
+  private generateWorkflowSpecificSuggestion(
+    partialInput: string,
+    workflowState: WorkflowState
+  ): GhostTextSuggestion | null {
+    const lowerInput = partialInput.toLowerCase();
+    
+    // Phase-specific completions with high confidence
+    const phaseCompletions: Record<WorkflowPhase, Record<string, { completion: string, confidence: number }>> = {
+      'planning': {
+        'create': { completion: ' a detailed implementation plan', confidence: 0.9 },
+        'design': { completion: ' the system architecture', confidence: 0.9 },
+        'plan': { completion: ' the development approach', confidence: 0.85 },
+        'define': { completion: ' the requirements and scope', confidence: 0.8 },
+        'analyze': { completion: ' the technical requirements', confidence: 0.8 }
+      },
+      'implementation': {
+        'write': { completion: ' a function that handles', confidence: 0.9 },
+        'create': { completion: ' a new component for', confidence: 0.85 },
+        'implement': { completion: ' the business logic for', confidence: 0.9 },
+        'add': { completion: ' error handling to', confidence: 0.8 },
+        'build': { completion: ' the core functionality', confidence: 0.8 }
+      },
+      'testing': {
+        'write': { completion: ' unit tests for the', confidence: 0.9 },
+        'test': { completion: ' the new functionality', confidence: 0.85 },
+        'verify': { completion: ' that the implementation', confidence: 0.8 },
+        'check': { completion: ' if all edge cases', confidence: 0.8 },
+        'validate': { completion: ' the input parameters', confidence: 0.75 }
+      },
+      'debugging': {
+        'fix': { completion: ' the bug in the', confidence: 0.9 },
+        'debug': { completion: ' the issue with', confidence: 0.85 },
+        'investigate': { completion: ' why the test is failing', confidence: 0.8 },
+        'resolve': { completion: ' the error in', confidence: 0.8 },
+        'trace': { completion: ' the root cause of', confidence: 0.75 }
+      },
+      'documentation': {
+        'document': { completion: ' the API endpoints and', confidence: 0.9 },
+        'write': { completion: ' comprehensive documentation for', confidence: 0.85 },
+        'create': { completion: ' usage examples for', confidence: 0.8 },
+        'explain': { completion: ' how to use the', confidence: 0.8 },
+        'describe': { completion: ' the implementation details', confidence: 0.75 }
+      },
+      'review': {
+        'review': { completion: ' the code changes for', confidence: 0.9 },
+        'check': { completion: ' the implementation against', confidence: 0.8 },
+        'validate': { completion: ' the solution meets', confidence: 0.8 },
+        'ensure': { completion: ' the code follows', confidence: 0.75 },
+        'verify': { completion: ' all requirements are met', confidence: 0.75 }
+      },
+      'deployment': {
+        'deploy': { completion: ' the application to production', confidence: 0.9 },
+        'setup': { completion: ' the production environment', confidence: 0.85 },
+        'configure': { completion: ' the deployment pipeline', confidence: 0.8 },
+        'prepare': { completion: ' the release for deployment', confidence: 0.8 },
+        'monitor': { completion: ' the deployment process', confidence: 0.75 }
+      },
+      'maintenance': {
+        'update': { completion: ' the dependencies to', confidence: 0.85 },
+        'optimize': { completion: ' the performance of', confidence: 0.8 },
+        'refactor': { completion: ' the code to improve', confidence: 0.8 },
+        'maintain': { completion: ' the system by', confidence: 0.75 },
+        'monitor': { completion: ' the application performance', confidence: 0.75 }
+      }
+    };
+
+    const completions = phaseCompletions[workflowState.phase] || {};
+
+    for (const [prefix, data] of Object.entries(completions)) {
+      if (lowerInput.endsWith(prefix)) {
+        return {
+          text: data.completion,
+          confidence: data.confidence * workflowState.confidence, // Factor in workflow confidence
+          completionType: 'phrase',
+          reasoning: `Workflow-specific completion for ${workflowState.phase} phase`,
+          source: 'workflow_specific'
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private generatePhaseTransitionSuggestion(
+    partialInput: string,
+    workflowState: WorkflowState
+  ): GhostTextSuggestion | null {
+    const lowerInput = partialInput.toLowerCase();
+
+    // Common transition phrases that suggest moving to next phase
+    const transitionPhrases: Record<WorkflowPhase, Record<string, { completion: string, nextPhase: WorkflowPhase }>> = {
+      'planning': {
+        'now let': { completion: "'s implement the solution", nextPhase: 'implementation' },
+        'ready to': { completion: ' start implementation', nextPhase: 'implementation' },
+        'time to': { completion: ' begin coding', nextPhase: 'implementation' }
+      },
+      'implementation': {
+        'now let': { completion: "'s test this functionality", nextPhase: 'testing' },
+        'ready to': { completion: ' test the implementation', nextPhase: 'testing' },
+        'time to': { completion: ' write some tests', nextPhase: 'testing' }
+      },
+      'testing': {
+        'now let': { completion: "'s document this feature", nextPhase: 'documentation' },
+        'ready to': { completion: ' create documentation', nextPhase: 'documentation' },
+        'time to': { completion: ' write the docs', nextPhase: 'documentation' }
+      },
+      'debugging': {
+        'now let': { completion: "'s test the fix", nextPhase: 'testing' },
+        'ready to': { completion: ' verify the solution', nextPhase: 'testing' },
+        'time to': { completion: ' run the tests again', nextPhase: 'testing' }
+      },
+      'documentation': {
+        'now let': { completion: "'s get this reviewed", nextPhase: 'review' },
+        'ready for': { completion: ' code review', nextPhase: 'review' },
+        'time to': { completion: ' submit for review', nextPhase: 'review' }
+      },
+      'review': {
+        'ready to': { completion: ' deploy to production', nextPhase: 'deployment' },
+        'time to': { completion: ' release this feature', nextPhase: 'deployment' },
+        'let': { completion: "'s deploy this", nextPhase: 'deployment' }
+      },
+      'deployment': {
+        'now let': { completion: "'s monitor the deployment", nextPhase: 'maintenance' },
+        'time to': { completion: ' monitor performance', nextPhase: 'maintenance' },
+        'ready to': { completion: ' maintain the system', nextPhase: 'maintenance' }
+      },
+      'maintenance': {
+        'time to': { completion: ' plan the next feature', nextPhase: 'planning' },
+        'ready to': { completion: ' start planning improvements', nextPhase: 'planning' },
+        'let': { completion: "'s plan the next iteration", nextPhase: 'planning' }
+      }
+    };
+
+    const transitions = transitionPhrases[workflowState.phase] || {};
+
+    for (const [prefix, data] of Object.entries(transitions)) {
+      if (lowerInput.endsWith(prefix)) {
+        return {
+          text: data.completion,
+          confidence: 0.8,
+          completionType: 'phrase',
+          reasoning: `Suggests transitioning from ${workflowState.phase} to ${data.nextPhase}`,
+          source: 'workflow_transition'
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private generateWorkflowContextualSuggestion(
+    partialInput: string,
+    workflowState: WorkflowState
+  ): GhostTextSuggestion | null {
+    const lowerInput = partialInput.toLowerCase();
+
+    // Context-aware completions based on workflow metadata
+    const contextualCompletions: string[] = [];
+
+    // Urgency-aware completions
+    if (workflowState.metadata.urgency === 'high' || workflowState.metadata.urgency === 'critical') {
+      if (lowerInput.includes('quick')) {
+        contextualCompletions.push('ly implement a solution');
+      }
+      if (lowerInput.includes('urgent')) {
+        contextualCompletions.push(' fix for the production issue');
+      }
+      if (lowerInput.includes('asap')) {
+        contextualCompletions.push(' - need this deployed immediately');
+      }
+    }
+
+    // Team size aware completions
+    if (workflowState.metadata.teamSize > 1) {
+      if (lowerInput.includes('team')) {
+        contextualCompletions.push(' collaboration on this feature');
+      }
+      if (lowerInput.includes('review')) {
+        contextualCompletions.push(' with the team before merging');
+      }
+    }
+
+    // Complexity-aware completions
+    if (workflowState.metadata.complexity === 'enterprise' || workflowState.metadata.complexity === 'complex') {
+      if (lowerInput.includes('scalable')) {
+        contextualCompletions.push(' solution for enterprise use');
+      }
+      if (lowerInput.includes('architecture')) {
+        contextualCompletions.push(' that supports high availability');
+      }
+    }
+
+    // Domain-specific completions
+    if (workflowState.metadata.domain === 'development') {
+      if (lowerInput.includes('performance')) {
+        contextualCompletions.push(' optimization for better user experience');
+      }
+      if (lowerInput.includes('security')) {
+        contextualCompletions.push(' measures to protect user data');
+      }
+    }
+
+    if (contextualCompletions.length > 0) {
+      return {
+        text: contextualCompletions[0],
+        confidence: 0.75,
+        completionType: 'phrase',
+        reasoning: `Context-aware completion based on ${workflowState.metadata.urgency} urgency and ${workflowState.metadata.complexity} complexity`,
+        source: 'workflow_contextual'
+      };
+    }
+
+    return null;
+  }
+
+  private async generateWorkflowPatternSuggestion(
+    partialInput: string,
+    patterns: DetectedPatterns,
+    workflowState: WorkflowState
+  ): GhostTextSuggestion | null {
+    // Filter patterns relevant to current workflow phase
+    const relevantSequences = patterns.sequences.filter(seq => 
+      seq.sequence.some(step => this.isWorkflowRelated(step, workflowState.phase))
+    );
+
+    if (relevantSequences.length === 0) return null;
+
+    // Use the most confident relevant sequence
+    const bestSequence = relevantSequences.sort((a, b) => b.confidence - a.confidence)[0];
+
+    // Generate completion based on sequence pattern
+    const lowerInput = partialInput.toLowerCase();
+    
+    for (const step of bestSequence.sequence) {
+      if (step.toLowerCase().startsWith(lowerInput)) {
+        const completion = step.substring(partialInput.length);
+        if (completion.length > 0) {
+          return {
+            text: completion,
+            confidence: bestSequence.confidence * 0.8, // Slight reduction for pattern-based
+            completionType: 'phrase',
+            reasoning: `Based on your workflow pattern: ${bestSequence.sequence.join(' → ')}`,
+            source: 'workflow_pattern'
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private selectBestWorkflowSuggestion(
+    suggestions: GhostTextSuggestion[],
+    workflowState: WorkflowState
+  ): GhostTextSuggestion {
+    if (suggestions.length === 0) {
+      return this.createEmptySuggestion();
+    }
+
+    // Filter by confidence threshold
+    const validSuggestions = suggestions.filter(s => s.confidence >= this.options.minConfidenceThreshold);
+    
+    if (validSuggestions.length === 0) {
+      return this.createEmptySuggestion();
+    }
+
+    // Prioritize workflow-specific suggestions
+    const workflowSpecific = validSuggestions.filter(s => s.source === 'workflow_specific');
+    if (workflowSpecific.length > 0) {
+      return this.selectHighestConfidence(workflowSpecific);
+    }
+
+    // Then transition suggestions
+    const transitionSuggestions = validSuggestions.filter(s => s.source === 'workflow_transition');
+    if (transitionSuggestions.length > 0) {
+      return this.selectHighestConfidence(transitionSuggestions);
+    }
+
+    // Then contextual suggestions
+    const contextualSuggestions = validSuggestions.filter(s => s.source === 'workflow_contextual');
+    if (contextualSuggestions.length > 0) {
+      return this.selectHighestConfidence(contextualSuggestions);
+    }
+
+    // Finally pattern-based suggestions
+    return this.selectHighestConfidence(validSuggestions);
+  }
+
+  private selectHighestConfidence(suggestions: GhostTextSuggestion[]): GhostTextSuggestion {
+    const sorted = suggestions.sort((a, b) => b.confidence - a.confidence);
+    const best = sorted[0];
+    
+    // Ensure suggestion doesn't exceed max length
+    if (best.text.length > this.options.maxSuggestionLength) {
+      best.text = best.text.substring(0, this.options.maxSuggestionLength) + '...';
+    }
+
+    return best;
+  }
+
+  private isWorkflowRelated(step: string, phase: WorkflowPhase): boolean {
+    const phaseKeywords: Record<WorkflowPhase, string[]> = {
+      'planning': ['plan', 'design', 'architecture', 'requirements', 'scope'],
+      'implementation': ['implement', 'code', 'build', 'create', 'develop'],
+      'testing': ['test', 'verify', 'validate', 'check'],
+      'debugging': ['debug', 'fix', 'resolve', 'investigate'],
+      'documentation': ['document', 'readme', 'guide', 'explain'],
+      'review': ['review', 'feedback', 'approve', 'merge'],
+      'deployment': ['deploy', 'release', 'production', 'launch'],
+      'maintenance': ['maintain', 'update', 'optimize', 'monitor']
+    };
+
+    const keywords = phaseKeywords[phase] || [];
+    return keywords.some(keyword => step.toLowerCase().includes(keyword));
   }
 }
 

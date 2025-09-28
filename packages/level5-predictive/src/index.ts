@@ -16,6 +16,9 @@ export { BehavioralPatternRecognizer } from './BehavioralPatternRecognizer.js';
 // Ghost Text Generation
 export { GhostTextGenerator, createGhostTextGenerator } from './GhostTextGenerator.js';
 
+// Workflow State Machine
+export { WorkflowStateMachine, createWorkflowStateMachine } from './WorkflowStateMachine.js';
+
 // Type Definitions - Predictive Types
 export type {
   PredictedIntent,
@@ -41,6 +44,19 @@ export type {
   InteractionEvidence
 } from './types/PatternTypes.js';
 
+// Type Definitions - Workflow Types
+export type {
+  WorkflowState,
+  WorkflowPhase,
+  WorkflowTransition,
+  WorkflowAction,
+  WorkflowSuggestion,
+  WorkflowPrediction,
+  WorkflowStep,
+  WorkflowMetrics,
+  ProactiveAssistanceConfig
+} from './types/WorkflowTypes.js';
+
 // Factory Functions
 import { PersistentMemoryManager } from '@promptlint/level5-memory';
 import { PredictiveIntentEngine } from './PredictiveIntentEngine.js';
@@ -54,6 +70,10 @@ export function createBehavioralPatternRecognizer(): BehavioralPatternRecognizer
   return new BehavioralPatternRecognizer();
 }
 
+export function createWorkflowStateMachine(config?: any): WorkflowStateMachine {
+  return new WorkflowStateMachine(config);
+}
+
 // Version Information
 export const LEVEL5_PREDICTIVE_VERSION = '0.8.0.0';
 
@@ -63,7 +83,9 @@ export default {
   createPredictiveIntentEngine,
   createBehavioralPatternRecognizer,
   createGhostTextGenerator,
+  createWorkflowStateMachine,
   PredictiveIntentEngine,
   BehavioralPatternRecognizer,
-  GhostTextGenerator
+  GhostTextGenerator,
+  WorkflowStateMachine
 };
