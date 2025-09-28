@@ -1,0 +1,21 @@
+{
+  "name": "@promptlint/level5-orchestration",
+  "version": "0.8.0.0",
+  "description": "Level 5 Multi-Agent Orchestration for PromptLint",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "@promptlint/shared-types": "workspace:^",
+    "@promptlint/level5-memory": "workspace:^",
+    "@promptlint/level5-predictive": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
+  }
+}
