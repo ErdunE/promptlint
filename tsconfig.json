@@ -9,6 +9,10 @@
     {"path": "./packages/site-adapters"},
     {"path": "./packages/context-memory"},
     {"path": "./packages/adaptive-engine"},
+    {"path": "./packages/contextual-intelligence"},
+    {"path": "./packages/level5-memory"},
+    {"path": "./packages/level5-predictive"},
+    {"path": "./packages/level5-orchestration"},
     {"path": "./apps/extension-chrome"}
   ]
 }

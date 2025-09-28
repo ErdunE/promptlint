@@ -10,9 +10,9 @@
     "dev": "vite build --watch"
   },
   "dependencies": {
-    "@promptlint/shared-types": "workspace:^",
-    "@promptlint/level5-memory": "workspace:^",
-    "@promptlint/level5-predictive": "workspace:^"
+    "@promptlint/shared-types": "workspace:*",
+    "@promptlint/level5-memory": "workspace:*",
+    "@promptlint/level5-predictive": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.2.2",

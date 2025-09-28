@@ -195,6 +195,8 @@ export interface ProcessingMetrics {
   consensusTime: number;
   resolutionTime: number;
   parallelEfficiency: number;
+  agentCount?: number;
+  cacheHits?: number;
 }
 
 export interface TransparencyInfo {

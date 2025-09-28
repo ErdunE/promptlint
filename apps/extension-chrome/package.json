@@ -11,12 +11,12 @@
     "test": "echo 'Manual testing required for Chrome extension'"
   },
   "dependencies": {
-    "@promptlint/rules-engine": "file:../../packages/rules-engine",
-    "@promptlint/site-adapters": "file:../../packages/site-adapters", 
-    "@promptlint/shared-types": "file:../../packages/shared-types",
-    "@promptlint/llm-service": "file:../../packages/llm-service",
-    "@promptlint/template-engine": "file:../../packages/template-engine",
-    "@promptlint/contextual-intelligence": "file:../../packages/contextual-intelligence"
+    "@promptlint/rules-engine": "workspace:*",
+    "@promptlint/site-adapters": "workspace:*", 
+    "@promptlint/shared-types": "workspace:*",
+    "@promptlint/llm-service": "workspace:*",
+    "@promptlint/template-engine": "workspace:*",
+    "@promptlint/contextual-intelligence": "workspace:*"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.270",

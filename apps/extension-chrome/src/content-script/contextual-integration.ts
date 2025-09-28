@@ -56,6 +56,14 @@ export class Level4IntegrationService {
     }
   }
 
+  /**
+   * Initialize the Level 4 integration service
+   */
+  async initialize(): Promise<void> {
+    console.log('[Level4IntegrationService] Initializing...');
+    // Initialization logic here
+  }
+
   async analyzePromptWithLevel4Intelligence(prompt: string): Promise<Level4AnalysisResult> {
     const startTime = performance.now();
 
@@ -425,7 +433,7 @@ export class Level4IntegrationService {
       ]
     };
     
-    const categoryTemplates = templates[category] || templates[IntentCategory.CREATE];
+    const categoryTemplates = (templates as any)[category] || (templates as any)[IntentCategory.CREATE];
     return categoryTemplates[index % categoryTemplates.length];
   }
 
@@ -436,12 +444,12 @@ export class Level4IntegrationService {
       [IntentCategory.DEBUG]: ['TaskIO', 'Sequential', 'Bullet']
     };
     
-    const templates = templateMapping[category] || templateMapping[IntentCategory.CREATE];
+    const templates = (templateMapping as any)[category] || (templateMapping as any)[IntentCategory.CREATE];
     return templates[index % templates.length];
   }
 
   private analyzeHistoryPatterns(history: any[]): any[] {
-    const patterns = [];
+    const patterns: any[] = [];
     
     // Template effectiveness pattern
     const templateStats = history.reduce((acc, h) => {
@@ -509,7 +517,7 @@ export class Level4IntegrationService {
         { feature: 'basic_generation', supported: true, limitations: [] }
       ]
     };
-    return capabilities[platform] || capabilities.generic;
+    return (capabilities as any)[platform] || capabilities.generic;
   }
 
   private generateUserInsights(intentAnalysis: any, contextualReasoning: any, reasoningChain: any): UserInsights {

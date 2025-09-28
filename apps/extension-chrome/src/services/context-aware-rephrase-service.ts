@@ -321,6 +321,7 @@ export class ContextAwareRephraseService {
         // Add preference metadata
         candidate.metadata = {
           ...candidate.metadata,
+          templateType: candidate.type || 'unknown',
           preferenceBoost: boost,
           userPreference: {
             effectiveness: preference.effectiveness,
@@ -368,18 +369,18 @@ export class ContextAwareRephraseService {
     return basicDomain;
   }
 
-  private async getPreferredResponseStyle(): Promise<string> {
+  private async getPreferredResponseStyle(): Promise<"formal" | "technical" | "conversational" | "creative"> {
     if (this.userContext?.preferences.preferredTemplates.length) {
       const topPreference = this.userContext.preferences.preferredTemplates[0];
       
       // Map template types to response styles
       switch (topPreference.templateType) {
         case 'bullet':
-          return 'structured';
+          return 'formal';
         case 'task_io':
           return 'technical';
         case 'sequential':
-          return 'step-by-step';
+          return 'formal';
         default:
           return 'technical';
       }

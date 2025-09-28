@@ -4,7 +4,19 @@
  * Analyzes user behavior to predict next actions with >70% accuracy
  */
 
-import { UserInteraction } from '@promptlint/level5-memory';
+// Local type definition to avoid cross-package imports
+interface UserInteraction {
+  id?: string;
+  sessionId: string;
+  timestamp: number;
+  prompt: string;
+  response?: string;
+  intent?: string;
+  platform?: string;
+  context?: any;
+  outcome?: string;
+  templateSelected?: string;
+}
 import {
   WorkflowPattern,
   DetectedPatterns,

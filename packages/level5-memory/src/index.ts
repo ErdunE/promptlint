@@ -14,6 +14,16 @@ export { PersistentMemoryManager } from './PersistentMemoryManager.js';
 export { Level4IntegrationBridge } from './Level4Integration.js';
 export type { Level5Enhancement, PredictiveInsight } from './Level4Integration.js';
 
+// Enhanced Level 4 Integration (v0.8.0.5)
+export { EnhancedLevel4Bridge } from './EnhancedLevel4Bridge.js';
+export type { 
+  ContextualAnalysis, 
+  UnifiedIntelligence, 
+  UnifiedSuggestion,
+  UnifiedProcessingMetrics,
+  UnifiedTransparency
+} from './EnhancedLevel4Bridge.js';
+
 // Type Definitions
 export type {
   UserInteraction,
@@ -31,6 +41,8 @@ export type {
 } from './types/MemoryTypes.js';
 
 // Factory Functions
+import { PersistentMemoryManager } from './PersistentMemoryManager.js';
+
 export function createPersistentMemoryManager(): PersistentMemoryManager {
   return new PersistentMemoryManager();
 }

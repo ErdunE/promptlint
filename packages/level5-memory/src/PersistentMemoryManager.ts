@@ -16,11 +16,28 @@ import {
   MemoryPerformanceMetrics
 } from './types/MemoryTypes.js';
 
-// Import pattern recognition types
-import { 
-  EmergingPattern, 
-  PatternLearningMetrics 
-} from '../../level5-predictive/src/types/PatternTypes.js';
+// Pattern recognition types (local definitions to avoid cross-package imports)
+interface EmergingPattern {
+  id: string;
+  type?: string;
+  sequence?: string[];
+  confidence: number;
+  occurrences: number;
+  lastSeen: number;
+  firstSeen?: number;
+  isEstablished?: boolean;
+  requiredOccurrences?: number;
+  description?: string;
+}
+
+interface PatternLearningMetrics {
+  totalPatterns: number;
+  establishedPatterns: number;
+  emergingPatterns: number;
+  predictionAccuracy: number;
+  learningRate: number;
+  sessionPatterns?: number;
+}
 
 export class PersistentMemoryManager {
   private db: IDBDatabase | null = null;

@@ -6,11 +6,13 @@
 export interface PredictedIntent {
   id: string;
   type: string;
+  action?: string;
   confidence: number;
   reasoning: string;
   suggestedPrompt?: string;
   estimatedCompletion?: number;
   relatedPatterns: string[];
+  source?: string;
 }
 
 export interface BehavioralPatternRecognizer {
@@ -41,6 +43,7 @@ export interface GhostTextSuggestion {
   confidence: number;
   completionType: 'word' | 'phrase' | 'sentence' | 'template';
   reasoning: string;
+  source?: string;
 }
 
 export interface PredictiveContext {

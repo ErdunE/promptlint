@@ -193,7 +193,7 @@ export class MultiAgentOrchestrator {
     const agentPromises: Promise<AgentAnalysis>[] = [];
 
     // Create analysis promises for all agents
-    for (const [agentId, agent] of this.agents.entries()) {
+    for (const [agentId, agent] of Array.from(this.agents.entries())) {
       const promise = this.runAgentWithTimeout(agent, input, context);
       agentPromises.push(promise);
     }
@@ -252,13 +252,13 @@ export class MultiAgentOrchestrator {
         confidence: 0,
         suggestions: [],
         insights: [],
-        reasoning: `Agent failed: ${error.message}`,
+        reasoning: `Agent failed: ${error instanceof Error ? error.message : String(error)}`,
         processingTime: performance.now() - agentStartTime,
         metadata: {
           processingTime: performance.now() - agentStartTime,
           dataSourcesUsed: [],
           confidenceFactors: [],
-          limitations: [`Agent error: ${error.message}`]
+          limitations: [`Agent error: ${error instanceof Error ? error.message : String(error)}`]
         }
       };
     }

@@ -4,13 +4,58 @@
  * Integrates with Chrome Extension UI for seamless user experience
  */
 
-import { 
-  WorkflowState, 
-  WorkflowPrediction, 
-  WorkflowSuggestion,
-  ProactiveAssistanceConfig,
-  SuggestionFeedback
-} from '@promptlint/level5-predictive';
+// Local type definitions to avoid cross-package imports
+interface WorkflowState {
+  id: string;
+  name: string;
+  phase: string;
+  confidence: number;
+  metadata?: any;
+}
+
+interface WorkflowPrediction {
+  id: string;
+  nextStates: WorkflowState[];
+  confidence: number;
+  reasoning: string;
+  sequence?: any[];
+  totalEstimatedTime?: number;
+}
+
+interface WorkflowSuggestion {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  confidence: number;
+  priority: number;
+  timing?: {
+    hideAfter: number;
+    cooldown?: number;
+    maxShows?: number;
+    showAfter?: number;
+  };
+  actions?: Array<{
+    label: string;
+    action: () => void;
+  }>;
+  dismissible?: boolean;
+}
+
+interface ProactiveAssistanceConfig {
+  enableProactiveSuggestions?: boolean;
+  confidenceThreshold?: number;
+  maxSimultaneousSuggestions?: number;
+  suggestionFrequency?: number;
+}
+
+interface SuggestionFeedback {
+  suggestionId: string;
+  action: string;
+  timestamp: number;
+  context?: any;
+  outcome?: string;
+}
 
 export interface WorkflowAssistantConfig extends ProactiveAssistanceConfig {
   uiPosition: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left';
@@ -38,20 +83,27 @@ export class WorkflowAssistant {
   constructor(config: Partial<WorkflowAssistantConfig> = {}) {
     this.config = {
       enableProactiveSuggestions: true,
-      suggestionFrequency: 'normal',
+      suggestionFrequency: 5000,
       confidenceThreshold: 0.75,
       maxSimultaneousSuggestions: 2,
-      respectFocusMode: true,
+      respectUserFocus: true,
       uiPosition: 'bottom-right',
       animationDuration: 300,
       maxSuggestionWidth: 350,
       enableSoundNotifications: false,
-      respectUserFocus: true,
       ...config
     };
 
     this.initializeUserFocusTracking();
     this.initializeStyles();
+  }
+
+  /**
+   * Initialize the workflow assistant
+   */
+  async initialize(): Promise<void> {
+    console.log('[WorkflowAssistant] Initializing workflow assistant...');
+    // Initialization logic here
   }
 
   /**
@@ -77,13 +129,13 @@ export class WorkflowAssistant {
     }
 
     // Check confidence threshold
-    if (suggestion.confidence < this.config.confidenceThreshold) {
+    if (suggestion.confidence < (this.config.confidenceThreshold || 0.7)) {
       console.log(`[WorkflowAssistant] Suggestion confidence ${suggestion.confidence} below threshold ${this.config.confidenceThreshold}`);
       return;
     }
 
     // Check maximum simultaneous suggestions
-    if (this.activeBanners.size >= this.config.maxSimultaneousSuggestions) {
+    if (this.activeBanners.size >= (this.config.maxSimultaneousSuggestions || 2)) {
       console.log('[WorkflowAssistant] Maximum simultaneous suggestions reached');
       return;
     }
@@ -96,10 +148,10 @@ export class WorkflowAssistant {
       this.activeBanners.set(suggestion.id, banner);
 
       // Schedule auto-hide if configured
-      if (suggestion.timing.hideAfter > 0) {
+      if (suggestion.timing?.hideAfter && suggestion.timing.hideAfter > 0) {
         setTimeout(() => {
           this.hideSuggestion(suggestion.id, 'auto_hide');
-        }, suggestion.timing.hideAfter);
+        }, suggestion.timing?.hideAfter || 5000);
       }
 
       // Play notification sound if enabled
@@ -159,7 +211,7 @@ export class WorkflowAssistant {
     }
 
     try {
-      console.log(`[WorkflowAssistant] Showing workflow prediction with ${prediction.sequence.length} steps`);
+      console.log(`[WorkflowAssistant] Showing workflow prediction with ${prediction.sequence?.length || 0} steps`);
 
       const predictionBanner = await this.createPredictionBanner(prediction);
       this.activeBanners.set(prediction.id, predictionBanner);
@@ -266,7 +318,7 @@ export class WorkflowAssistant {
     // Check if suggestion was shown recently
     const recentFeedback = this.suggestionHistory
       .filter(f => f.suggestionId === suggestion.id)
-      .filter(f => now - f.timestamp < suggestion.timing.cooldown);
+      .filter(f => now - f.timestamp < (suggestion.timing?.cooldown || 60000));
 
     if (recentFeedback.length > 0) {
       return false;
@@ -276,7 +328,7 @@ export class WorkflowAssistant {
     const totalShows = this.suggestionHistory
       .filter(f => f.suggestionId === suggestion.id).length;
 
-    if (totalShows >= suggestion.timing.maxShows) {
+    if (totalShows >= (suggestion.timing?.maxShows || 5)) {
       return false;
     }
 
@@ -297,7 +349,7 @@ export class WorkflowAssistant {
       </div>
       <div class="suggestion-content">
         <p class="suggestion-description">${suggestion.description}</p>
-        ${this.renderSuggestionActions(suggestion.actions)}
+        ${this.renderSuggestionActions(suggestion.actions || [])}
       </div>
       <div class="suggestion-footer">
         <span class="suggestion-confidence">${(suggestion.confidence * 100).toFixed(0)}% confidence</span>
@@ -338,7 +390,7 @@ export class WorkflowAssistant {
     banner.id = `promptlint-prediction-${prediction.id}`;
 
     // Render prediction steps
-    const stepsHtml = prediction.sequence.map((step, index) => `
+    const stepsHtml = (prediction.sequence || []).map((step, index) => `
       <div class="prediction-step" data-step="${step.step}">
         <div class="step-number">${step.step}</div>
         <div class="step-content">
@@ -366,7 +418,7 @@ export class WorkflowAssistant {
       </div>
       <div class="prediction-footer">
         <span class="prediction-confidence">${(prediction.confidence * 100).toFixed(0)}% confidence</span>
-        <span class="prediction-duration">Total: ~${prediction.totalEstimatedTime}min</span>
+        <span class="prediction-duration">Total: ~${prediction.totalEstimatedTime || 'Unknown'}min</span>
       </div>
     `;
 
@@ -390,6 +442,7 @@ export class WorkflowAssistant {
         title: 'Workflow Prediction',
         description: prediction.reasoning,
         confidence: prediction.confidence,
+        priority: 1,
         actions: [],
         timing: { showAfter: 0, hideAfter: 15000, maxShows: 1, cooldown: 300000 },
         dismissible: true
@@ -825,7 +878,8 @@ export class WorkflowAssistant {
       'normal': 120000,  // 2 minutes
       'frequent': 60000  // 1 minute
     };
-    return intervals[this.config.suggestionFrequency];
+    const frequency = this.config.suggestionFrequency as unknown as keyof typeof intervals;
+    return intervals[frequency] || 120000;
   }
 
   private playNotificationSound(): void {

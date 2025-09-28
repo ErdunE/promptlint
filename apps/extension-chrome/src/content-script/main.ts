@@ -12,11 +12,13 @@ import { InputMonitor } from './input-monitor';
 import { globalErrorHandler, ErrorType } from './error-handler';
 import { extensionRephraseService } from './rephrase-service';
 import { ContextAwareRephraseService } from '../services/context-aware-rephrase-service.js';
+import { UnifiedLevel5Experience, createUnifiedLevel5Experience } from '../level5/UnifiedExperience.js';
 
 class PromptLintContentScript {
   private uiInjector: UIInjector | null = null;
   private inputMonitor: InputMonitor | null = null;
   private contextAwareService: ContextAwareRephraseService | null = null;
+  private level5Experience: UnifiedLevel5Experience | null = null;
   private isInitialized = false;
 
   async initialize(): Promise<void> {
@@ -112,6 +114,25 @@ class PromptLintContentScript {
       const contextAwareStatus = await this.contextAwareService.initialize();
       console.log('[PromptLint] Context-aware service status:', contextAwareStatus);
 
+      // Initialize Level 5 Advanced Intelligence (v0.8.0.5)
+      console.log('[PromptLint] Initializing Level 5 Advanced Intelligence...');
+      try {
+        this.level5Experience = createUnifiedLevel5Experience({
+          enableOrchestration: true,
+          enableTransparency: true,
+          showAlternatives: true,
+          enableFeedbackLearning: true,
+          maxResponseTime: 100,
+          debugMode: false
+        });
+        
+        await this.level5Experience.initializeOrchestration();
+        console.log('[PromptLint] Level 5 Advanced Intelligence initialized successfully');
+      } catch (error) {
+        console.warn('[PromptLint] Level 5 initialization failed, continuing with Level 4 only:', error);
+        this.level5Experience = null;
+      }
+
       // Initialize UI components with error handling
       const uiInitialized = await globalErrorHandler.attemptRecovery(
         async () => {
@@ -122,6 +143,16 @@ class PromptLintContentScript {
             panelOptions: { enableRephrase: true }
           }, rephraseCallbacks);
           await this.uiInjector.initialize();
+          
+          // Connect Level 5 experience to the floating panel
+          if (this.level5Experience) {
+            const floatingPanel = this.uiInjector.getFloatingPanel();
+            if (floatingPanel) {
+              floatingPanel.setLevel5Experience(this.level5Experience);
+              console.log('[PromptLint] Level 5 experience connected to UI');
+            }
+          }
+          
           return true;
         },
         ErrorType.DOM_INJECTION_FAILED,
@@ -192,6 +223,12 @@ class PromptLintContentScript {
       if (this.uiInjector) {
         await this.uiInjector.cleanup();
         this.uiInjector = null;
+      }
+
+      if (this.level5Experience) {
+        console.log('[PromptLint] Cleaning up Level 5 Advanced Intelligence...');
+        // Level 5 cleanup would go here when implemented
+        this.level5Experience = null;
       }
 
       // Safely cleanup adapter with error handling

@@ -90,7 +90,7 @@ async function runPhase42Validation(): Promise<void> {
     console.log(`   Complexity: ${projectContext.complexity} (expected: ${test.expectedComplexity}) ${complexityMatch ? '✅' : '❌'}`);
     console.log(`   User Role: ${collaborativeContext.roleContext} (expected: ${test.expectedRole}) ${roleMatch ? '✅' : '❌'}`);
     console.log(`   Collaboration: ${collaborativeContext.collaborationLevel} (expected: ${test.expectedCollaboration}) ${collaborationMatch ? '✅' : '❌'}`);
-    console.log(`   Technical Stack: ${projectContext.technicalStack.languages.concat(projectContext.technicalStack.frameworks).join(', ') || 'None detected'}`);
+    console.log(`   Technical Stack: ${projectContext.technicalStack?.languages?.concat(projectContext.technicalStack?.frameworks || []).join(', ') || 'None detected'}`);
     console.log(`   Project Confidence: ${(projectContext.confidence * 100).toFixed(1)}%`);
     console.log(`   Collaboration Confidence: ${(collaborativeContext.confidence * 100).toFixed(1)}%`);
 

@@ -167,7 +167,7 @@ export class ConsensusEngine {
       totalConsensus,
       averageConsensusStrength: avgConsensusStrength,
       conflictResolutionRate,
-      averageConfidence
+      averageConfidence: avgConfidence
     };
   }
 
@@ -189,7 +189,7 @@ export class ConsensusEngine {
       let foundGroup = false;
 
       // Check existing groups for similarity
-      for (const [groupKey, groupSuggestions] of groups.entries()) {
+      for (const [groupKey, groupSuggestions] of Array.from(groups.entries())) {
         if (this.areSuggestionsSimilar(suggestion, groupSuggestions[0])) {
           groupSuggestions.push(suggestion);
           foundGroup = true;

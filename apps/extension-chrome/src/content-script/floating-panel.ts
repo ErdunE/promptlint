@@ -5,9 +5,24 @@
  * Shows quality scores (0-100) and specific improvement suggestions
  */
 
+// Chrome API type declarations
+declare const chrome: {
+  runtime: {
+    sendMessage(message: any, callback?: (response: any) => void): void;
+    lastError?: { message: string };
+  };
+  storage: {
+    local: {
+      get(keys: string | string[] | null, callback: (result: Record<string, any>) => void): void;
+      set(items: Record<string, any>, callback?: () => void): void;
+    };
+  };
+};
+
 import { LintResult, LintIssue, RephraseResult, RephraseCandidate } from '@promptlint/shared-types';
 import { Level4IntegrationService } from './contextual-integration.js';
 import { ChromeMemoryIntegration, createChromeMemoryIntegration, ExtensionInteractionData } from '../level5/MemoryIntegration.js';
+import { UnifiedLevel5Experience } from '../level5/UnifiedExperience.js';
 
 export interface FloatingPanelOptions {
   position?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left';
@@ -39,6 +54,7 @@ export class FloatingPanel {
   private rephraseCallbacks: RephraseCallbacks;
   private level4Service: Level4IntegrationService;
   private memoryIntegration: ChromeMemoryIntegration;
+  private level5Experience: UnifiedLevel5Experience | null = null;
 
   constructor(options: FloatingPanelOptions = {}, callbacks: RephraseCallbacks = {}) {
     this.options = {
@@ -76,6 +92,14 @@ export class FloatingPanel {
       console.error('[PromptLint] Failed to initialize floating panel:', error);
       throw error;
     }
+  }
+
+  /**
+   * Set Level 5 experience for advanced intelligence features
+   */
+  setLevel5Experience(experience: UnifiedLevel5Experience): void {
+    this.level5Experience = experience;
+    console.log('[PromptLint] Level 5 experience connected to floating panel');
   }
 
   private createPanel(): void {
@@ -884,6 +908,13 @@ export class FloatingPanel {
         console.warn('[FloatingPanel] Level 4 analysis failed:', error);
       });
       
+      // Run Level 5 unified analysis if available
+      if (this.level5Experience) {
+        this.runLevel5Analysis(originalPrompt, result).catch(error => {
+          console.warn('[FloatingPanel] Level 5 analysis failed:', error);
+        });
+      }
+      
       // Capture interaction in Level 5 memory
       this.captureInteractionInMemory(originalPrompt, result).catch(error => {
         console.warn('[FloatingPanel] Memory capture failed:', error);
@@ -1494,7 +1525,9 @@ export class FloatingPanel {
   private async trackTemplateSelection(candidate: RephraseCandidate, originalPrompt: string): Promise<void> {
     try {
       // Check if tracking is enabled (respect privacy controls)
-      const privacySettings = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const privacySettings = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get(['promptlint_privacy_settings'], resolve);
+      });
       const enableTracking = privacySettings.promptlint_privacy_settings?.enableTracking !== false; // Default to true
       
       if (!enableTracking) {
@@ -1503,7 +1536,9 @@ export class FloatingPanel {
       }
 
       // Get current user data from storage
-      const stored = await chrome.storage.local.get(['promptlint_user_data']);
+      const stored = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get(['promptlint_user_data'], resolve);
+      });
       const userData = stored.promptlint_user_data || { 
         selections: [], 
         preferences: {},
@@ -1676,7 +1711,9 @@ export class FloatingPanel {
       };
 
       // Store for adaptive engine to process
-      const adaptiveData = await chrome.storage.local.get(['promptlint_adaptive_selections']);
+      const adaptiveData = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get(['promptlint_adaptive_selections'], resolve);
+      });
       const adaptiveSelections = adaptiveData.promptlint_adaptive_selections || [];
       adaptiveSelections.push(adaptiveSelection);
       
@@ -2124,6 +2161,35 @@ export class FloatingPanel {
     }
   }
 
+  /**
+   * Run Level 5 unified analysis with advanced intelligence
+   */
+  private async runLevel5Analysis(prompt: string, lintResult: LintResult): Promise<void> {
+    if (!this.level5Experience) {
+      console.warn('[FloatingPanel] Level 5 experience not available');
+      return;
+    }
+
+    try {
+      console.log('[FloatingPanel] Running Level 5 unified analysis...');
+      
+      // Get unified assistance from Level 5
+      const unifiedResult = await this.level5Experience.provideUnifiedAssistance(prompt, {
+        platform: window.location.hostname,
+        url: window.location.href,
+        lintScore: lintResult.score,
+        issues: lintResult.issues
+      });
+
+      // Display Level 5 insights
+      this.displayLevel5Insights(unifiedResult);
+      
+      console.log('[FloatingPanel] Level 5 analysis completed:', unifiedResult);
+    } catch (error) {
+      console.warn('[FloatingPanel] Level 5 analysis failed:', error);
+    }
+  }
+
   private displayLevel4Insights(insights: any, suggestions: string[]): void {
     if (!this.panel) return;
 
@@ -2316,6 +2382,237 @@ export class FloatingPanel {
     } else {
       return `Prompt analysis complete. Score: ${score}/100. Found ${issues} issue${issues > 1 ? 's' : ''}.`;
     }
+  }
+
+  /**
+   * Display Level 5 unified intelligence insights
+   */
+  private displayLevel5Insights(unifiedResult: any): void {
+    if (!this.panel) return;
+
+    // Find or create Level 5 insights container
+    let insightsContainer = this.panel.querySelector('.level5-insights') as HTMLElement;
+    if (!insightsContainer) {
+      insightsContainer = document.createElement('div');
+      insightsContainer.className = 'level5-insights';
+      insightsContainer.innerHTML = `
+        <div class="insights-header">
+          <span class="insights-icon">🚀</span>
+          <span class="insights-title">Advanced Intelligence</span>
+          <span class="insights-confidence"></span>
+        </div>
+        <div class="insights-content"></div>
+        <div class="ghost-text-container" style="display: none;"></div>
+      `;
+      
+      // Insert after Level 4 insights or issues container
+      const level4Container = this.panel.querySelector('.level4-insights');
+      const issuesContainer = this.panel.querySelector('.issues-container');
+      const insertAfter = level4Container || issuesContainer;
+      
+      if (insertAfter) {
+        insertAfter.insertAdjacentElement('afterend', insightsContainer);
+      } else {
+        this.panel.appendChild(insightsContainer);
+      }
+    }
+
+    // Update insights content
+    const confidenceElement = insightsContainer.querySelector('.insights-confidence') as HTMLElement;
+    const contentElement = insightsContainer.querySelector('.insights-content') as HTMLElement;
+    const ghostTextContainer = insightsContainer.querySelector('.ghost-text-container') as HTMLElement;
+
+    if (confidenceElement) {
+      confidenceElement.textContent = `${Math.round(unifiedResult.confidence * 100)}%`;
+      confidenceElement.className = `insights-confidence ${unifiedResult.confidence > 0.8 ? 'high' : unifiedResult.confidence > 0.6 ? 'medium' : 'low'}`;
+    }
+
+    if (contentElement) {
+      contentElement.innerHTML = `
+        <div class="insight-item">
+          <span class="insight-label">Primary:</span>
+          <span class="insight-value">${unifiedResult.primarySuggestion}</span>
+        </div>
+        <div class="insight-item">
+          <span class="insight-label">Processing:</span>
+          <span class="insight-value">${unifiedResult.processingTime.toFixed(1)}ms</span>
+        </div>
+        ${unifiedResult.alternatives && unifiedResult.alternatives.length > 0 ? `
+          <div class="alternatives-container">
+            <div class="alternatives-title">Alternatives:</div>
+            ${unifiedResult.alternatives.slice(0, 2).map((alt: string) => 
+              `<div class="alternative-item">• ${alt}</div>`
+            ).join('')}
+          </div>
+        ` : ''}
+        ${unifiedResult.reasoning ? `
+          <div class="reasoning-container">
+            <div class="reasoning-title">Reasoning:</div>
+            <div class="reasoning-text">${unifiedResult.reasoning}</div>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    // Show ghost text if available (placeholder for future implementation)
+    if (ghostTextContainer && unifiedResult.ghostText) {
+      ghostTextContainer.style.display = 'block';
+      ghostTextContainer.innerHTML = `
+        <div class="ghost-text-title">💭 Suggested completions:</div>
+        <div class="ghost-text-items">
+          ${unifiedResult.ghostText.map((text: string) => 
+            `<div class="ghost-text-item">${text}</div>`
+          ).join('')}
+        </div>
+      `;
+    }
+
+    // Add Level 5 specific styles
+    this.addLevel5Styles();
+  }
+
+  /**
+   * Add Level 5 specific CSS styles
+   */
+  private addLevel5Styles(): void {
+    if (document.querySelector('#promptlint-level5-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'promptlint-level5-styles';
+    style.textContent = `
+      .level5-insights {
+        margin-top: 12px;
+        padding: 12px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 8px;
+        border: 1px solid #0ea5e9;
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
+      }
+
+      .level5-insights .insights-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #0c4a6e;
+      }
+
+      .level5-insights .insights-icon {
+        font-size: 16px;
+      }
+
+      .level5-insights .insights-title {
+        flex: 1;
+        font-size: 13px;
+      }
+
+      .level5-insights .insights-confidence {
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+
+      .level5-insights .insights-confidence.high {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .level5-insights .insights-confidence.medium {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .level5-insights .insights-confidence.low {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .level5-insights .insight-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+        font-size: 12px;
+        border-bottom: 1px solid rgba(14, 165, 233, 0.1);
+      }
+
+      .level5-insights .insight-item:last-child {
+        border-bottom: none;
+      }
+
+      .level5-insights .insight-label {
+        font-weight: 500;
+        color: #0c4a6e;
+        min-width: 60px;
+      }
+
+      .level5-insights .insight-value {
+        color: #0369a1;
+        text-align: right;
+        flex: 1;
+        margin-left: 8px;
+      }
+
+      .level5-insights .alternatives-container,
+      .level5-insights .reasoning-container {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(14, 165, 233, 0.2);
+      }
+
+      .level5-insights .alternatives-title,
+      .level5-insights .reasoning-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #0c4a6e;
+        margin-bottom: 4px;
+      }
+
+      .level5-insights .alternative-item {
+        font-size: 11px;
+        color: #0369a1;
+        margin: 2px 0;
+        padding-left: 8px;
+      }
+
+      .level5-insights .reasoning-text {
+        font-size: 11px;
+        color: #0369a1;
+        line-height: 1.4;
+        font-style: italic;
+      }
+
+      .level5-insights .ghost-text-container {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(14, 165, 233, 0.2);
+      }
+
+      .level5-insights .ghost-text-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #0c4a6e;
+        margin-bottom: 4px;
+      }
+
+      .level5-insights .ghost-text-item {
+        font-size: 11px;
+        color: #0369a1;
+        background: rgba(14, 165, 233, 0.1);
+        padding: 4px 8px;
+        margin: 2px 0;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .level5-insights .ghost-text-item:hover {
+        background: rgba(14, 165, 233, 0.2);
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   private detectPlatform(): string {

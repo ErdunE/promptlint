@@ -4,13 +4,19 @@
  * Must complete within 50ms performance target
  */
 
-import { ContextMemory } from '@promptlint/level5-memory';
+// Local type definition to avoid cross-package imports
+interface ContextMemory {
+  episodic: any[];
+  semantic: any[];
+  working?: any;
+  workflow?: any;
+}
 import {
   DetectedPatterns,
   WorkflowContext,
-  GhostTextSuggestion,
   PredictedAction
 } from './types/PatternTypes.js';
+import { GhostTextSuggestion } from './types/PredictiveTypes.js';
 
 import {
   WorkflowState,
@@ -766,7 +772,7 @@ export class GhostTextGenerator {
     partialInput: string,
     patterns: DetectedPatterns,
     workflowState: WorkflowState
-  ): GhostTextSuggestion | null {
+  ): Promise<GhostTextSuggestion | null> {
     // Filter patterns relevant to current workflow phase
     const relevantSequences = patterns.sequences.filter(seq => 
       seq.sequence.some(step => this.isWorkflowRelated(step, workflowState.phase))

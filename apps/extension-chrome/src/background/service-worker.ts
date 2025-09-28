@@ -5,6 +5,77 @@
  * and provides extension status tracking for Manifest V3
  */
 
+// Chrome API type declarations
+declare const chrome: {
+  runtime: {
+    onInstalled: {
+      addListener(callback: (details: { reason: string }) => void): void;
+    };
+    onStartup: {
+      addListener(callback: () => void): void;
+    };
+    onMessage: {
+      addListener(callback: (message: any, sender: any, sendResponse: (response?: any) => void) => boolean | void): void;
+    };
+    sendMessage(message: any, callback?: (response: any) => void): void;
+    lastError?: { message: string };
+  };
+  tabs: {
+    onUpdated: {
+      addListener(callback: (tabId: number, changeInfo: any, tab: any) => void): void;
+    };
+    onRemoved: {
+      addListener(callback: (tabId: number, removeInfo: any) => void): void;
+    };
+    query(queryInfo: any, callback: (tabs: any[]) => void): void;
+    sendMessage(tabId: number, message: any, callback?: (response: any) => void): void;
+  };
+  storage: {
+    local: {
+      set(items: Record<string, any>, callback?: () => void): void;
+      get(keys: string | string[] | null, callback: (result: Record<string, any>) => void): void;
+      remove(keys: string | string[], callback?: () => void): void;
+    };
+  };
+  scripting: {
+    executeScript(injection: any, callback?: (results: any[]) => void): void;
+  };
+  action: {
+    setBadgeText(details: { text: string; tabId?: number }): void;
+    setBadgeBackgroundColor(details: { color: string; tabId?: number }): void;
+    setTitle(details: { title: string; tabId?: number }): void;
+    onClicked: {
+      addListener(callback: (tab: any) => void): void;
+    };
+  };
+};
+
+// Chrome namespace declarations for type compatibility
+declare namespace chrome {
+  namespace tabs {
+    interface Tab {
+      id?: number;
+      url?: string;
+      title?: string;
+    }
+    interface TabChangeInfo {
+      status?: string;
+      url?: string;
+    }
+  }
+  namespace runtime {
+    interface MessageSender {
+      tab?: chrome.tabs.Tab;
+      frameId?: number;
+      id?: string;
+    }
+    interface InstalledDetails {
+      reason: string;
+      previousVersion?: string;
+    }
+  }
+}
+
 interface ContentScriptStatus {
   tabId: number;
   site: string;
@@ -415,11 +486,13 @@ class PromptLintServiceWorker {
   private async testApiKey(): Promise<{ success: boolean; error?: string }> {
     try {
       // Decrypt the stored API key
-      const result = await chrome.storage.local.get([
-        'openai_api_key_encrypted',
-        'openai_api_key_iv',
-        'openai_api_key_key'
-      ]);
+      const result = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get([
+          'openai_api_key_encrypted',
+          'openai_api_key_iv',
+          'openai_api_key_key'
+        ], resolve);
+      });
 
       if (!result.openai_api_key_encrypted) {
         return { success: false, error: 'No API key configured' };

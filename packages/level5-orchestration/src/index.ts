@@ -10,6 +10,53 @@
 // Core Orchestration Framework
 export { MultiAgentOrchestrator, createMultiAgentOrchestrator } from './MultiAgentOrchestrator.js';
 
+// Performance-Optimized Orchestration (v0.8.0.5)
+export { 
+  OptimizedMultiAgentOrchestrator, 
+  createOptimizedMultiAgentOrchestrator 
+} from './OptimizedMultiAgentOrchestrator.js';
+export type { 
+  OptimizedOrchestrationConfig, 
+  OptimizedOrchestrationResult 
+} from './OptimizedMultiAgentOrchestrator.js';
+
+// Performance Systems
+export { 
+  PerformanceCache, 
+  AgentResponseCache, 
+  ConsensusCache,
+  createPerformanceCache,
+  createAgentResponseCache,
+  createConsensusCache
+} from './PerformanceCache.js';
+export type { 
+  CachedResponse, 
+  CacheMetrics, 
+  CacheConfig 
+} from './PerformanceCache.js';
+
+export { 
+  PerformanceMonitor, 
+  createPerformanceMonitor,
+  getGlobalPerformanceMonitor
+} from './PerformanceMonitor.js';
+export type { 
+  PerformanceMetrics, 
+  Bottleneck, 
+  PerformanceEvent 
+} from './PerformanceMonitor.js';
+
+// Level 4 Enhanced Orchestration
+export { 
+  Level4EnhancedOrchestrator, 
+  createLevel4EnhancedOrchestrator,
+  createUnifiedInput
+} from './Level4EnhancedOrchestrator.js';
+export type { 
+  Level4EnhancedInput, 
+  UnifiedOrchestrationResult 
+} from './Level4EnhancedOrchestrator.js';
+
 // Consensus and Conflict Resolution
 export { ConsensusEngine } from './ConsensusEngine.js';
 
@@ -94,7 +141,7 @@ export const LEVEL5_ORCHESTRATION_VERSION = '0.8.0.0';
 // Default Export
 export default {
   version: LEVEL5_ORCHESTRATION_VERSION,
-  createMultiAgentOrchestrator: createMultiAgentOrchestrator,
+  createMultiAgentOrchestrator: (config: any) => new MultiAgentOrchestrator(config),
   createMemoryAgent,
   createWorkflowAgent,
   createPatternRecognitionAgent,

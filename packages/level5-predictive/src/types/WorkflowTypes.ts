@@ -3,6 +3,8 @@
  * Defines interfaces for workflow tracking, state transitions, and proactive assistance
  */
 
+import { WorkflowContext } from './PatternTypes.js';
+
 export interface WorkflowState {
   id: string;
   name: string;

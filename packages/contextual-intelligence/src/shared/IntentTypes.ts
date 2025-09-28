@@ -250,13 +250,7 @@ export enum TechnicalityLevel {
   EXPERT = 'expert'
 }
 
-export enum DetailLevel {
-  OVERVIEW = 'overview',
-  SUMMARY = 'summary',
-  DETAILED = 'detailed',
-  COMPREHENSIVE = 'comprehensive',
-  EXHAUSTIVE = 'exhaustive'
-}
+// DetailLevel is now defined as a type union at the end of the file
 
 export enum TonePreference {
   ENCOURAGING = 'encouraging',

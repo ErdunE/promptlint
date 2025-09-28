@@ -14,10 +14,10 @@ export { PredictiveIntentEngine } from './PredictiveIntentEngine.js';
 export { BehavioralPatternRecognizer } from './BehavioralPatternRecognizer.js';
 
 // Ghost Text Generation
-export { GhostTextGenerator, createGhostTextGenerator } from './GhostTextGenerator.js';
+export { GhostTextGenerator } from './GhostTextGenerator.js';
 
 // Workflow State Machine
-export { WorkflowStateMachine, createWorkflowStateMachine } from './WorkflowStateMachine.js';
+export { WorkflowStateMachine } from './WorkflowStateMachine.js';
 
 // Type Definitions - Predictive Types
 export type {
@@ -58,9 +58,15 @@ export type {
 } from './types/WorkflowTypes.js';
 
 // Factory Functions
-import { PersistentMemoryManager } from '@promptlint/level5-memory';
+// Local type definition to avoid cross-package imports
+interface PersistentMemoryManager {
+  retrieveContext(sessionId: string): Promise<any>;
+  storeInteraction(interaction: any): Promise<void>;
+}
 import { PredictiveIntentEngine } from './PredictiveIntentEngine.js';
 import { BehavioralPatternRecognizer } from './BehavioralPatternRecognizer.js';
+import { GhostTextGenerator } from './GhostTextGenerator.js';
+import { WorkflowStateMachine } from './WorkflowStateMachine.js';
 
 export function createPredictiveIntentEngine(memoryManager: PersistentMemoryManager): PredictiveIntentEngine {
   return new PredictiveIntentEngine(memoryManager);
@@ -68,6 +74,10 @@ export function createPredictiveIntentEngine(memoryManager: PersistentMemoryMana
 
 export function createBehavioralPatternRecognizer(): BehavioralPatternRecognizer {
   return new BehavioralPatternRecognizer();
+}
+
+export function createGhostTextGenerator(): GhostTextGenerator {
+  return new GhostTextGenerator();
 }
 
 export function createWorkflowStateMachine(config?: any): WorkflowStateMachine {

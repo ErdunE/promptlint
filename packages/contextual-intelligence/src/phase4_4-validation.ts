@@ -2,6 +2,7 @@ import { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js'
 import { ProjectContextAnalyzer } from './contextual-reasoning/ProjectContextAnalyzer.js';
 import { CollaborativeContextManager } from './contextual-reasoning/CollaborativeContextManager.js';
 import { ReasoningChainGenerator } from './template-reasoning/ReasoningChainGenerator.js';
+import { AIPlatform } from './shared/ContextualTypes.js';
 import { ReferenceHistoryManager } from './meta-information/ReferenceHistoryManager.js';
 import { PlatformStateAnalyzer } from './meta-information/PlatformStateAnalyzer.js';
 
@@ -77,6 +78,19 @@ async function runPhase44Validation(): Promise<void> {
     const contextualReasoning = {
       projectContext,
       collaborativeContext,
+      platformContext: {
+        currentPlatform: AIPlatform.GENERIC,
+        capabilities: [],
+        contextWindow: {
+          maxTokens: 4096,
+          currentUsage: 0,
+          remainingCapacity: 4096,
+          estimatedCost: 0
+        },
+        optimizationOpportunities: [],
+        confidence: 0.8,
+        processingTime: 0
+      },
       overallConfidence: (projectContext.confidence + collaborativeContext.confidence) / 2,
       processingTime: (projectContext.processingTime || 0) + collaborativeContext.processingTime
     };

@@ -4,7 +4,30 @@
  * Provides real-time autocomplete and intent prediction
  */
 
-import { PersistentMemoryManager, ContextMemory, BehavioralPattern } from '@promptlint/level5-memory';
+// Local type definitions to avoid cross-package imports
+interface PersistentMemoryManager {
+  retrieveContext(sessionId: string): Promise<any>;
+  storeInteraction(interaction: any): Promise<void>;
+}
+
+interface ContextMemory {
+  episodic: any[];
+  semantic: any[];
+  working?: any;
+  workflow?: any;
+}
+
+interface BehavioralPattern {
+  id: string;
+  type: string;
+  confidence: number;
+  frequency: number;
+  lastSeen: number;
+  description?: string;
+  successRate?: number;
+  triggers?: string[];
+  outcomes?: string[];
+}
 import { 
   PredictedIntent, 
   BehavioralPatternRecognizer,
@@ -272,7 +295,11 @@ export class PredictiveIntentEngine {
       
       sequencePatterns.forEach(seq => {
         patterns.push({
+          id: `seq_${seq.id || Date.now()}`,
           type: 'sequence',
+          confidence: seq.confidence || 0.7,
+          frequency: (seq as any).occurrences || 1,
+          lastSeen: Date.now(),
           description: `Common sequence: ${seq.sequence.join(' → ')}`,
           triggers: seq.sequence.slice(0, -1),
           outcomes: [seq.sequence[seq.sequence.length - 1]],
