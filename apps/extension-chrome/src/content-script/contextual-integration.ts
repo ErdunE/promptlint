@@ -47,7 +47,7 @@ export class Level4IntegrationService {
   constructor() {
     try {
       this.instructionAnalyzer = createInstructionAnalyzer();
-      this.contextBridge = createContextBridge();
+      this.contextBridge = this.createSimpleContextBridge();
       this.isInitialized = true;
       console.log('[Level4] Successfully initialized with real Level 4 components');
     } catch (error) {
@@ -739,5 +739,34 @@ export class Level4IntegrationService {
     }
     
     return suggestions;
+  }
+
+  /**
+   * Create a simple context bridge for caching
+   */
+  private createSimpleContextBridge() {
+    const cache = new Map<string, { data: any; expiry: number }>();
+    
+    return {
+      async get(key: string): Promise<any> {
+        const cached = cache.get(key);
+        if (cached && cached.expiry > Date.now()) {
+          return cached.data;
+        }
+        cache.delete(key);
+        return null;
+      },
+      
+      async set(key: string, data: any, ttlMs: number = 300000): Promise<void> {
+        cache.set(key, {
+          data,
+          expiry: Date.now() + ttlMs
+        });
+      },
+      
+      async clear(): Promise<void> {
+        cache.clear();
+      }
+    };
   }
 }

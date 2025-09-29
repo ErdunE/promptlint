@@ -298,9 +298,9 @@ class PromptLintContentScript {
     // Add input event listener for ghost text generation
     element.addEventListener('input', async (event) => {
       const target = event.target as HTMLInputElement | HTMLTextAreaElement;
-      const partialInput = target.value;
+      const partialInput = target.value || '';
 
-      if (partialInput.length > 3) { // Only generate ghost text for meaningful input
+      if (partialInput && partialInput.length > 3) { // Only generate ghost text for meaningful input
         try {
           // Generate ghost text suggestion
           const ghostText = await this.generateGhostTextSuggestion(partialInput);

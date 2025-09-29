@@ -2374,8 +2374,8 @@ export class FloatingPanel {
   }
 
   private generateResponseSummary(lintResult: LintResult): string {
-    const issues = lintResult.issues.length;
-    const score = lintResult.score;
+    const issues = lintResult?.issues?.length || 0;
+    const score = lintResult?.score || 0;
     
     if (issues === 0) {
       return `Prompt analysis complete. Score: ${score}/100. No issues found.`;

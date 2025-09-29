@@ -538,10 +538,11 @@ export class UnifiedLevel5Experience {
   }
 
   private generateResponseSummary(response: OrchestratedResponse): string {
-    const agentCount = response.transparency.agentContributions.length;
-    const consensusRate = response.consensusMetrics.agreementRate;
+    const agentCount = response.transparency?.agentContributions?.length || 0;
+    const consensusRate = response.consensusMetrics?.agreementRate || 0;
+    const confidence = response.confidence || 0;
     
-    return `Orchestrated response from ${agentCount} agents with ${(consensusRate * 100).toFixed(0)}% consensus (${(response.confidence * 100).toFixed(0)}% confidence)`;
+    return `Orchestrated response from ${agentCount} agents with ${(consensusRate * 100).toFixed(0)}% consensus (${(confidence * 100).toFixed(0)}% confidence)`;
   }
 
   private detectPlatform(): string {
@@ -616,15 +617,24 @@ export class UnifiedLevel5Experience {
   private createTransparencyPanel(transparency: any): HTMLElement {
     const panel = document.createElement('div');
     panel.className = 'transparency-panel';
+    
+    const agentContributions = transparency?.agentContributions || [];
+    const decisionProcess = transparency?.decisionProcess || [];
+    
     panel.innerHTML = `
       <h4>Decision Process</h4>
       <div class="agent-contributions">
-        ${transparency.agentContributions.map((contrib: any) => `
-          <div class="agent-contribution ${contrib.used ? 'used' : 'unused'}">
-            <strong>${this.getAgentDisplayName(contrib.agentId)}</strong>
-            <span class="contribution-confidence">${(contrib.confidence * 100).toFixed(0)}%</span>
-            <p>${contrib.contribution}</p>
+        ${agentContributions.map((contrib: any) => `
+          <div class="agent-contribution ${contrib?.used ? 'used' : 'unused'}">
+            <strong>${this.getAgentDisplayName(contrib?.agentId || 'unknown')}</strong>
+            <span class="contribution-confidence">${((contrib?.confidence || 0) * 100).toFixed(0)}%</span>
+            <p>${contrib?.contribution || 'No contribution available'}</p>
           </div>
+        `).join('')}
+      </div>
+      <div class="decision-process">
+        ${decisionProcess.map((step: any) => `
+          <div class="process-step">${step?.description || step || 'Processing step'}</div>
         `).join('')}
       </div>
     `;
