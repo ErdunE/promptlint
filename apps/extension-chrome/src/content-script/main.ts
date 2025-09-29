@@ -150,6 +150,14 @@ class PromptLintContentScript {
             if (floatingPanel) {
               floatingPanel.setLevel5Experience(this.level5Experience);
               console.log('[PromptLint] Level 5 experience connected to UI');
+              
+              // Initialize ghost text functionality
+              try {
+                await this.initializeGhostText();
+                console.log('[PromptLint] Ghost text functionality initialized');
+              } catch (error) {
+                console.warn('[PromptLint] Ghost text initialization failed:', error);
+              }
             }
           }
           
@@ -249,6 +257,130 @@ class PromptLintContentScript {
       // Ensure initialization state is reset even if cleanup fails
       this.isInitialized = false;
     }
+  }
+
+  /**
+   * Initialize ghost text functionality for predictive assistance
+   */
+  private async initializeGhostText(): Promise<void> {
+    if (!this.level5Experience) {
+      throw new Error('Level 5 experience not available');
+    }
+
+    // Find input elements on the page
+    const inputSelectors = [
+      'textarea[placeholder*="message"]',
+      'textarea[data-testid*="input"]',
+      'input[type="text"]',
+      '[contenteditable="true"]',
+      '.ProseMirror',
+      '#prompt-textarea'
+    ];
+
+    for (const selector of inputSelectors) {
+      const elements = document.querySelectorAll(selector);
+      for (const element of elements) {
+        try {
+          await this.attachGhostTextToElement(element as HTMLElement);
+        } catch (error) {
+          console.warn(`[PromptLint] Failed to attach ghost text to ${selector}:`, error);
+        }
+      }
+    }
+  }
+
+  /**
+   * Attach ghost text functionality to a specific input element
+   */
+  private async attachGhostTextToElement(element: HTMLElement): Promise<void> {
+    if (!this.level5Experience) return;
+
+    // Add input event listener for ghost text generation
+    element.addEventListener('input', async (event) => {
+      const target = event.target as HTMLInputElement | HTMLTextAreaElement;
+      const partialInput = target.value;
+
+      if (partialInput.length > 3) { // Only generate ghost text for meaningful input
+        try {
+          // Generate ghost text suggestion
+          const ghostText = await this.generateGhostTextSuggestion(partialInput);
+          if (ghostText) {
+            this.displayGhostText(element, ghostText);
+          }
+        } catch (error) {
+          console.warn('[PromptLint] Ghost text generation failed:', error);
+        }
+      }
+    });
+
+    console.log('[PromptLint] Ghost text attached to element:', element.tagName);
+  }
+
+  /**
+   * Generate ghost text suggestion using Level 5 intelligence
+   */
+  private async generateGhostTextSuggestion(partialInput: string): Promise<string | null> {
+    if (!this.level5Experience) return null;
+
+    try {
+      const result = await this.level5Experience.provideUnifiedAssistance(partialInput, {
+        platform: window.location.hostname,
+        url: window.location.href,
+        ghostTextMode: true
+      });
+
+      return result.primarySuggestion || null;
+    } catch (error) {
+      console.warn('[PromptLint] Ghost text generation error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Display ghost text as a subtle overlay
+   */
+  private displayGhostText(element: HTMLElement, ghostText: string): void {
+    // Remove existing ghost text
+    const existingGhost = element.parentElement?.querySelector('.promptlint-ghost-text');
+    if (existingGhost) {
+      existingGhost.remove();
+    }
+
+    // Create ghost text element
+    const ghostElement = document.createElement('div');
+    ghostElement.className = 'promptlint-ghost-text';
+    ghostElement.textContent = ghostText;
+    ghostElement.style.cssText = `
+      position: absolute;
+      color: #888;
+      font-style: italic;
+      pointer-events: none;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      max-width: 300px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    `;
+
+    // Position ghost text near the input
+    const rect = element.getBoundingClientRect();
+    ghostElement.style.top = `${rect.bottom + 5}px`;
+    ghostElement.style.left = `${rect.left}px`;
+
+    // Add to page
+    document.body.appendChild(ghostElement);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      if (ghostElement.parentElement) {
+        ghostElement.remove();
+      }
+    }, 3000);
   }
 }
 
