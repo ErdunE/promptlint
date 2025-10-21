@@ -52,16 +52,180 @@ interface UserInteraction {
 }
 
 function createPersistentMemoryManager(): PersistentMemoryManager {
-  // Simplified implementation for Chrome extension
+  // Real IndexedDB implementation for Chrome extension
+  let db: IDBDatabase | null = null;
+  
   return {
-    async initialize() { /* placeholder */ },
-    async storeInteraction(interaction: UserInteraction) { /* placeholder */ },
-    async retrieveContext(sessionId: string): Promise<ContextMemory> {
-      return { episodic: [], semantic: [] };
+    async initialize() {
+      console.log('[DEBUG STORAGE] Initializing IndexedDB...');
+      
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('PromptLintMemory', 1);
+        
+        request.onerror = () => {
+          console.error('[DEBUG STORAGE] ❌ Database failed to open:', request.error);
+          reject(request.error);
+        };
+        
+        request.onsuccess = () => {
+          console.log('[DEBUG STORAGE] ✅ Database opened successfully');
+          db = request.result;
+          resolve();
+        };
+        
+        request.onupgradeneeded = (event) => {
+          console.log('[DEBUG STORAGE] Creating database schema...');
+          const database = (event.target as IDBOpenDBRequest).result;
+          
+          // Create interactions store
+          if (!database.objectStoreNames.contains('interactions')) {
+            const interactionsStore = database.createObjectStore('interactions', { 
+              keyPath: 'id', 
+              autoIncrement: true 
+            });
+            interactionsStore.createIndex('timestamp', 'timestamp', { unique: false });
+            interactionsStore.createIndex('sessionId', 'sessionId', { unique: false });
+            console.log('[DEBUG STORAGE] ✅ Created object store: interactions');
+          }
+          
+          // Create episodic store
+          if (!database.objectStoreNames.contains('episodic')) {
+            database.createObjectStore('episodic', { keyPath: 'id', autoIncrement: true });
+            console.log('[DEBUG STORAGE] ✅ Created object store: episodic');
+          }
+          
+          // Create semantic store
+          if (!database.objectStoreNames.contains('semantic')) {
+            database.createObjectStore('semantic', { keyPath: 'key' });
+            console.log('[DEBUG STORAGE] ✅ Created object store: semantic');
+          }
+        };
+      });
     },
-    getPerformanceMetrics() { return {}; },
-    async pruneMemory() { /* placeholder */ },
-    async cleanup() { /* placeholder */ }
+    
+    async storeInteraction(interaction: UserInteraction) {
+      console.log('[DEBUG STORAGE] Storing interaction:', {
+        prompt: interaction.prompt?.substring(0, 50),
+        timestamp: interaction.timestamp
+      });
+      
+      if (!db) {
+        console.error('[DEBUG STORAGE] ❌ Database not initialized');
+        throw new Error('Database not initialized');
+      }
+      
+      return new Promise<void>((resolve, reject) => {
+        try {
+          const transaction = db!.transaction(['interactions'], 'readwrite');
+          const store = transaction.objectStore('interactions');
+          
+          const data = {
+            prompt: interaction.prompt,
+            response: interaction.response,
+            timestamp: interaction.timestamp,
+            confidence: interaction.confidence,
+            intent: interaction.intent,
+            complexity: interaction.complexity,
+            context: interaction.context,
+            sessionId: interaction.sessionId || `session_${Date.now()}`
+          };
+          
+          console.log('[DEBUG STORAGE] Adding to store:', {
+            prompt: data.prompt?.substring(0, 50),
+            sessionId: data.sessionId,
+            timestamp: data.timestamp
+          });
+          
+          const request = store.add(data);
+          
+          request.onsuccess = () => {
+            console.log('[DEBUG STORAGE] ✅ Interaction stored successfully, ID:', request.result);
+            resolve();
+          };
+          
+          request.onerror = () => {
+            console.error('[DEBUG STORAGE] ❌ Failed to store interaction:', request.error);
+            reject(request.error);
+          };
+          
+          transaction.oncomplete = () => {
+            console.log('[DEBUG STORAGE] Transaction complete');
+          };
+          
+          transaction.onerror = () => {
+            console.error('[DEBUG STORAGE] ❌ Transaction failed:', transaction.error);
+            reject(transaction.error);
+          };
+          
+        } catch (error) {
+          console.error('[DEBUG STORAGE] ❌ Exception in storeInteraction:', error);
+          reject(error);
+        }
+      });
+    },
+    
+    async retrieveContext(sessionId: string): Promise<ContextMemory> {
+      console.log('[DEBUG STORAGE] Retrieving context for session:', sessionId);
+      
+      if (!db) {
+        console.warn('[DEBUG STORAGE] ⚠️ Database not initialized, returning empty context');
+        return { episodic: [], semantic: [] };
+      }
+      
+      return new Promise((resolve, reject) => {
+        try {
+          const transaction = db!.transaction(['interactions'], 'readonly');
+          const store = transaction.objectStore('interactions');
+          const index = store.index('sessionId');
+          const request = index.getAll(sessionId);
+          
+          request.onsuccess = () => {
+            const interactions = request.result;
+            console.log('[DEBUG STORAGE] ✅ Retrieved', interactions.length, 'interactions');
+            
+            const episodic = interactions.map((i: any) => ({
+              timestamp: i.timestamp,
+              input: i.prompt,
+              response: i.response,
+              confidence: i.confidence,
+              intent: i.intent
+            }));
+            
+            resolve({ episodic, semantic: [] });
+          };
+          
+          request.onerror = () => {
+            console.error('[DEBUG STORAGE] ❌ Failed to retrieve context:', request.error);
+            reject(request.error);
+          };
+          
+        } catch (error) {
+          console.error('[DEBUG STORAGE] ❌ Exception in retrieveContext:', error);
+          reject(error);
+        }
+      });
+    },
+    
+    getPerformanceMetrics() { 
+      return {
+        databaseInitialized: !!db,
+        databaseName: 'PromptLintMemory'
+      }; 
+    },
+    
+    async pruneMemory() { 
+      console.log('[DEBUG STORAGE] Pruning old memory entries...');
+      // TODO: Implement memory pruning logic
+    },
+    
+    async cleanup() { 
+      console.log('[DEBUG STORAGE] Cleaning up database connection...');
+      if (db) {
+        db.close();
+        db = null;
+        console.log('[DEBUG STORAGE] ✅ Database connection closed');
+      }
+    }
   };
 }
 
