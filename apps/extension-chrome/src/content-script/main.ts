@@ -298,19 +298,42 @@ class PromptLintContentScript {
 
     // Add input event listener for ghost text generation
     element.addEventListener('input', async (event) => {
-      const target = event.target as HTMLInputElement | HTMLTextAreaElement;
-      const partialInput = target.value || '';
+      console.log('[DEBUG] ===== INPUT EVENT FIRED =====');
+      console.log('[DEBUG] Event target:', event.target);
+      console.log('[DEBUG] Event target type:', (event.target as any).constructor.name);
+      console.log('[DEBUG] Event target tagName:', (event.target as HTMLElement).tagName);
+      
+      const target = event.target as HTMLElement;
+      
+      // CRITICAL FIX: ContentEditable elements use textContent/innerText, not .value
+      let partialInput = '';
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        partialInput = target.value || '';
+      } else {
+        // Handle contenteditable elements (like ChatGPT's input)
+        partialInput = (target.textContent || target.innerText || '').trim();
+      }
+      
+      console.log('[DEBUG] Partial input retrieved:', partialInput.substring(0, 50));
+      console.log('[DEBUG] Input length:', partialInput.length);
+      console.log('[DEBUG] Length check (>3):', partialInput.length > 3);
 
       if (partialInput && partialInput.length > 3) { // Only generate ghost text for meaningful input
+        console.log('[DEBUG] ✅ Length check passed - generating ghost text...');
         try {
           // Generate ghost text suggestion
           const ghostText = await this.generateGhostTextSuggestion(partialInput);
+          console.log('[DEBUG] Ghost text generated:', ghostText ? `"${ghostText.substring(0, 50)}..."` : 'NULL');
           if (ghostText) {
             this.displayGhostText(element, ghostText);
+          } else {
+            console.warn('[DEBUG] Ghost text generation returned null');
           }
         } catch (error) {
-          console.warn('[PromptLint] Ghost text generation failed:', error);
+          console.error('[DEBUG] Ghost text generation exception:', error);
         }
+      } else {
+        console.log('[DEBUG] ❌ Length check failed - input too short or empty');
       }
     });
 
@@ -321,18 +344,37 @@ class PromptLintContentScript {
    * Generate ghost text suggestion using Level 5 intelligence
    */
   private async generateGhostTextSuggestion(partialInput: string): Promise<string | null> {
-    if (!this.level5Experience) return null;
+    console.log('[DEBUG] ===== GENERATE GHOST TEXT START =====');
+    console.log('[DEBUG] Input:', partialInput.substring(0, 50));
+    console.log('[DEBUG] Level5Experience exists:', !!this.level5Experience);
+    
+    if (!this.level5Experience) {
+      console.error('[DEBUG] BLOCKED: No Level 5 experience initialized');
+      return null;
+    }
 
     try {
-      const result = await this.level5Experience.provideUnifiedAssistance(partialInput, {
+      const context = {
         platform: window.location.hostname,
         url: window.location.href,
         ghostTextMode: true
+      };
+      console.log('[DEBUG] Calling provideUnifiedAssistance with context:', context);
+      
+      const result = await this.level5Experience.provideUnifiedAssistance(partialInput, context);
+      
+      console.log('[DEBUG] Unified assistance result:', {
+        hasResult: !!result,
+        hasPrimarySuggestion: !!result?.primarySuggestion,
+        suggestionLength: result?.primarySuggestion?.length || 0,
+        suggestionPreview: result?.primarySuggestion?.substring(0, 100) || '[EMPTY]'
       });
+      console.log('[DEBUG] ===== GENERATE GHOST TEXT END =====');
 
-      return result.primarySuggestion || null;
+      return result?.primarySuggestion || null;
     } catch (error) {
-      console.warn('[PromptLint] Ghost text generation error:', error);
+      console.error('[DEBUG] Ghost text generation exception:', error);
+      console.error('[DEBUG] Exception stack:', (error as Error).stack);
       return null;
     }
   }
