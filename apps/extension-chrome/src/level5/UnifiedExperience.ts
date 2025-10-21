@@ -308,6 +308,10 @@ export class UnifiedLevel5Experience {
    * Orchestrates all Level 5 capabilities for comprehensive response
    */
   async provideUnifiedAssistance(userInput: string, context?: any): Promise<UnifiedAssistanceResult> {
+    console.log('[DEBUG MEMORY] ===== UNIFIED ASSISTANCE START =====');
+    console.log('[DEBUG MEMORY] Input:', userInput);
+    console.log('[DEBUG MEMORY] Context:', JSON.stringify(context));
+    
     const startTime = performance.now();
 
     try {
@@ -318,14 +322,50 @@ export class UnifiedLevel5Experience {
       // Prepare context for orchestration
       const orchestrationContext = await this.prepareOrchestrationContext(userInput, context);
 
+      // BEFORE orchestration
+      console.log('[DEBUG MEMORY] Calling multiAgentOrchestrator.processUserInput...');
+
       // Get orchestrated response
       const orchestratedResponse = await this.orchestrator.processUserInput(userInput, orchestrationContext);
+
+      // AFTER orchestration
+      console.log('[DEBUG MEMORY] Orchestration complete. Response structure:', {
+        exists: !!orchestratedResponse,
+        type: typeof orchestratedResponse,
+        keys: orchestratedResponse ? Object.keys(orchestratedResponse) : [],
+        hasPrimarySuggestion: !!orchestratedResponse?.primarySuggestion,
+        hasTransparency: !!orchestratedResponse?.transparency,
+        fullResponse: JSON.stringify(orchestratedResponse)
+      });
 
       // Store response for feedback learning
       this.responseHistory.set(orchestratedResponse.id || `orchestrated_${Date.now()}`, orchestratedResponse);
 
-      // Capture interaction in memory
-      await this.captureInteractionInMemory(userInput, orchestratedResponse);
+      // BEFORE memory capture
+      console.log('[DEBUG MEMORY] Checking if should capture memory...');
+      console.log('[DEBUG MEMORY] Response validation:', {
+        isObject: typeof orchestratedResponse === 'object',
+        notNull: orchestratedResponse !== null,
+        hasKeys: orchestratedResponse && Object.keys(orchestratedResponse).length > 0
+      });
+
+      if (orchestratedResponse && Object.keys(orchestratedResponse).length > 0) {
+        console.log('[DEBUG MEMORY] ✅ Response valid - calling captureInteractionInMemory...');
+        
+        try {
+          // Capture interaction in memory
+          await this.captureInteractionInMemory(userInput, orchestratedResponse);
+          console.log('[DEBUG MEMORY] ✅ Memory capture completed successfully');
+        } catch (memError) {
+          console.error('[DEBUG MEMORY] ❌ Memory capture FAILED:', memError);
+        }
+      } else {
+        console.error('[DEBUG MEMORY] ❌ SKIPPING memory capture - invalid response:', {
+          orchestrated: orchestratedResponse,
+          type: typeof orchestratedResponse,
+          stringified: JSON.stringify(orchestratedResponse)
+        });
+      }
 
       // Display unified assistance
       await this.displayUnifiedAssistance(orchestratedResponse);
@@ -337,9 +377,11 @@ export class UnifiedLevel5Experience {
         console.log(`[UnifiedExperience] Unified assistance completed in ${result.processingTime.toFixed(2)}ms`);
       }
 
+      console.log('[DEBUG MEMORY] ===== UNIFIED ASSISTANCE END =====');
       return result;
 
     } catch (error) {
+      console.error('[DEBUG MEMORY] ❌ EXCEPTION in provideUnifiedAssistance:', error);
       console.error('[UnifiedExperience] Unified assistance failed:', error);
       return this.createErrorResult(performance.now() - startTime, error);
     }
@@ -443,6 +485,24 @@ export class UnifiedLevel5Experience {
   }
 
   private async captureInteractionInMemory(userInput: string, response: OrchestratedResponse): Promise<void> {
+    console.log('[DEBUG MEMORY] ===== CAPTURE INTERACTION START =====');
+    console.log('[DEBUG MEMORY] User input:', userInput.substring(0, 50));
+    console.log('[DEBUG MEMORY] Response received:', {
+      exists: !!response,
+      type: typeof response,
+      keys: response ? Object.keys(response) : [],
+      primarySuggestion: response?.primarySuggestion?.substring(0, 50),
+      confidence: response?.confidence
+    });
+    
+    // Check if memoryIntegration exists
+    if (!this.memoryIntegration) {
+      console.error('[DEBUG MEMORY] ❌ memoryIntegration not initialized!');
+      return;
+    }
+    
+    console.log('[DEBUG MEMORY] memoryIntegration exists, capturing interaction...');
+    
     try {
       await this.memoryIntegration.captureUserInteraction({
         prompt: userInput,
@@ -456,9 +516,15 @@ export class UnifiedLevel5Experience {
           agentCount: response.transparency?.agentContributions?.length || 0
         }
       });
+      
+      console.log('[DEBUG MEMORY] ✅ Interaction captured successfully');
     } catch (error) {
+      console.error('[DEBUG MEMORY] ❌ memoryIntegration.captureUserInteraction FAILED:', error);
       console.warn('[UnifiedExperience] Memory capture failed:', error);
+      throw error;
     }
+    
+    console.log('[DEBUG MEMORY] ===== CAPTURE INTERACTION END =====');
   }
 
   private async displayUnifiedAssistance(response: OrchestratedResponse): Promise<void> {
