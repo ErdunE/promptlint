@@ -279,13 +279,14 @@ class PromptLintContentScript {
 
     for (const selector of inputSelectors) {
       const elements = document.querySelectorAll(selector);
-      for (const element of elements) {
+      // Convert NodeList to Array for proper iteration
+      Array.from(elements).forEach(async (element) => {
         try {
           await this.attachGhostTextToElement(element as HTMLElement);
         } catch (error) {
           console.warn(`[PromptLint] Failed to attach ghost text to ${selector}:`, error);
         }
-      }
+      });
     }
   }
 
@@ -340,47 +341,59 @@ class PromptLintContentScript {
    * Display ghost text as a subtle overlay
    */
   private displayGhostText(element: HTMLElement, ghostText: string): void {
-    // Remove existing ghost text
-    const existingGhost = element.parentElement?.querySelector('.promptlint-ghost-text');
-    if (existingGhost) {
-      existingGhost.remove();
+    if (!element || !ghostText || ghostText.length === 0) {
+      console.warn('[PromptLint] Cannot display ghost text - invalid parameters');
+      return;
     }
 
-    // Create ghost text element
-    const ghostElement = document.createElement('div');
-    ghostElement.className = 'promptlint-ghost-text';
-    ghostElement.textContent = ghostText;
-    ghostElement.style.cssText = `
-      position: absolute;
-      color: #888;
-      font-style: italic;
-      pointer-events: none;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      max-width: 300px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    `;
-
-    // Position ghost text near the input
-    const rect = element.getBoundingClientRect();
-    ghostElement.style.top = `${rect.bottom + 5}px`;
-    ghostElement.style.left = `${rect.left}px`;
-
-    // Add to page
-    document.body.appendChild(ghostElement);
-
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-      if (ghostElement.parentElement) {
-        ghostElement.remove();
+    try {
+      // Remove existing ghost text
+      const existingGhost = element.parentElement?.querySelector('.promptlint-ghost-text');
+      if (existingGhost) {
+        existingGhost.remove();
       }
-    }, 3000);
+
+      // Create ghost text element
+      const ghostElement = document.createElement('div');
+      ghostElement.className = 'promptlint-ghost-text';
+      ghostElement.textContent = ghostText;
+      ghostElement.style.cssText = `
+        position: fixed;
+        color: #888;
+        font-style: italic;
+        pointer-events: none;
+        z-index: 10000;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        max-width: 400px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        border: 1px solid #e0e0e0;
+      `;
+
+      // Position ghost text near the input with safe getBoundingClientRect
+      const rect = element.getBoundingClientRect();
+      ghostElement.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      ghostElement.style.left = `${rect.left + window.scrollX}px`;
+
+      // Add to page
+      document.body.appendChild(ghostElement);
+
+      console.log('[PromptLint] Ghost text displayed:', ghostText.substring(0, 30) + '...');
+
+      // Auto-remove after 4 seconds
+      setTimeout(() => {
+        if (ghostElement && ghostElement.parentElement) {
+          ghostElement.remove();
+        }
+      }, 4000);
+    } catch (error) {
+      console.error('[PromptLint] Failed to display ghost text:', error);
+    }
   }
 }
 

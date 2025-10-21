@@ -381,21 +381,34 @@ export class UnifiedLevel5Experience {
     const transparency = this.orchestrator.getTransparencyInfo?.();
     if (!transparency) return null;
 
+    // Safe array mapping with validation
+    const agentContributions = (transparency.agentContributions && Array.isArray(transparency.agentContributions)) 
+      ? transparency.agentContributions 
+      : [];
+    
+    const decisionProcess = (transparency.decisionProcess && Array.isArray(transparency.decisionProcess)) 
+      ? transparency.decisionProcess 
+      : [];
+
+    const alternativeReasons = (transparency.alternativeReasons && Array.isArray(transparency.alternativeReasons)) 
+      ? transparency.alternativeReasons 
+      : [];
+
     return {
-      agentContributions: (transparency.agentContributions || []).map((contrib: any) => ({
-        agentName: this.getAgentDisplayName(contrib.agentId),
-        contribution: contrib.contribution,
-        confidence: contrib.confidence,
-        used: contrib.used
+      agentContributions: agentContributions.map((contrib: any) => ({
+        agentName: this.getAgentDisplayName(contrib?.agentId || 'unknown'),
+        contribution: contrib?.contribution || '',
+        confidence: contrib?.confidence || 0,
+        used: contrib?.used || false
       })),
-      decisionProcess: (transparency.decisionProcess || []).map((step: any) => step.description),
+      decisionProcess: decisionProcess.map((step: any) => step?.description || step || 'Processing step'),
       confidenceBreakdown: {
         baseConfidence: transparency.confidenceBreakdown?.baseConfidence || 0,
         consensusBoost: transparency.confidenceBreakdown?.consensusBoost || 0,
         finalConfidence: transparency.confidenceBreakdown?.finalConfidence || 0,
         explanation: this.generateConfidenceExplanation(transparency.confidenceBreakdown || {})
       },
-      alternativeReasons: transparency.alternativeReasons
+      alternativeReasons
     };
   }
 
@@ -439,8 +452,8 @@ export class UnifiedLevel5Experience {
         timestamp: Date.now(),
         level4Analysis: {
           orchestrated: true,
-          confidence: response.confidence,
-          agentCount: response.transparency.agentContributions.length
+          confidence: response.confidence || 0,
+          agentCount: response.transparency?.agentContributions?.length || 0
         }
       });
     } catch (error) {
@@ -490,24 +503,38 @@ export class UnifiedLevel5Experience {
   }
 
   private async displayAlternativeSuggestions(alternatives: any[]): Promise<void> {
+    // Validate alternatives is an array
+    if (!Array.isArray(alternatives)) {
+      console.warn('[UnifiedExperience] Alternatives is not an array:', alternatives);
+      return;
+    }
+    
     alternatives.forEach((alternative, index) => {
       const altElement = this.createSuggestionElement(alternative, false);
-      this.addConfidenceIndicator(altElement, alternative.confidence);
+      this.addConfidenceIndicator(altElement, alternative?.confidence || 0);
       this.displayInUI(altElement, `alternative-${index}`);
     });
   }
 
   private async displayTransparencyInfo(response: OrchestratedResponse): Promise<void> {
-    if (!response.transparency) return;
+    if (!response?.transparency) {
+      console.warn('[UnifiedExperience] No transparency information available');
+      return;
+    }
 
-    // Create transparency panel
-    const transparencyPanel = this.createTransparencyPanel(response.transparency);
-    this.displayInUI(transparencyPanel, 'transparency');
+    try {
+      // Create transparency panel
+      const transparencyPanel = this.createTransparencyPanel(response.transparency);
+      this.displayInUI(transparencyPanel, 'transparency');
+    } catch (error) {
+      console.error('[UnifiedExperience] Failed to display transparency info:', error);
+    }
   }
 
   private async showProactiveWorkflowSuggestions(response: OrchestratedResponse): Promise<void> {
-    // Extract workflow suggestions from insights
-    const workflowInsights = (response.insights || []).filter((insight: any) => insight.type === 'workflow_state');
+    // Extract workflow suggestions from insights with safe array access
+    const insights = (response?.insights && Array.isArray(response.insights)) ? response.insights : [];
+    const workflowInsights = insights.filter((insight: any) => insight?.type === 'workflow_state');
     
     if (workflowInsights.length > 0) {
       // Use workflow assistant to show proactive suggestions
@@ -517,12 +544,17 @@ export class UnifiedLevel5Experience {
   }
 
   private createUnifiedResult(response: OrchestratedResponse, processingTime: number): UnifiedAssistanceResult {
+    // Safe alternatives mapping with array validation
+    const alternatives = (response?.alternatives && Array.isArray(response.alternatives)) 
+      ? response.alternatives 
+      : [];
+    
     return {
-      primarySuggestion: response.primarySuggestion,
-      alternatives: (response.alternatives || []).map((alt: any) => alt.content || alt),
-      confidence: response.confidence,
-      reasoning: response.reasoning || '',
-      transparency: this.config.enableTransparency ? (this.getTransparencyInfo(response.id || '') || undefined) : undefined,
+      primarySuggestion: response?.primarySuggestion || 'No suggestion available',
+      alternatives: alternatives.map((alt: any) => alt?.content || alt || 'Alternative suggestion'),
+      confidence: response?.confidence || 0,
+      reasoning: response?.reasoning || '',
+      transparency: this.config.enableTransparency ? (this.getTransparencyInfo(response?.id || '') || undefined) : undefined,
       processingTime
     };
   }
@@ -538,9 +570,12 @@ export class UnifiedLevel5Experience {
   }
 
   private generateResponseSummary(response: OrchestratedResponse): string {
-    const agentCount = response.transparency?.agentContributions?.length || 0;
-    const consensusRate = response.consensusMetrics?.agreementRate || 0;
-    const confidence = response.confidence || 0;
+    // Safe property access with fallbacks
+    const agentCount = (response?.transparency?.agentContributions && Array.isArray(response.transparency.agentContributions)) 
+      ? response.transparency.agentContributions.length 
+      : 0;
+    const consensusRate = response?.consensusMetrics?.agreementRate || 0;
+    const confidence = response?.confidence || 0;
     
     return `Orchestrated response from ${agentCount} agents with ${(consensusRate * 100).toFixed(0)}% consensus (${(confidence * 100).toFixed(0)}% confidence)`;
   }
@@ -618,24 +653,29 @@ export class UnifiedLevel5Experience {
     const panel = document.createElement('div');
     panel.className = 'transparency-panel';
     
-    const agentContributions = transparency?.agentContributions || [];
-    const decisionProcess = transparency?.decisionProcess || [];
+    // Safe array access with validation
+    const agentContributions = (transparency?.agentContributions && Array.isArray(transparency.agentContributions)) 
+      ? transparency.agentContributions 
+      : [];
+    const decisionProcess = (transparency?.decisionProcess && Array.isArray(transparency.decisionProcess)) 
+      ? transparency.decisionProcess 
+      : [];
     
     panel.innerHTML = `
       <h4>Decision Process</h4>
       <div class="agent-contributions">
-        ${agentContributions.map((contrib: any) => `
+        ${agentContributions.length > 0 ? agentContributions.map((contrib: any) => `
           <div class="agent-contribution ${contrib?.used ? 'used' : 'unused'}">
             <strong>${this.getAgentDisplayName(contrib?.agentId || 'unknown')}</strong>
             <span class="contribution-confidence">${((contrib?.confidence || 0) * 100).toFixed(0)}%</span>
             <p>${contrib?.contribution || 'No contribution available'}</p>
           </div>
-        `).join('')}
+        `).join('') : '<div class="agent-contribution unused"><p>No agent contributions available</p></div>'}
       </div>
       <div class="decision-process">
-        ${decisionProcess.map((step: any) => `
+        ${decisionProcess.length > 0 ? decisionProcess.map((step: any) => `
           <div class="process-step">${step?.description || step || 'Processing step'}</div>
-        `).join('')}
+        `).join('') : '<div class="process-step">Multi-agent orchestration processing</div>'}
       </div>
     `;
     return panel;
@@ -787,32 +827,41 @@ export class UnifiedLevel5Experience {
     startTime: number
   ): UnifiedAssistanceResult {
     const processingTime = performance.now() - startTime;
-    const unifiedIntelligence = result.unifiedIntelligence;
+    const unifiedIntelligence = result?.unifiedIntelligence || {};
+    
+    // Safe suggestions access with array validation
+    const suggestions = (unifiedIntelligence?.suggestions && Array.isArray(unifiedIntelligence.suggestions)) 
+      ? unifiedIntelligence.suggestions 
+      : [];
+    
+    const agentAnalyses = (result?.agentAnalyses && Array.isArray(result.agentAnalyses)) 
+      ? result.agentAnalyses 
+      : [];
     
     return {
-      primarySuggestion: unifiedIntelligence.suggestions[0]?.description || 'Unified intelligence analysis complete',
-      alternatives: (unifiedIntelligence.suggestions || []).slice(1, 4).map((s: any) => s.description),
-      confidence: unifiedIntelligence.confidence,
-      reasoning: unifiedIntelligence.reasoning,
+      primarySuggestion: suggestions[0]?.description || 'Unified intelligence analysis complete',
+      alternatives: suggestions.slice(1, 4).map((s: any) => s?.description || 'Alternative suggestion'),
+      confidence: unifiedIntelligence?.confidence || 0,
+      reasoning: unifiedIntelligence?.reasoning || 'Multi-agent orchestration processing',
       transparency: {
-        agentContributions: (result.agentAnalyses || []).map((analysis: any) => ({
-          agentName: analysis.agentName,
-          contribution: analysis.suggestions[0]?.description || 'Analysis provided',
-          confidence: analysis.confidence,
+        agentContributions: agentAnalyses.map((analysis: any) => ({
+          agentName: analysis?.agentName || 'Unknown Agent',
+          contribution: (analysis?.suggestions && Array.isArray(analysis.suggestions) && analysis.suggestions[0]?.description) || 'Analysis provided',
+          confidence: analysis?.confidence || 0,
           used: true
         })),
         decisionProcess: [
-          `Level 4 Analysis: ${unifiedIntelligence.intent.category} intent detected`,
-          `Level 5 Orchestration: ${result.agentAnalyses?.length || 0} agents analyzed`,
-          `Integration: Unified confidence ${(unifiedIntelligence.confidence * 100).toFixed(1)}%`
+          `Level 4 Analysis: ${unifiedIntelligence?.intent?.category || 'unknown'} intent detected`,
+          `Level 5 Orchestration: ${agentAnalyses.length} agents analyzed`,
+          `Integration: Unified confidence ${((unifiedIntelligence?.confidence || 0) * 100).toFixed(1)}%`
         ],
         confidenceBreakdown: {
-          baseConfidence: result.confidence || 0,
-          consensusBoost: (result.consensusResult?.overallConfidence || result.confidence || 0) - (result.confidence || 0),
-          finalConfidence: unifiedIntelligence.confidence || 0,
-          explanation: `Level 4 + Level 5 integration enhanced confidence from ${((result.confidence || 0) * 100).toFixed(1)}% to ${((unifiedIntelligence.confidence || 0) * 100).toFixed(1)}%`
+          baseConfidence: result?.confidence || 0,
+          consensusBoost: (result?.consensusResult?.overallConfidence || result?.confidence || 0) - (result?.confidence || 0),
+          finalConfidence: unifiedIntelligence?.confidence || 0,
+          explanation: `Level 4 + Level 5 integration enhanced confidence from ${((result?.confidence || 0) * 100).toFixed(1)}% to ${((unifiedIntelligence?.confidence || 0) * 100).toFixed(1)}%`
         },
-        alternativeReasons: (unifiedIntelligence.suggestions || []).slice(1).map((s: any) => s.reasoning)
+        alternativeReasons: suggestions.slice(1).map((s: any) => s?.reasoning || 'Alternative reasoning')
       },
       processingTime
     };

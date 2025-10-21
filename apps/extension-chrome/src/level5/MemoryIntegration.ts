@@ -207,21 +207,29 @@ export class ChromeMemoryIntegration {
       const context = await this.memoryManager.retrieveContext(this.currentSessionId);
       const retrievalTime = performance.now() - startTime;
       
+      // Validate context structure with safe array access
+      const validatedContext: ContextMemory = {
+        episodic: Array.isArray(context?.episodic) ? context.episodic : [],
+        semantic: Array.isArray(context?.semantic) ? context.semantic : [],
+        working: context?.working || undefined,
+        workflow: context?.workflow || undefined
+      };
+      
       if (this.config.debugMode) {
         console.log(`[ChromeMemory] Retrieved context in ${retrievalTime.toFixed(2)}ms`);
         console.log(`[ChromeMemory] Context summary:`, {
-          episodic: context.episodic.length,
-          semantic: context.semantic.length,
-          working: context.working ? 'present' : 'absent',
-          workflow: context.workflow.length
+          episodic: validatedContext.episodic.length,
+          semantic: validatedContext.semantic.length,
+          working: validatedContext.working ? 'present' : 'absent',
+          workflow: validatedContext.workflow ? 'present' : 'absent'
         });
       }
       
-      return context;
+      return validatedContext;
       
     } catch (error) {
       console.error('[ChromeMemory] Failed to retrieve contextual memory:', error);
-      return null;
+      return { episodic: [], semantic: [] };
     }
   }
 
@@ -304,7 +312,8 @@ export class ChromeMemoryIntegration {
       // Try to restore the most recent session
       const recentContext = await this.memoryManager.retrieveContext('recent');
       
-      if (recentContext && recentContext.working) {
+      // Safe property access with validation
+      if (recentContext?.working && recentContext.working.lastUpdated && recentContext.working.sessionId) {
         const timeSinceLastUpdate = Date.now() - recentContext.working.lastUpdated;
         
         // If last session was within timeout period, continue it
@@ -496,7 +505,20 @@ export class ChromeMemoryIntegration {
    */
   async retrieveCurrentContext(): Promise<ContextMemory> {
     const sessionId = this.currentSessionId;
-    return await this.memoryManager.retrieveContext(sessionId);
+    try {
+      const context = await this.memoryManager.retrieveContext(sessionId);
+      
+      // Validate and ensure proper structure
+      return {
+        episodic: Array.isArray(context?.episodic) ? context.episodic : [],
+        semantic: Array.isArray(context?.semantic) ? context.semantic : [],
+        working: context?.working || undefined,
+        workflow: context?.workflow || undefined
+      };
+    } catch (error) {
+      console.error('[ChromeMemory] Failed to retrieve current context:', error);
+      return { episodic: [], semantic: [] };
+    }
   }
 }
 
