@@ -296,6 +296,10 @@ class PromptLintContentScript {
   private async attachGhostTextToElement(element: HTMLElement): Promise<void> {
     if (!this.level5Experience) return;
 
+    // PHASE 2B: Add debouncing to reduce generation frequency
+    let debounceTimeout: NodeJS.Timeout | null = null;
+    const DEBOUNCE_DELAY = 300; // 300ms delay for better performance
+
     // Add input event listener for ghost text generation
     element.addEventListener('input', async (event) => {
       console.log('[DEBUG] ===== INPUT EVENT FIRED =====');
@@ -318,22 +322,38 @@ class PromptLintContentScript {
       console.log('[DEBUG] Input length:', partialInput.length);
       console.log('[DEBUG] Length check (>3):', partialInput.length > 3);
 
-      if (partialInput && partialInput.length > 3) { // Only generate ghost text for meaningful input
-        console.log('[DEBUG] ✅ Length check passed - generating ghost text...');
-        try {
-          // Generate ghost text suggestion
-          const ghostText = await this.generateGhostTextSuggestion(partialInput);
-          console.log('[DEBUG] Ghost text generated:', ghostText ? `"${ghostText.substring(0, 50)}..."` : 'NULL');
-          if (ghostText) {
-            this.displayGhostText(element, ghostText);
-          } else {
-            console.warn('[DEBUG] Ghost text generation returned null');
+      // Clear existing timeout
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
+        console.log('[DEBUG] Cleared previous debounce timeout');
+      }
+
+      // Only generate ghost text for meaningful input
+      if (partialInput && partialInput.length > 3) {
+        // PHASE 2B: Debounce ghost text generation
+        debounceTimeout = setTimeout(async () => {
+          console.log('[DEBUG] ✅ Debounce completed - generating ghost text...');
+          try {
+            const ghostText = await this.generateGhostTextSuggestion(partialInput);
+            console.log('[DEBUG] Ghost text generated:', ghostText ? `"${ghostText.substring(0, 50)}..."` : 'NULL');
+            if (ghostText) {
+              this.displayGhostText(element, ghostText);
+            } else {
+              console.warn('[DEBUG] Ghost text generation returned null');
+            }
+          } catch (error) {
+            console.error('[DEBUG] Ghost text generation exception:', error);
           }
-        } catch (error) {
-          console.error('[DEBUG] Ghost text generation exception:', error);
-        }
+        }, DEBOUNCE_DELAY);
+        console.log(`[DEBUG] Debounce timer set (${DEBOUNCE_DELAY}ms)`);
       } else {
         console.log('[DEBUG] ❌ Length check failed - input too short or empty');
+        // Clear ghost text if input is too short
+        const existingGhost = document.querySelector('.promptlint-ghost-text');
+        if (existingGhost) {
+          existingGhost.remove();
+          console.log('[DEBUG] Removed ghost text (input too short)');
+        }
       }
     });
 
@@ -381,6 +401,7 @@ class PromptLintContentScript {
 
   /**
    * Display ghost text as a subtle overlay
+   * PHASE 2B: Enhanced visual design with better contrast and positioning
    */
   private displayGhostText(element: HTMLElement, ghostText: string): void {
     if (!element || !ghostText || ghostText.length === 0) {
@@ -390,7 +411,7 @@ class PromptLintContentScript {
 
     try {
       // Remove existing ghost text
-      const existingGhost = element.parentElement?.querySelector('.promptlint-ghost-text');
+      const existingGhost = document.querySelector('.promptlint-ghost-text');
       if (existingGhost) {
         existingGhost.remove();
       }
@@ -398,41 +419,94 @@ class PromptLintContentScript {
       // Create ghost text element
       const ghostElement = document.createElement('div');
       ghostElement.className = 'promptlint-ghost-text';
-      ghostElement.textContent = ghostText;
+      
+      // Add suggestion icon prefix
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = '💡 ';
+      iconSpan.style.cssText = 'margin-right: 4px; font-size: 14px;';
+      
+      const textSpan = document.createElement('span');
+      textSpan.textContent = ghostText;
+      
+      ghostElement.appendChild(iconSpan);
+      ghostElement.appendChild(textSpan);
+
+      // PHASE 2B: Improved visual styling with better contrast
       ghostElement.style.cssText = `
         position: fixed;
-        color: #888;
-        font-style: italic;
+        color: #4a5568;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        font-weight: 500;
         pointer-events: none;
         z-index: 10000;
-        background: rgba(255, 255, 255, 0.95);
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 13px;
-        max-width: 400px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 250, 252, 0.98) 100%);
+        padding: 8px 14px;
+        border-radius: 8px;
+        max-width: min(500px, 80vw);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1.5px solid rgba(100, 120, 200, 0.2);
+        backdrop-filter: blur(8px);
+        animation: ghostTextFadeIn 0.2s ease-out;
       `;
 
-      // Position ghost text near the input with safe getBoundingClientRect
+      // Add subtle animation keyframes
+      if (!document.querySelector('#promptlint-ghost-text-styles')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'promptlint-ghost-text-styles';
+        styleSheet.textContent = `
+          @keyframes ghostTextFadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-4px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `;
+        document.head.appendChild(styleSheet);
+      }
+
+      // PHASE 2B: Improved positioning with viewport awareness
       const rect = element.getBoundingClientRect();
-      ghostElement.style.top = `${rect.bottom + window.scrollY + 8}px`;
-      ghostElement.style.left = `${rect.left + window.scrollX}px`;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Calculate position with boundary checks
+      let top = rect.bottom + window.scrollY + 10;
+      let left = rect.left + window.scrollX;
+      
+      // Ensure ghost text doesn't go off-screen horizontally
+      const ghostWidth = Math.min(500, viewportWidth * 0.8);
+      if (left + ghostWidth > viewportWidth) {
+        left = viewportWidth - ghostWidth - 20;
+      }
+      
+      // If too close to bottom, show above input instead
+      if (rect.bottom + 60 > viewportHeight) {
+        top = rect.top + window.scrollY - 60;
+      }
+      
+      ghostElement.style.top = `${top}px`;
+      ghostElement.style.left = `${left}px`;
 
       // Add to page
       document.body.appendChild(ghostElement);
 
       console.log('[PromptLint] Ghost text displayed:', ghostText.substring(0, 30) + '...');
 
-      // Auto-remove after 4 seconds
+      // PHASE 2B: Increased auto-remove time for readability (6 seconds)
       setTimeout(() => {
         if (ghostElement && ghostElement.parentElement) {
           ghostElement.remove();
+          console.log('[PromptLint] Ghost text auto-removed after timeout');
         }
-      }, 4000);
+      }, 6000);
     } catch (error) {
       console.error('[PromptLint] Failed to display ghost text:', error);
     }
