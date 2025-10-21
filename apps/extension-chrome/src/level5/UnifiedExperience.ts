@@ -570,7 +570,12 @@ export class UnifiedLevel5Experience {
   }
 
   private generateResponseSummary(response: OrchestratedResponse): string {
-    // Safe property access with fallbacks
+    // CRITICAL: Safe property access with comprehensive null checks
+    if (!response) {
+      console.error('[UnifiedExperience] generateResponseSummary: No response provided');
+      return 'No response available';
+    }
+
     const agentCount = (response?.transparency?.agentContributions && Array.isArray(response.transparency.agentContributions)) 
       ? response.transparency.agentContributions.length 
       : 0;
