@@ -528,7 +528,7 @@ export class Level4IntegrationService {
       collaborationLevel: contextualReasoning.collaborativeContext.collaborationLevel,
       optimizationOpportunities: reasoningChain.optimizationOpportunities?.length || 0,
       reasoningSteps: reasoningChain.steps?.length || 0,
-      confidence: Math.round(intentAnalysis.confidence * 100)
+      confidence: intentAnalysis.confidence  // FIXED: Keep as decimal (0-1), don't multiply by 100
     };
   }
 

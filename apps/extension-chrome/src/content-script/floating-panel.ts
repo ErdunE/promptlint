@@ -2221,8 +2221,26 @@ export class FloatingPanel {
     const contentElement = insightsContainer.querySelector('.insights-content') as HTMLElement;
 
     if (confidenceElement) {
-      confidenceElement.textContent = `${Math.round(insights.confidence * 100)}%`;
-      confidenceElement.className = `insights-confidence ${insights.confidence > 0.8 ? 'high' : insights.confidence > 0.6 ? 'medium' : 'low'}`;
+      const confidence = insights.confidence || 0;
+      
+      // Convert decimal to percentage with CRITICAL VALIDATION
+      let displayConfidence = Math.round(confidence * 100);
+      
+      // PREVENT DISPLAY CORRUPTION: Validate confidence is in valid range
+      if (displayConfidence > 100 || displayConfidence < 0) {
+        console.error('[FloatingPanel] Invalid confidence value detected:', {
+          raw: confidence,
+          calculated: displayConfidence,
+          source: 'Level4Insights'
+        });
+        displayConfidence = Math.max(0, Math.min(100, displayConfidence));
+      }
+      
+      confidenceElement.textContent = `${displayConfidence}%`;
+      
+      // Use normalized confidence for CSS class (0-1 scale)
+      const normalizedConfidence = displayConfidence / 100;
+      confidenceElement.className = `insights-confidence ${normalizedConfidence > 0.8 ? 'high' : normalizedConfidence > 0.6 ? 'medium' : 'low'}`;
     }
 
     if (contentElement) {
@@ -2424,8 +2442,25 @@ export class FloatingPanel {
 
     if (confidenceElement) {
       const confidence = unifiedResult.confidence || 0;
-      confidenceElement.textContent = `${Math.round(confidence * 100)}%`;
-      confidenceElement.className = `insights-confidence ${confidence > 0.8 ? 'high' : confidence > 0.6 ? 'medium' : 'low'}`;
+      
+      // Convert decimal to percentage with CRITICAL VALIDATION
+      let displayConfidence = Math.round(confidence * 100);
+      
+      // PREVENT DISPLAY CORRUPTION: Validate confidence is in valid range
+      if (displayConfidence > 100 || displayConfidence < 0) {
+        console.error('[FloatingPanel] Invalid confidence value detected:', {
+          raw: confidence,
+          calculated: displayConfidence,
+          source: 'Level5Insights'
+        });
+        displayConfidence = Math.max(0, Math.min(100, displayConfidence));
+      }
+      
+      confidenceElement.textContent = `${displayConfidence}%`;
+      
+      // Use normalized confidence for CSS class (0-1 scale)
+      const normalizedConfidence = displayConfidence / 100;
+      confidenceElement.className = `insights-confidence ${normalizedConfidence > 0.8 ? 'high' : normalizedConfidence > 0.6 ? 'medium' : 'low'}`;
     }
 
     if (contentElement) {
