@@ -32,6 +32,13 @@ export class UIInjector {
     this.rephraseCallbacks = rephraseCallbacks;
   }
 
+  /**
+   * Get the floating panel instance for Level 5 integration
+   */
+  getFloatingPanel(): FloatingPanel | null {
+    return this.floatingPanel;
+  }
+
   async initialize(): Promise<void> {
     if (this.isInitialized) {
       console.log('[PromptLint] UI Injector already initialized');

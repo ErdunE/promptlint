@@ -22,6 +22,20 @@ import {
   DomainPreference
 } from './types/ContextTypes.js';
 
+// Chrome API type declarations for compatibility
+declare const chrome: {
+  storage: {
+    local: {
+      set(items: Record<string, any>, callback?: () => void): void;
+      get(keys: string | string[] | null, callback: (result: Record<string, any>) => void): void;
+      remove(keys: string | string[], callback?: () => void): void;
+    };
+  };
+  runtime: {
+    lastError?: { message: string };
+  };
+} | undefined;
+
 export class ContextMemoryEngine {
   private config: ContextMemoryConfig;
   private storageKey = 'promptlint_user_context';
@@ -311,10 +325,10 @@ export class ContextMemoryEngine {
           confidence: Math.min(100, (frequency / history.length) * 100),
           frequency,
           templateTypes: [templateType],
-          domains: [...new Set(history
+          domains: [...Array.from(new Set(history
             .filter(h => h.selectedTemplate === templateType)
             .map(h => h.domainClassification.domain)
-          )]
+          ))]
         });
       }
     });

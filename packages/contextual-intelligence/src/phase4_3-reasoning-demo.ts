@@ -6,6 +6,7 @@ import { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js'
 import { ProjectContextAnalyzer } from './contextual-reasoning/ProjectContextAnalyzer.js';
 import { CollaborativeContextManager } from './contextual-reasoning/CollaborativeContextManager.js';
 import { ReasoningChainGenerator } from './template-reasoning/ReasoningChainGenerator.js';
+import { AIPlatform } from './shared/ContextualTypes.js';
 
 async function runPhase43ReasoningDemo(): Promise<void> {
   console.log('🎯 Level 4 Phase 4.3 - Complete Template Reasoning Demo');
@@ -65,6 +66,19 @@ async function runPhase43ReasoningDemo(): Promise<void> {
     const contextualReasoning = {
       projectContext,
       collaborativeContext,
+      platformContext: {
+        currentPlatform: AIPlatform.GENERIC,
+        capabilities: [],
+        contextWindow: {
+          maxTokens: 4096,
+          currentUsage: 0,
+          remainingCapacity: 4096,
+          estimatedCost: 0
+        },
+        optimizationOpportunities: [],
+        confidence: 0.8,
+        processingTime: 0
+      },
       overallConfidence: (projectContext.confidence + collaborativeContext.confidence) / 2,
       processingTime: (projectContext.processingTime || 0) + collaborativeContext.processingTime
     };

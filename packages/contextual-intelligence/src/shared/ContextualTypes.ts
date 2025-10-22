@@ -119,7 +119,8 @@ export enum AIPlatform {
   CLAUDE = 'claude',
   GEMINI = 'gemini',
   COPILOT = 'copilot',
-  PERPLEXITY = 'perplexity'
+  PERPLEXITY = 'perplexity',
+  GENERIC = 'generic'
 }
 
 export enum ProjectComplexity {
@@ -258,7 +259,7 @@ export interface QualityCriteria {
   operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
 }
 
-export enum PlatformCapability {
+export enum PlatformCapabilityType {
   CODE_EXECUTION = 'code_execution',
   FILE_UPLOAD = 'file_upload',
   WEB_BROWSING = 'web_browsing',

@@ -5,6 +5,26 @@
  * Communicates with background service worker for real-time data
  */
 
+// Chrome API type declarations
+declare const chrome: {
+  runtime: {
+    sendMessage(message: any, callback?: (response: any) => void): void;
+    lastError?: { message: string };
+  };
+  tabs: {
+    query(queryInfo: any, callback: (tabs: any[]) => void): void;
+    sendMessage(tabId: number, message: any, callback?: (response: any) => void): void;
+    create(createProperties: any, callback?: (tab: any) => void): void;
+  };
+  storage: {
+    local: {
+      get(keys: string | string[] | null, callback: (result: Record<string, any>) => void): void;
+      set(items: Record<string, any>, callback?: () => void): void;
+      remove(keys: string | string[], callback?: () => void): void;
+    };
+  };
+};
+
 interface ExtensionStatus {
   isActive: boolean;
   currentTab: any;
@@ -157,7 +177,9 @@ class PromptLintPopup {
       this.showLoading(true);
 
       // Get current tab
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      const tabs = await new Promise<any[]>((resolve) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, resolve);
+      });
       this.currentTabId = tabs[0]?.id || null;
 
       // Load extension status and stats
@@ -176,8 +198,10 @@ class PromptLintPopup {
 
   private async loadExtensionStatus(): Promise<void> {
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: 'GET_EXTENSION_STATUS'
+      const response = await new Promise<any>((resolve) => {
+        chrome.runtime.sendMessage({
+          type: 'GET_EXTENSION_STATUS'
+        }, resolve);
       });
 
       this.updateStatusDisplay(response);
@@ -191,8 +215,10 @@ class PromptLintPopup {
 
   private async loadErrorStats(): Promise<void> {
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: 'GET_ERROR_STATS'
+      const response = await new Promise<any>((resolve) => {
+        chrome.runtime.sendMessage({
+          type: 'GET_ERROR_STATS'
+        }, resolve);
       });
 
       this.updateErrorsDisplay(response);
@@ -371,146 +397,19 @@ class PromptLintPopup {
 
   // API Key Management Methods
   
-  private async loadApiKeyStatus(): Promise<void> {
-    try {
-      const result = await chrome.storage.local.get(['openai_api_key_encrypted']);
-      const hasApiKey = !!result.openai_api_key_encrypted;
-      
-      if (hasApiKey) {
-        this.apiKeyInput.placeholder = 'API key configured (hidden)';
-        this.showApiKeyStatus('API key configured - AI rephrasing enabled', 'success');
-      } else {
-        this.apiKeyInput.placeholder = 'sk-...';
-        this.showApiKeyStatus('No API key - using offline mode', 'info');
-      }
-    } catch (error) {
-      console.error('[PromptLint Popup] Error loading API key status:', error);
-      this.showApiKeyStatus('Error loading API key status', 'error');
-    }
-  }
+  // loadApiKeyStatus method removed - API key management deprecated
 
-  private toggleApiKeyVisibility(): void {
-    const isPassword = this.apiKeyInput.type === 'password';
-    this.apiKeyInput.type = isPassword ? 'text' : 'password';
-    
-    const toggleIcon = this.toggleApiKeyBtn.querySelector('.toggle-icon') as HTMLElement;
-    toggleIcon.textContent = isPassword ? '🙈' : '👁️';
-  }
+  // toggleApiKeyVisibility method removed - API key management deprecated
 
-  private validateApiKeyInput(): void {
-    const value = this.apiKeyInput.value.trim();
-    
-    if (!value) {
-      this.saveApiKeyBtn.disabled = false;
-      this.clearApiKeyBtn.disabled = false;
-      this.showApiKeyStatus('', '');
-      return;
-    }
+  // validateApiKeyInput method removed - API key management deprecated
 
-    // Basic OpenAI API key validation - more flexible for actual OpenAI key formats
-    const isValidFormat = /^sk-[A-Za-z0-9_-]{20,}$/.test(value);
-    
-    if (isValidFormat) {
-      this.saveApiKeyBtn.disabled = false;
-      this.showApiKeyStatus('Valid API key format', 'success');
-    } else {
-      this.saveApiKeyBtn.disabled = true;
-      this.showApiKeyStatus('Invalid API key format (should be sk-...)', 'error');
-    }
-  }
+  // saveApiKey method removed - API key management deprecated
 
-  private async saveApiKey(): Promise<void> {
-    try {
-      const apiKey = this.apiKeyInput.value.trim();
-      
-      if (!apiKey) {
-        this.showApiKeyStatus('Please enter an API key', 'error');
-        return;
-      }
+  // clearApiKey method removed - API key management deprecated
 
-      // Basic validation - more lenient for actual OpenAI keys
-      if (!apiKey.startsWith('sk-') || apiKey.length < 25) {
-        this.showApiKeyStatus('Invalid API key format', 'error');
-        return;
-      }
+  // testApiKey method removed - API key management deprecated
 
-      this.showApiKeyStatus('Saving API key...', 'info');
-      
-      // Send to background script for encryption and storage
-      const response = await chrome.runtime.sendMessage({
-        type: 'SAVE_API_KEY',
-        apiKey: apiKey
-      });
-
-      if (response.success) {
-        this.apiKeyInput.value = '';
-        this.apiKeyInput.placeholder = 'API key configured (hidden)';
-        this.showApiKeyStatus('API key saved successfully', 'success');
-        
-        // Test the API key
-        setTimeout(() => this.testApiKey(), 1000);
-      } else {
-        this.showApiKeyStatus(response.error || 'Failed to save API key', 'error');
-      }
-
-    } catch (error) {
-      console.error('[PromptLint Popup] Error saving API key:', error);
-      this.showApiKeyStatus('Error saving API key', 'error');
-    }
-  }
-
-  private async clearApiKey(): Promise<void> {
-    try {
-      this.showApiKeyStatus('Clearing API key...', 'info');
-      
-      const response = await chrome.runtime.sendMessage({
-        type: 'CLEAR_API_KEY'
-      });
-
-      if (response.success) {
-        this.apiKeyInput.value = '';
-        this.apiKeyInput.placeholder = 'sk-...';
-        this.showApiKeyStatus('API key cleared - using offline mode', 'info');
-      } else {
-        this.showApiKeyStatus(response.error || 'Failed to clear API key', 'error');
-      }
-
-    } catch (error) {
-      console.error('[PromptLint Popup] Error clearing API key:', error);
-      this.showApiKeyStatus('Error clearing API key', 'error');
-    }
-  }
-
-  private async testApiKey(): Promise<void> {
-    try {
-      this.showApiKeyStatus('Testing API key...', 'info');
-      
-      const response = await chrome.runtime.sendMessage({
-        type: 'TEST_API_KEY'
-      });
-
-      if (response.success) {
-        this.showApiKeyStatus('API key working - AI rephrasing enabled', 'success');
-      } else {
-        this.showApiKeyStatus(`API key test failed: ${response.error}`, 'error');
-      }
-
-    } catch (error) {
-      console.error('[PromptLint Popup] Error testing API key:', error);
-      this.showApiKeyStatus('Error testing API key', 'error');
-    }
-  }
-
-  private showApiKeyStatus(message: string, type: 'success' | 'error' | 'info' | ''): void {
-    if (!message || !type) {
-      this.apiKeyStatus.textContent = '';
-      this.apiKeyStatus.className = 'config-status';
-      return;
-    }
-
-    this.apiKeyStatus.textContent = message;
-    this.apiKeyStatus.className = `config-status ${type}`;
-  }
+  // showApiKeyStatus method removed - API key management deprecated
 
   // View Navigation Methods
   private showPrivacySettings(): void {
@@ -530,7 +429,9 @@ class PromptLintPopup {
   private async loadPrivacySettings(): Promise<void> {
     try {
       // Load privacy settings
-      const privacySettings = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const privacySettings = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get(['promptlint_privacy_settings'], resolve);
+      });
       const settings = privacySettings.promptlint_privacy_settings || {
         enableTracking: true,
         enableLearning: true
@@ -549,13 +450,17 @@ class PromptLintPopup {
 
   private async updatePrivacySetting(setting: string, value: boolean): Promise<void> {
     try {
-      const stored = await chrome.storage.local.get(['promptlint_privacy_settings']);
+      const stored = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get(['promptlint_privacy_settings'], resolve);
+      });
       const settings = stored.promptlint_privacy_settings || {};
       
       settings[setting] = value;
       
-      await chrome.storage.local.set({
-        promptlint_privacy_settings: settings
+      await new Promise<void>((resolve) => {
+        chrome.storage.local.set({
+          promptlint_privacy_settings: settings
+        }, resolve);
       });
 
       console.log(`[PromptLint Popup] Privacy setting updated: ${setting} = ${value}`);
@@ -582,7 +487,9 @@ class PromptLintPopup {
   private async updatePrivacyStats(): Promise<void> {
     try {
       // Get user data from storage
-      const allData = await chrome.storage.local.get(['promptlint_user_data', 'promptlint_privacy_settings']);
+      const allData = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get(['promptlint_user_data', 'promptlint_privacy_settings'], resolve);
+      });
       const userData = allData.promptlint_user_data || { selections: [], stats: {} };
 
       // Update total selections
@@ -614,7 +521,9 @@ class PromptLintPopup {
   private async exportUserData(): Promise<void> {
     try {
       // Get all user data from storage
-      const allData = await chrome.storage.local.get(['promptlint_user_data', 'promptlint_privacy_settings']);
+      const allData = await new Promise<Record<string, any>>((resolve) => {
+        chrome.storage.local.get(['promptlint_user_data', 'promptlint_privacy_settings'], resolve);
+      });
       
       const exportData = {
         exportedAt: new Date().toISOString(),

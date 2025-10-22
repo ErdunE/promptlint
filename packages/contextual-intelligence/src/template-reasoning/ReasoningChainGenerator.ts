@@ -4,7 +4,7 @@ import {
   ReasoningStep,
   ReasoningDocumentation 
 } from '../shared/ContextualTypes.js';
-import { IntentAnalysis } from '../shared/IntentTypes.js';
+import { IntentAnalysis, InteractionStyle } from '../shared/IntentTypes.js';
 
 export class ReasoningChainGenerator {
   private reasoningPatterns!: Map<string, ReasoningPattern>;
@@ -213,7 +213,7 @@ export class ReasoningChainGenerator {
     }
 
     // Communication style optimizations
-    if (intentAnalysis.interaction.interactionStyle === 'technical') {
+    if (intentAnalysis.interaction.interactionStyle === InteractionStyle.DIRECTIVE) {
       optimizations.push('Technical terminology and precision optimization');
     }
 

@@ -321,10 +321,10 @@ export class BehaviorAnalytics {
         confidence: Math.min(100, (count / history.length) * 100),
         frequency: count,
         templateTypes: [templateType],
-        domains: [...new Set(history
+        domains: [...Array.from(new Set(history
           .filter(h => h.selectedTemplate === templateType)
           .map(h => h.domainClassification.domain)
-        )]
+        ))]
       }));
   }
 
@@ -388,10 +388,10 @@ export class BehaviorAnalytics {
         pattern: `peak_usage_hour_${peakHour[0]}`,
         confidence: (peakHour[1] / history.length) * 100,
         frequency: peakHour[1],
-        templateTypes: [...new Set(history
+        templateTypes: [...Array.from(new Set(history
           .filter(h => h.timestamp.getHours() === peakHour[0])
           .map(h => h.selectedTemplate)
-        )],
+        ))],
         domains: [],
         timePattern: {
           hourOfDay: [peakHour[0]],

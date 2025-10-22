@@ -109,8 +109,8 @@ export class PlatformStateAnalyzer {
 
   private detectCurrentPlatform(context: any): AIPlatform {
     // In real implementation, would detect from browser context
-    const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : '';
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const userAgent = typeof globalThis !== 'undefined' && (globalThis as any).navigator ? (globalThis as any).navigator.userAgent : '';
+    const hostname = typeof globalThis !== 'undefined' && (globalThis as any).location ? (globalThis as any).location.hostname : '';
 
     if (hostname.includes('openai.com') || hostname.includes('chatgpt.com')) {
       return AIPlatform.CHATGPT;

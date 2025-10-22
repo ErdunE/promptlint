@@ -8,6 +8,7 @@ import { CollaborativeContextManager } from './contextual-reasoning/Collaborativ
 import { ReasoningChainGenerator } from './template-reasoning/ReasoningChainGenerator.js';
 import { ReferenceHistoryManager } from './meta-information/ReferenceHistoryManager.js';
 import { PlatformStateAnalyzer } from './meta-information/PlatformStateAnalyzer.js';
+import { AIPlatform } from './shared/ContextualTypes.js';
 
 async function runLevel4CompleteDemo(): Promise<void> {
   console.log('🎯 Level 4 Contextual Intelligence Engine - Complete System Demo');
@@ -94,6 +95,19 @@ async function runLevel4CompleteDemo(): Promise<void> {
     const contextualReasoning = {
       projectContext,
       collaborativeContext,
+      platformContext: {
+        currentPlatform: AIPlatform.GENERIC,
+        capabilities: [],
+        contextWindow: {
+          maxTokens: 4096,
+          currentUsage: 0,
+          remainingCapacity: 4096,
+          estimatedCost: 0
+        },
+        optimizationOpportunities: [],
+        confidence: 0.8,
+        processingTime: 0
+      },
       overallConfidence: (projectContext.confidence + collaborativeContext.confidence) / 2,
       processingTime: (projectContext.processingTime || 0) + collaborativeContext.processingTime
     };

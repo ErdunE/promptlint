@@ -12,11 +12,13 @@ import { InputMonitor } from './input-monitor';
 import { globalErrorHandler, ErrorType } from './error-handler';
 import { extensionRephraseService } from './rephrase-service';
 import { ContextAwareRephraseService } from '../services/context-aware-rephrase-service.js';
+import { UnifiedLevel5Experience, createUnifiedLevel5Experience } from '../level5/UnifiedExperience.js';
 
 class PromptLintContentScript {
   private uiInjector: UIInjector | null = null;
   private inputMonitor: InputMonitor | null = null;
   private contextAwareService: ContextAwareRephraseService | null = null;
+  private level5Experience: UnifiedLevel5Experience | null = null;
   private isInitialized = false;
 
   async initialize(): Promise<void> {
@@ -112,6 +114,25 @@ class PromptLintContentScript {
       const contextAwareStatus = await this.contextAwareService.initialize();
       console.log('[PromptLint] Context-aware service status:', contextAwareStatus);
 
+      // Initialize Level 5 Advanced Intelligence (v0.8.0.5)
+      console.log('[PromptLint] Initializing Level 5 Advanced Intelligence...');
+      try {
+        this.level5Experience = createUnifiedLevel5Experience({
+          enableOrchestration: true,
+          enableTransparency: true,
+          showAlternatives: true,
+          enableFeedbackLearning: true,
+          maxResponseTime: 100,
+          debugMode: false
+        });
+        
+        await this.level5Experience.initializeOrchestration();
+        console.log('[PromptLint] Level 5 Advanced Intelligence initialized successfully');
+      } catch (error) {
+        console.warn('[PromptLint] Level 5 initialization failed, continuing with Level 4 only:', error);
+        this.level5Experience = null;
+      }
+
       // Initialize UI components with error handling
       const uiInitialized = await globalErrorHandler.attemptRecovery(
         async () => {
@@ -122,6 +143,24 @@ class PromptLintContentScript {
             panelOptions: { enableRephrase: true }
           }, rephraseCallbacks);
           await this.uiInjector.initialize();
+          
+          // Connect Level 5 experience to the floating panel
+          if (this.level5Experience) {
+            const floatingPanel = this.uiInjector.getFloatingPanel();
+            if (floatingPanel) {
+              floatingPanel.setLevel5Experience(this.level5Experience);
+              console.log('[PromptLint] Level 5 experience connected to UI');
+              
+              // Initialize ghost text functionality
+              try {
+                await this.initializeGhostText();
+                console.log('[PromptLint] Ghost text functionality initialized');
+              } catch (error) {
+                console.warn('[PromptLint] Ghost text initialization failed:', error);
+              }
+            }
+          }
+          
           return true;
         },
         ErrorType.DOM_INJECTION_FAILED,
@@ -194,6 +233,12 @@ class PromptLintContentScript {
         this.uiInjector = null;
       }
 
+      if (this.level5Experience) {
+        console.log('[PromptLint] Cleaning up Level 5 Advanced Intelligence...');
+        // Level 5 cleanup would go here when implemented
+        this.level5Experience = null;
+      }
+
       // Safely cleanup adapter with error handling
       try {
         const adapter = await getCurrentSiteAdapter();
@@ -211,6 +256,259 @@ class PromptLintContentScript {
       console.error('[PromptLint] Error during cleanup:', error);
       // Ensure initialization state is reset even if cleanup fails
       this.isInitialized = false;
+    }
+  }
+
+  /**
+   * Initialize ghost text functionality for predictive assistance
+   */
+  private async initializeGhostText(): Promise<void> {
+    if (!this.level5Experience) {
+      throw new Error('Level 5 experience not available');
+    }
+
+    // Find input elements on the page
+    const inputSelectors = [
+      'textarea[placeholder*="message"]',
+      'textarea[data-testid*="input"]',
+      'input[type="text"]',
+      '[contenteditable="true"]',
+      '.ProseMirror',
+      '#prompt-textarea'
+    ];
+
+    for (const selector of inputSelectors) {
+      const elements = document.querySelectorAll(selector);
+      // Convert NodeList to Array for proper iteration
+      Array.from(elements).forEach(async (element) => {
+        try {
+          await this.attachGhostTextToElement(element as HTMLElement);
+        } catch (error) {
+          console.warn(`[PromptLint] Failed to attach ghost text to ${selector}:`, error);
+        }
+      });
+    }
+  }
+
+  /**
+   * Attach ghost text functionality to a specific input element
+   */
+  private async attachGhostTextToElement(element: HTMLElement): Promise<void> {
+    if (!this.level5Experience) return;
+
+    // PHASE 2B: Add debouncing to reduce generation frequency
+    let debounceTimeout: NodeJS.Timeout | null = null;
+    const DEBOUNCE_DELAY = 300; // 300ms delay for better performance
+
+    // Add input event listener for ghost text generation
+    element.addEventListener('input', async (event) => {
+      console.log('[DEBUG] ===== INPUT EVENT FIRED =====');
+      console.log('[DEBUG] Event target:', event.target);
+      console.log('[DEBUG] Event target type:', (event.target as any).constructor.name);
+      console.log('[DEBUG] Event target tagName:', (event.target as HTMLElement).tagName);
+      
+      const target = event.target as HTMLElement;
+      
+      // CRITICAL FIX: ContentEditable elements use textContent/innerText, not .value
+      let partialInput = '';
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+        partialInput = target.value || '';
+      } else {
+        // Handle contenteditable elements (like ChatGPT's input)
+        partialInput = (target.textContent || target.innerText || '').trim();
+      }
+      
+      console.log('[DEBUG] Partial input retrieved:', partialInput.substring(0, 50));
+      console.log('[DEBUG] Input length:', partialInput.length);
+      console.log('[DEBUG] Length check (>3):', partialInput.length > 3);
+
+      // Clear existing timeout
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
+        console.log('[DEBUG] Cleared previous debounce timeout');
+      }
+
+      // Only generate ghost text for meaningful input
+      if (partialInput && partialInput.length > 3) {
+        // PHASE 2B: Debounce ghost text generation
+        debounceTimeout = setTimeout(async () => {
+          console.log('[DEBUG] ✅ Debounce completed - generating ghost text...');
+          try {
+            const ghostText = await this.generateGhostTextSuggestion(partialInput);
+            console.log('[DEBUG] Ghost text generated:', ghostText ? `"${ghostText.substring(0, 50)}..."` : 'NULL');
+            if (ghostText) {
+              this.displayGhostText(element, ghostText);
+            } else {
+              console.warn('[DEBUG] Ghost text generation returned null');
+            }
+          } catch (error) {
+            console.error('[DEBUG] Ghost text generation exception:', error);
+          }
+        }, DEBOUNCE_DELAY);
+        console.log(`[DEBUG] Debounce timer set (${DEBOUNCE_DELAY}ms)`);
+      } else {
+        console.log('[DEBUG] ❌ Length check failed - input too short or empty');
+        // Clear ghost text if input is too short
+        const existingGhost = document.querySelector('.promptlint-ghost-text');
+        if (existingGhost) {
+          existingGhost.remove();
+          console.log('[DEBUG] Removed ghost text (input too short)');
+        }
+      }
+    });
+
+    console.log('[PromptLint] Ghost text attached to element:', element.tagName);
+  }
+
+  /**
+   * Generate ghost text suggestion using Level 5 intelligence
+   */
+  private async generateGhostTextSuggestion(partialInput: string): Promise<string | null> {
+    console.log('[DEBUG] ===== GENERATE GHOST TEXT START =====');
+    console.log('[DEBUG] Input:', partialInput.substring(0, 50));
+    console.log('[DEBUG] Level5Experience exists:', !!this.level5Experience);
+    
+    if (!this.level5Experience) {
+      console.error('[DEBUG] BLOCKED: No Level 5 experience initialized');
+      return null;
+    }
+
+    try {
+      const context = {
+        platform: window.location.hostname,
+        url: window.location.href,
+        ghostTextMode: true
+      };
+      console.log('[DEBUG] Calling provideUnifiedAssistance with context:', context);
+      
+      const result = await this.level5Experience.provideUnifiedAssistance(partialInput, context);
+      
+      console.log('[DEBUG] Unified assistance result:', {
+        hasResult: !!result,
+        hasPrimarySuggestion: !!result?.primarySuggestion,
+        suggestionLength: result?.primarySuggestion?.length || 0,
+        suggestionPreview: result?.primarySuggestion?.substring(0, 100) || '[EMPTY]'
+      });
+      console.log('[DEBUG] ===== GENERATE GHOST TEXT END =====');
+
+      return result?.primarySuggestion || null;
+    } catch (error) {
+      console.error('[DEBUG] Ghost text generation exception:', error);
+      console.error('[DEBUG] Exception stack:', (error as Error).stack);
+      return null;
+    }
+  }
+
+  /**
+   * Display ghost text as a subtle overlay
+   * PHASE 2B: Enhanced visual design with better contrast and positioning
+   */
+  private displayGhostText(element: HTMLElement, ghostText: string): void {
+    if (!element || !ghostText || ghostText.length === 0) {
+      console.warn('[PromptLint] Cannot display ghost text - invalid parameters');
+      return;
+    }
+
+    try {
+      // Remove existing ghost text
+      const existingGhost = document.querySelector('.promptlint-ghost-text');
+      if (existingGhost) {
+        existingGhost.remove();
+      }
+
+      // Create ghost text element
+      const ghostElement = document.createElement('div');
+      ghostElement.className = 'promptlint-ghost-text';
+      
+      // Add suggestion icon prefix
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = '💡 ';
+      iconSpan.style.cssText = 'margin-right: 4px; font-size: 14px;';
+      
+      const textSpan = document.createElement('span');
+      textSpan.textContent = ghostText;
+      
+      ghostElement.appendChild(iconSpan);
+      ghostElement.appendChild(textSpan);
+
+      // PHASE 2B: Improved visual styling with better contrast
+      ghostElement.style.cssText = `
+        position: fixed;
+        color: #4a5568;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        pointer-events: none;
+        z-index: 10000;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 250, 252, 0.98) 100%);
+        padding: 8px 14px;
+        border-radius: 8px;
+        max-width: min(500px, 80vw);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1.5px solid rgba(100, 120, 200, 0.2);
+        backdrop-filter: blur(8px);
+        animation: ghostTextFadeIn 0.2s ease-out;
+      `;
+
+      // Add subtle animation keyframes
+      if (!document.querySelector('#promptlint-ghost-text-styles')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'promptlint-ghost-text-styles';
+        styleSheet.textContent = `
+          @keyframes ghostTextFadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-4px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `;
+        document.head.appendChild(styleSheet);
+      }
+
+      // PHASE 2B: Improved positioning with viewport awareness
+      const rect = element.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Calculate position with boundary checks
+      let top = rect.bottom + window.scrollY + 10;
+      let left = rect.left + window.scrollX;
+      
+      // Ensure ghost text doesn't go off-screen horizontally
+      const ghostWidth = Math.min(500, viewportWidth * 0.8);
+      if (left + ghostWidth > viewportWidth) {
+        left = viewportWidth - ghostWidth - 20;
+      }
+      
+      // If too close to bottom, show above input instead
+      if (rect.bottom + 60 > viewportHeight) {
+        top = rect.top + window.scrollY - 60;
+      }
+      
+      ghostElement.style.top = `${top}px`;
+      ghostElement.style.left = `${left}px`;
+
+      // Add to page
+      document.body.appendChild(ghostElement);
+
+      console.log('[PromptLint] Ghost text displayed:', ghostText.substring(0, 30) + '...');
+
+      // PHASE 2B: Increased auto-remove time for readability (6 seconds)
+      setTimeout(() => {
+        if (ghostElement && ghostElement.parentElement) {
+          ghostElement.remove();
+          console.log('[PromptLint] Ghost text auto-removed after timeout');
+        }
+      }, 6000);
+    } catch (error) {
+      console.error('[PromptLint] Failed to display ghost text:', error);
     }
   }
 }

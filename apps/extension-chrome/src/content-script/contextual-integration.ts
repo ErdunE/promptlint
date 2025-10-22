@@ -47,13 +47,21 @@ export class Level4IntegrationService {
   constructor() {
     try {
       this.instructionAnalyzer = createInstructionAnalyzer();
-      this.contextBridge = createContextBridge();
+      this.contextBridge = this.createSimpleContextBridge();
       this.isInitialized = true;
       console.log('[Level4] Successfully initialized with real Level 4 components');
     } catch (error) {
       console.warn('[Level4] Failed to initialize Level 4 components, using fallback:', error);
       this.isInitialized = false;
     }
+  }
+
+  /**
+   * Initialize the Level 4 integration service
+   */
+  async initialize(): Promise<void> {
+    console.log('[Level4IntegrationService] Initializing...');
+    // Initialization logic here
   }
 
   async analyzePromptWithLevel4Intelligence(prompt: string): Promise<Level4AnalysisResult> {
@@ -425,7 +433,7 @@ export class Level4IntegrationService {
       ]
     };
     
-    const categoryTemplates = templates[category] || templates[IntentCategory.CREATE];
+    const categoryTemplates = (templates as any)[category] || (templates as any)[IntentCategory.CREATE];
     return categoryTemplates[index % categoryTemplates.length];
   }
 
@@ -436,12 +444,12 @@ export class Level4IntegrationService {
       [IntentCategory.DEBUG]: ['TaskIO', 'Sequential', 'Bullet']
     };
     
-    const templates = templateMapping[category] || templateMapping[IntentCategory.CREATE];
+    const templates = (templateMapping as any)[category] || (templateMapping as any)[IntentCategory.CREATE];
     return templates[index % templates.length];
   }
 
   private analyzeHistoryPatterns(history: any[]): any[] {
-    const patterns = [];
+    const patterns: any[] = [];
     
     // Template effectiveness pattern
     const templateStats = history.reduce((acc, h) => {
@@ -509,7 +517,7 @@ export class Level4IntegrationService {
         { feature: 'basic_generation', supported: true, limitations: [] }
       ]
     };
-    return capabilities[platform] || capabilities.generic;
+    return (capabilities as any)[platform] || capabilities.generic;
   }
 
   private generateUserInsights(intentAnalysis: any, contextualReasoning: any, reasoningChain: any): UserInsights {
@@ -520,7 +528,7 @@ export class Level4IntegrationService {
       collaborationLevel: contextualReasoning.collaborativeContext.collaborationLevel,
       optimizationOpportunities: reasoningChain.optimizationOpportunities?.length || 0,
       reasoningSteps: reasoningChain.steps?.length || 0,
-      confidence: Math.round(intentAnalysis.confidence * 100)
+      confidence: intentAnalysis.confidence  // FIXED: Keep as decimal (0-1), don't multiply by 100
     };
   }
 
@@ -731,5 +739,34 @@ export class Level4IntegrationService {
     }
     
     return suggestions;
+  }
+
+  /**
+   * Create a simple context bridge for caching
+   */
+  private createSimpleContextBridge() {
+    const cache = new Map<string, { data: any; expiry: number }>();
+    
+    return {
+      async get(key: string): Promise<any> {
+        const cached = cache.get(key);
+        if (cached && cached.expiry > Date.now()) {
+          return cached.data;
+        }
+        cache.delete(key);
+        return null;
+      },
+      
+      async set(key: string, data: any, ttlMs: number = 300000): Promise<void> {
+        cache.set(key, {
+          data,
+          expiry: Date.now() + ttlMs
+        });
+      },
+      
+      async clear(): Promise<void> {
+        cache.clear();
+      }
+    };
   }
 }

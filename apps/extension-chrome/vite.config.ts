@@ -57,7 +57,10 @@ export default defineConfig({
       '@promptlint/shared-types': resolve(__dirname, '../../packages/shared-types/src'),
       '@promptlint/contextual-intelligence': resolve(__dirname, '../../packages/contextual-intelligence/src'),
       '@promptlint/template-engine': resolve(__dirname, '../../packages/template-engine/src'),
-      '@promptlint/llm-service': resolve(__dirname, '../../packages/llm-service/src')
+      '@promptlint/llm-service': resolve(__dirname, '../../packages/llm-service/src'),
+      '@promptlint/level5-memory': resolve(__dirname, '../../packages/level5-memory/src'),
+      '@promptlint/level5-predictive': resolve(__dirname, '../../packages/level5-predictive/src'),
+      '@promptlint/level5-orchestration': resolve(__dirname, '../../packages/level5-orchestration/src')
     }
   },
   define: {

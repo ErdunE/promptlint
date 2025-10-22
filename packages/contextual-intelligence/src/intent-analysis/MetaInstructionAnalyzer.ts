@@ -29,11 +29,11 @@ export class MetaInstructionAnalyzer {
         /\b(?:free|cost|budget|cheap|expensive|affordable)\b/gi,
         /\b(?:limited resources|minimal cost|no budget)\b/gi
       ]],
-      [ConstraintType.TECHNICAL, [
+      [ConstraintType.TECHNOLOGY, [
         /\b(?:using|with|in|must use|required|only|specific)\b/gi,
         /\b(?:framework|library|language|platform|tool)\b/gi
       ]],
-      [ConstraintType.QUALITY, [
+      [ConstraintType.SECURITY, [
         /\b(?:production|enterprise|scalable|robust|secure)\b/gi,
         /\b(?:best practices|high quality|professional)\b/gi
       ]],
@@ -133,8 +133,12 @@ export class MetaInstructionAnalyzer {
     const technicalStack = this.inferTechnicalStack(prompt);
 
     return {
+      projectType: 'software_development' as any, // Default project type
+      stage: 'development' as any, // Default stage
       phase: detectedPhase,
+      techStack: [], // Default empty tech stack
       technicalStack,
+      teamStructure: 'individual' as any, // Default team structure
       complexity: this.assessProjectComplexity(prompt),
       confidence
     };
@@ -227,9 +231,9 @@ export class MetaInstructionAnalyzer {
         return `Time constraint detected: "${match}"`;
       case ConstraintType.BUDGET:
         return `Budget constraint detected: "${match}"`;
-      case ConstraintType.TECHNICAL:
+      case ConstraintType.TECHNOLOGY:
         return `Technical constraint detected: "${match}"`;
-      case ConstraintType.QUALITY:
+      case ConstraintType.SECURITY:
         return `Quality constraint detected: "${match}"`;
       case ConstraintType.SCOPE:
         return `Scope constraint detected: "${match}"`;
@@ -294,8 +298,12 @@ export class MetaInstructionAnalyzer {
     return {
       constraints: [],
       projectContext: {
+        projectType: 'software_development' as any,
+        stage: 'development' as any,
         phase: ProjectPhase.DEVELOPMENT,
+        techStack: [],
         technicalStack: { languages: [], frameworks: [], tools: [], platforms: [] },
+        teamStructure: 'individual' as any,
         complexity: ProjectComplexity.LOW,
         confidence: 0.3
       },

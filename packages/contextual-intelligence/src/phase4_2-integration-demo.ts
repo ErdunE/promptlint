@@ -74,21 +74,21 @@ async function runPhase42IntegrationDemo(): Promise<void> {
     console.log(`   Phase: ${projectContext.phase}`);
     console.log(`   Complexity: ${projectContext.complexity}`);
     console.log(`   Technical Stack:`);
-    if (projectContext.technicalStack.languages.length > 0) {
+    if (projectContext.technicalStack?.languages && projectContext.technicalStack.languages.length > 0) {
       console.log(`     Languages: ${projectContext.technicalStack.languages.join(', ')}`);
     }
-    if (projectContext.technicalStack.frameworks.length > 0) {
+    if (projectContext.technicalStack?.frameworks && projectContext.technicalStack.frameworks.length > 0) {
       console.log(`     Frameworks: ${projectContext.technicalStack.frameworks.join(', ')}`);
     }
-    if (projectContext.technicalStack.tools.length > 0) {
+    if (projectContext.technicalStack?.tools && projectContext.technicalStack.tools.length > 0) {
       console.log(`     Tools: ${projectContext.technicalStack.tools.join(', ')}`);
     }
-    if (projectContext.technicalStack.platforms.length > 0) {
+    if (projectContext.technicalStack?.platforms && projectContext.technicalStack.platforms.length > 0) {
       console.log(`     Platforms: ${projectContext.technicalStack.platforms.join(', ')}`);
     }
-    console.log(`   Timeline: ${projectContext.timeline.urgency} (${(projectContext.timeline.confidence * 100).toFixed(1)}% confidence)`);
-    console.log(`   Constraints: ${projectContext.constraints.length} detected`);
-    if (projectContext.constraints.length > 0) {
+    console.log(`   Timeline: ${projectContext.timeline?.urgency} (${projectContext.timeline?.confidence ? (projectContext.timeline.confidence * 100).toFixed(1) : '0'}% confidence)`);
+    console.log(`   Constraints: ${projectContext.constraints?.length || 0} detected`);
+    if (projectContext.constraints && projectContext.constraints.length > 0) {
       projectContext.constraints.forEach((constraint: any) => {
         console.log(`     - ${constraint.type}: ${constraint.description} (${constraint.severity})`);
       });

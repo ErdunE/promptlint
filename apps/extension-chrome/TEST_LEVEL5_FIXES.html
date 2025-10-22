@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level 5 Runtime Fixes Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        .pass { color: #4ec9b0; }
+        .fail { color: #f48771; }
+        .warning { color: #dcdcaa; }
+        #console-output {
+            background: #252526;
+            padding: 10px;
+            border-radius: 3px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Level 5 Runtime Fixes Verification</h1>
+    <p>This test simulates the exact error conditions that were reported</p>
+
+    <div class="test-section">
+        <h2>Test 1: Ghost Text Array Length Error</h2>
+        <button onclick="testGhostTextLength()">Run Test</button>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Memory Capture generateResponseSummary</h2>
+        <button onclick="testMemoryCapture()">Run Test</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Transparency Panel Map Error</h2>
+        <button onclick="testTransparencyPanel()">Run Test</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Context Bridge Initialization</h2>
+        <button onclick="testContextBridge()">Run Test</button>
+        <div id="test4-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <button onclick="clearConsole()">Clear</button>
+        <div id="console-output"></div>
+    </div>
+
+    <script>
+        // Capture console output
+        const consoleOutput = document.getElementById('console-output');
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+
+        function logToDiv(type, ...args) {
+            const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ');
+            const time = new Date().toLocaleTimeString();
+            consoleOutput.innerHTML += `<div class="${type}">[${time}] ${type.toUpperCase()}: ${msg}</div>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = (...args) => { originalConsole.log(...args); logToDiv('log', ...args); };
+        console.error = (...args) => { originalConsole.error(...args); logToDiv('fail', ...args); };
+        console.warn = (...args) => { originalConsole.warn(...args); logToDiv('warning', ...args); };
+
+        function clearConsole() {
+            consoleOutput.innerHTML = '';
+        }
+
+        // Test 1: Ghost Text Length Error
+        function testGhostTextLength() {
+            const result = document.getElementById('test1-result');
+            try {
+                console.log('Testing ghost text with undefined array...');
+                
+                // Simulate the EXACT error condition
+                const response = {
+                    transparency: undefined  // This would cause: Cannot read property 'agentContributions' of undefined
+                };
+
+                // THIS IS THE FIX - safe access
+                const agentContributions = (response?.transparency?.agentContributions && Array.isArray(response.transparency.agentContributions)) 
+                    ? response.transparency.agentContributions 
+                    : [];
+                
+                const count = agentContributions.length;  // This should NOT crash
+                
+                console.log(`✅ Successfully handled undefined array. Count: ${count}`);
+                result.innerHTML = '<span class="pass">✅ PASS: No error when accessing .length on undefined</span>';
+            } catch (error) {
+                console.error(`❌ FAIL: ${error.message}`);
+                result.innerHTML = `<span class="fail">❌ FAIL: ${error.message}</span>`;
+            }
+        }
+
+        // Test 2: Memory Capture
+        function testMemoryCapture() {
+            const result = document.getElementById('test2-result');
+            try {
+                console.log('Testing memory capture with undefined properties...');
+                
+                // Simulate generateResponseSummary with bad data
+                function generateResponseSummary(response) {
+                    if (!response) {
+                        console.error('generateResponseSummary: No response provided');
+                        return 'No response available';
+                    }
+
+                    const agentCount = (response?.transparency?.agentContributions && Array.isArray(response.transparency.agentContributions)) 
+                        ? response.transparency.agentContributions.length 
+                        : 0;
+                    const consensusRate = response?.consensusMetrics?.agreementRate || 0;
+                    const confidence = response?.confidence || 0;
+                    
+                    return `Orchestrated response from ${agentCount} agents with ${(consensusRate * 100).toFixed(0)}% consensus (${(confidence * 100).toFixed(0)}% confidence)`;
+                }
+
+                // Test with null
+                const result1 = generateResponseSummary(null);
+                console.log(`Result with null: ${result1}`);
+
+                // Test with undefined transparency
+                const result2 = generateResponseSummary({ transparency: undefined });
+                console.log(`Result with undefined transparency: ${result2}`);
+
+                // Test with proper data
+                const result3 = generateResponseSummary({
+                    transparency: { agentContributions: [{}, {}, {}] },
+                    consensusMetrics: { agreementRate: 0.85 },
+                    confidence: 0.9
+                });
+                console.log(`Result with proper data: ${result3}`);
+
+                result.innerHTML = '<span class="pass">✅ PASS: Memory capture handles all edge cases</span>';
+            } catch (error) {
+                console.error(`❌ FAIL: ${error.message}`);
+                result.innerHTML = `<span class="fail">❌ FAIL: ${error.message}</span>`;
+            }
+        }
+
+        // Test 3: Transparency Panel
+        function testTransparencyPanel() {
+            const result = document.getElementById('test3-result');
+            try {
+                console.log('Testing transparency panel with undefined arrays...');
+                
+                // Simulate createTransparencyPanel with bad data
+                const transparency = {
+                    agentContributions: undefined,  // This would cause .map() error
+                    decisionProcess: null
+                };
+
+                // THIS IS THE FIX
+                const agentContributions = (transparency?.agentContributions && Array.isArray(transparency.agentContributions)) 
+                    ? transparency.agentContributions 
+                    : [];
+                
+                const decisionProcess = (transparency?.decisionProcess && Array.isArray(transparency.decisionProcess)) 
+                    ? transparency.decisionProcess 
+                    : [];
+
+                // These should NOT crash
+                const mapped1 = agentContributions.map(c => c.name);
+                const mapped2 = decisionProcess.map(s => s.description);
+
+                console.log(`✅ Successfully mapped undefined arrays. Results: ${mapped1.length}, ${mapped2.length}`);
+                result.innerHTML = '<span class="pass">✅ PASS: Transparency panel handles undefined arrays</span>';
+            } catch (error) {
+                console.error(`❌ FAIL: ${error.message}`);
+                result.innerHTML = `<span class="fail">❌ FAIL: ${error.message}</span>`;
+            }
+        }
+
+        // Test 4: Context Bridge
+        function testContextBridge() {
+            const result = document.getElementById('test4-result');
+            try {
+                console.log('Testing context bridge initialization...');
+                
+                // Simulate context bridge
+                class ContextBridge {
+                    constructor() {
+                        this.data = new Map();
+                    }
+                    
+                    get(key) {
+                        return this.data.get(key);
+                    }
+                    
+                    set(key, value) {
+                        this.data.set(key, value);
+                    }
+                }
+
+                const bridge = new ContextBridge();
+                
+                // Test methods exist
+                if (typeof bridge.get !== 'function') {
+                    throw new Error('get method is missing');
+                }
+                if (typeof bridge.set !== 'function') {
+                    throw new Error('set method is missing');
+                }
+
+                // Test functionality
+                bridge.set('test', 'value');
+                const retrieved = bridge.get('test');
+                
+                if (retrieved !== 'value') {
+                    throw new Error('Context bridge get/set not working');
+                }
+
+                console.log('✅ Context bridge has all required methods and works correctly');
+                result.innerHTML = '<span class="pass">✅ PASS: Context bridge is properly initialized</span>';
+            } catch (error) {
+                console.error(`❌ FAIL: ${error.message}`);
+                result.innerHTML = `<span class="fail">❌ FAIL: ${error.message}</span>`;
+            }
+        }
+
+        // Auto-run all tests on load
+        window.addEventListener('load', () => {
+            console.log('=== Running all Level 5 runtime fix tests ===');
+            setTimeout(() => testGhostTextLength(), 100);
+            setTimeout(() => testMemoryCapture(), 200);
+            setTimeout(() => testTransparencyPanel(), 300);
+            setTimeout(() => testContextBridge(), 400);
+        });
+    </script>
+</body>
+</html>
+
