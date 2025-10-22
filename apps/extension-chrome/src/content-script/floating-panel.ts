@@ -139,24 +139,33 @@ export class FloatingPanel {
     console.log('[PromptLint DEBUG] Data URL length:', iconDataUrl.length);
     console.log('[PromptLint DEBUG] Data URL starts with:', iconDataUrl.substring(0, 30) + '...');
     
-    title.innerHTML = `
-      <img src="${iconDataUrl}" alt="PromptLint" class="promptlint-panel__title-icon" 
-           onload="console.log('[PromptLint DEBUG] Icon loaded successfully')" 
-           onerror="console.error('[PromptLint DEBUG] Icon loading failed:', this.src.substring(0, 100) + '...')">
-      <span class="promptlint-panel__title-text">PromptLint</span>
-    `;
+    // Create elements programmatically (CSP compliant)
+    const img = document.createElement('img');
+    img.src = iconDataUrl;
+    img.alt = 'PromptLint';
+    img.className = 'promptlint-panel__title-icon';
+    
+    // Add event listeners programmatically (CSP compliant)
+    img.addEventListener('load', () => {
+      console.log('[PromptLint DEBUG] Icon loaded successfully');
+    });
+    
+    img.addEventListener('error', () => {
+      console.error('[PromptLint DEBUG] Icon loading failed:', img.src.substring(0, 100) + '...');
+    });
+    
+    const titleText = document.createElement('span');
+    titleText.className = 'promptlint-panel__title-text';
+    titleText.textContent = 'PromptLint';
+    
+    title.appendChild(img);
+    title.appendChild(titleText);
     
     // Debug DOM element creation
     console.log('[PromptLint DEBUG] Title element created:', title);
-    console.log('[PromptLint DEBUG] Title innerHTML length:', title.innerHTML.length);
-    
-    // Check if img element was created
-    const imgElement = title.querySelector('img');
-    console.log('[PromptLint DEBUG] Img element found:', !!imgElement);
-    if (imgElement) {
-      console.log('[PromptLint DEBUG] Img src length:', imgElement.src.length);
-      console.log('[PromptLint DEBUG] Img src starts with:', imgElement.src.substring(0, 30) + '...');
-    }
+    console.log('[PromptLint DEBUG] Img element appended');
+    console.log('[PromptLint DEBUG] Img src length:', img.src.length);
+    console.log('[PromptLint DEBUG] Img src starts with:', img.src.substring(0, 30) + '...');
     
     // Create AI Agent dropdown
     this.aiAgentDropdown = document.createElement('div');

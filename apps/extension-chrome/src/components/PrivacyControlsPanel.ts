@@ -360,7 +360,7 @@ export class PrivacyControlsPanel {
               <strong>Oldest Entry:</strong> ${storageInfo.oldestEntry.toLocaleDateString()}
             </div>
           </div>
-          <button class="privacy-btn secondary" onclick="this.parentElement.remove()">Close</button>
+          <button class="privacy-btn secondary">Close</button>
         </div>
       `;
       
@@ -369,6 +369,14 @@ export class PrivacyControlsPanel {
       modal.innerHTML = infoHTML;
       
       this.container.appendChild(modal);
+      
+      // Add event listener programmatically (CSP compliant)
+      const closeBtn = modal.querySelector('.privacy-btn.secondary');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          modal.remove();
+        });
+      }
 
     } catch (error) {
       console.error('[Privacy Controls] Failed to get storage info:', error);
