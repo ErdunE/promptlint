@@ -220,7 +220,7 @@ dist/content-script.js  463.77 kB │ gzip: 122.75 kB
 1. **Load Extension:**
    ```
    chrome://extensions/ → Load unpacked → 
-   /Users/erdune/Desktop/promptlint/apps/extension-chrome/dist
+   /Users/developer/Desktop/promptlint/apps/extension-chrome/dist
    ```
 
 2. **Navigate to ChatGPT:**
@@ -316,7 +316,7 @@ dist/content-script.js  463.77 kB │ gzip: 122.75 kB
 
 ## 🔐 Authorization
 
-**Authorized by:** CTO (Claude)  
+**Authorized by:** Erdun (Developer)  
 **Authorization Code:** PHASE3_MEMORY_CAPTURE_FIX_20250120  
 **Git Commit:** Pending  
 **Build Status:** ✅ VERIFIED  

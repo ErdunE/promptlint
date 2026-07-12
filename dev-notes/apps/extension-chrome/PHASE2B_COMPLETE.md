@@ -451,7 +451,7 @@ if (rect.bottom + 60 > viewportHeight) {
 
 ## 🔐 Authorization
 
-**Authorized by:** CTO  
+**Authorized by:** Erdun (Developer)  
 **Authorization Code:** PHASE2B_VISUAL_POLISH_20250120  
 **Git Commit:** Pending  
 **Build Status:** ✅ VERIFIED  

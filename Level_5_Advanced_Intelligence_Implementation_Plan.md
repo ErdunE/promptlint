@@ -194,58 +194,28 @@ Learning System ← Multi-Agent ← Advanced Features
 
 ---
 
-## 4. Agent Responsibilities at Each Milestone
+## 4. Developer Responsibilities at Each Milestone
 
-### 4.1 Claude (CTO) Responsibilities
+The project is designed and developed independently by the developer (Erdun). AI-based coding tools (e.g., Claude Code, Cursor) are used only as auxiliary aids under the developer's design and direction; all architecture decisions, quality gates, and go/no-go calls are made by the developer.
+
 **Architecture Phase (v0.8.0.x):**
-- Define Level 5 technical architecture
-- Create implementation directives for Cursor
+- Define the Level 5 technical architecture
+- Break the architecture into concrete implementation directives
 - Establish quality gates and validation criteria
 
 **Implementation Phases (v0.8.1.x - v0.8.5.x):**
-- Review and validate Cursor implementations
-- Provide technical guidance and troubleshooting
-- Conduct architecture compliance audits
+- Implement the memory persistence layer (IndexedDB), prediction algorithms, proactive-suggestion UI, and multi-agent orchestration system
+- Review and validate each implementation against the architecture
+- Conduct unit and integration testing and resolve blockers
 
 **Optimization Phase (v0.8.6.x - v0.8.9.x):**
 - Performance optimization strategies
 - Security and privacy review
 - Production readiness certification
 
-### 4.2 Cursor (Development Team) Responsibilities
-**All Phases:**
-- Implement technical specifications from Claude
-- Write production-quality code
-- Conduct unit and integration testing
-- Report implementation status and blockers
-
-**Specific Deliverables:**
-- Memory persistence layer (IndexedDB)
-- Prediction algorithms implementation
-- UI components for proactive suggestions
-- Multi-agent orchestration system
-
-### 4.3 ChatGPT (Assistant) Responsibilities
-**Progress Tracking:**
-- Maintain milestone completion status
-- Generate weekly progress reports
-- Track technical debt and issues
-
-**Information Organization:**
-- Document architectural decisions
-- Compile validation results
-- Organize user feedback data
-
-### 4.4 Erdun (CEO) Responsibilities
-**Strategic Decisions:**
-- Prioritize feature development order
-- Approve major architectural changes
-- Define user value metrics
-
-**Quality Gates:**
-- Review user experience at each milestone
-- Approve progression to next phase
-- Make go/no-go deployment decisions
+**Progress & Quality Management (all phases):**
+- Maintain milestone status, document architectural decisions, and compile validation results
+- Prioritize feature order, approve major architectural changes, and make go/no-go deployment decisions
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/level5-memory",
-  "version": "0.8.0.0",
+  "version": "0.8.0",
   "description": "Level 5 Persistent Memory Manager - Multi-session context preservation with IndexedDB",
   "type": "module",
   "main": "dist/index.js",

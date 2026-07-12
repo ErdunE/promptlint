@@ -23,7 +23,7 @@
 ## 📦 Build Status
 
 ```bash
-cd /Users/erdune/Desktop/promptlint/apps/extension-chrome
+cd /Users/developer/Desktop/promptlint/apps/extension-chrome
 npm run build
 ```
 

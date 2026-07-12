@@ -18,22 +18,22 @@ importers:
   apps/extension-chrome:
     dependencies:
       '@promptlint/contextual-intelligence':
-        specifier: file:../../packages/contextual-intelligence
-        version: file:packages/contextual-intelligence
+        specifier: workspace:*
+        version: link:../../packages/contextual-intelligence
       '@promptlint/llm-service':
-        specifier: file:../../packages/llm-service
+        specifier: workspace:*
         version: link:../../packages/llm-service
       '@promptlint/rules-engine':
-        specifier: file:../../packages/rules-engine
+        specifier: workspace:*
         version: link:../../packages/rules-engine
       '@promptlint/shared-types':
-        specifier: file:../../packages/shared-types
+        specifier: workspace:*
         version: link:../../packages/shared-types
       '@promptlint/site-adapters':
-        specifier: file:../../packages/site-adapters
+        specifier: workspace:*
         version: link:../../packages/site-adapters
       '@promptlint/template-engine':
-        specifier: file:../../packages/template-engine
+        specifier: workspace:*
         version: link:../../packages/template-engine
     devDependencies:
       '@types/chrome':
@@ -142,6 +142,54 @@ importers:
       vitest:
         specifier: ^1.0.0
         version: 1.6.1(@types/node@20.19.13)(@vitest/ui@1.6.1)(jsdom@23.2.0)
+
+  packages/level5-memory:
+    dependencies:
+      '@promptlint/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.2
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.20(@types/node@24.3.1)
+
+  packages/level5-orchestration:
+    dependencies:
+      '@promptlint/level5-memory':
+        specifier: workspace:*
+        version: link:../level5-memory
+      '@promptlint/level5-predictive':
+        specifier: workspace:*
+        version: link:../level5-predictive
+      '@promptlint/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      typescript:
+        specifier: ^5.2.2
+        version: 5.9.2
+      vite:
+        specifier: ^5.0.8
+        version: 5.4.20(@types/node@24.3.1)
+
+  packages/level5-predictive:
+    dependencies:
+      '@promptlint/level5-memory':
+        specifier: workspace:*
+        version: link:../level5-memory
+      '@promptlint/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.2
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.20(@types/node@24.3.1)
 
   packages/llm-service:
     dependencies:
@@ -866,9 +914,6 @@ packages:
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
-
-  '@promptlint/contextual-intelligence@file:packages/contextual-intelligence':
-    resolution: {directory: packages/contextual-intelligence, type: directory}
 
   '@rollup/pluginutils@5.3.0':
     resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
@@ -2874,12 +2919,6 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@promptlint/contextual-intelligence@file:packages/contextual-intelligence':
-    dependencies:
-      '@promptlint/adaptive-engine': link:packages/adaptive-engine
-      '@promptlint/shared-types': link:packages/shared-types
-      '@promptlint/template-engine': link:packages/template-engine
-
   '@rollup/pluginutils@5.3.0(rollup@4.50.1)':
     dependencies:
       '@types/estree': 1.0.8
@@ -4387,12 +4426,13 @@ snapshots:
       mlly: 1.8.0
       pathe: 1.1.2
       picocolors: 1.1.1
-      vite: 4.5.14(@types/node@20.19.13)
+      vite: 5.4.20(@types/node@20.19.13)
     transitivePeerDependencies:
       - '@types/node'
       - less
       - lightningcss
       - sass
+      - sass-embedded
       - stylus
       - sugarss
       - supports-color
@@ -4510,6 +4550,7 @@ snapshots:
       - less
       - lightningcss
       - sass
+      - sass-embedded
       - stylus
       - sugarss
       - supports-color

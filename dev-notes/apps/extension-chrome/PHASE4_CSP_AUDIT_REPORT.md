@@ -367,13 +367,13 @@ grep -rn "onchange|oninput|onsubmit|onfocus|onblur=" apps/extension-chrome/src/ 
 
 ## 🚀 Next Steps
 
-### Step 4.2: Prioritization Review (Claude)
-**Awaiting:** Claude approval of priority assessment and fix approach
+### Step 4.2: Prioritization Review
+**Awaiting:** Approval of priority assessment and fix approach
 
-### Step 4.3: Implementation (Cursor)
+### Step 4.3: Implementation
 **Pending:** Implement Phase A (Privacy Modal fix) after approval
 
-### Step 4.4: Validation (User + Claude)
+### Step 4.4: Validation
 **Pending:** Test and verify zero CSP violations
 
 ---

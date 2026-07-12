@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/level5-predictive",
-  "version": "0.8.0.0",
+  "version": "0.8.0",
   "description": "Level 5 Predictive Intent Engine - Anticipates user needs based on workflow patterns",
   "type": "module",
   "main": "dist/index.js",

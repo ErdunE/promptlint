@@ -495,7 +495,7 @@ async provideMultipleGhostTextSuggestions(
 
 ---
 
-## 🎯 Technical Lead Assessment
+## 🎯 Technical Assessment
 
 **Why defer to v0.9.0?**
 1. **Foundation First:** v0.8.1 must stabilize core features (memory, transparency)

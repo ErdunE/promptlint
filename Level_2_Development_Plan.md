@@ -214,7 +214,7 @@ Coverage: All prompt types handled appropriately
 
 ---
 
-## 5. Cursor Execution Interface
+## 5. Implementation Directive Structure
 
 ### Phase-by-Phase Directive Structure
 

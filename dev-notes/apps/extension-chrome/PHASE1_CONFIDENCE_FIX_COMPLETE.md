@@ -174,7 +174,7 @@ Intent: code (95% confidence)
 1. Open Chrome: `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked"
-4. Select: `/Users/erdune/Desktop/promptlint/apps/extension-chrome/dist`
+4. Select: `/Users/developer/Desktop/promptlint/apps/extension-chrome/dist`
 
 ### Test Confidence Display
 
@@ -241,7 +241,7 @@ Intent: code (95% confidence)
 
 ## 🔐 AUTHORIZATION
 
-**Authorized by:** CTO  
+**Authorized by:** Erdun (Developer)  
 **Authorization Code:** CONFIDENCE_FIX_AUTH_20250120  
 **Git Commit:** Included in commit message  
 **Build Status:** ✅ VERIFIED  

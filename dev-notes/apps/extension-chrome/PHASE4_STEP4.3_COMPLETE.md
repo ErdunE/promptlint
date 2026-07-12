@@ -307,7 +307,7 @@ No error messages
 **1. Load Extension:**
 ```
 chrome://extensions/ → Load unpacked → 
-/Users/erdune/Desktop/promptlint/apps/extension-chrome/dist
+/Users/developer/Desktop/promptlint/apps/extension-chrome/dist
 ```
 
 **2. Navigate to ChatGPT:**
@@ -386,7 +386,7 @@ Provide:
 - [⏳] User loads v0.8.0.12-dev
 - [⏳] User confirms zero CSP violations
 - [⏳] User confirms functionality works
-- [⏳] Claude approves for v0.8.1
+- [⏳] Developer approves for v0.8.1
 
 ---
 

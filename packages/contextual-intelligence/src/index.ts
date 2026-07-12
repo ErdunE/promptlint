@@ -32,17 +32,23 @@ import { IntentAnalysisEngine } from './intent-analysis/IntentAnalysisEngine.js'
 import { DefaultContextBridge } from './shared/ContextBridge.js';
 
 // === Shared Types Exports ===
-export { 
+export type {
   // Core contextual types (selective export to avoid conflicts)
-  Constraint, ProjectPhase,
-  ExpertiseLevel, ProjectComplexity, TechnicalStack
+  Constraint, TechnicalStack
+} from './shared/ContextualTypes.js';
+
+export {
+  ProjectPhase, ExpertiseLevel, ProjectComplexity
 } from './shared/ContextualTypes.js';
 
 export { ConstraintType } from './shared/IntentTypes.js';
 
-export { 
+export type {
   // Intent analysis types
-  IntentAnalysis, InstructionIntent, InteractionIntent,
+  IntentAnalysis, InstructionIntent, InteractionIntent
+} from './shared/IntentTypes.js';
+
+export {
   IntentCategory, ActionType, OutputFormat, IntentComplexity
 } from './shared/IntentTypes.js';
 

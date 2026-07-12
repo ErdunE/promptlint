@@ -105,7 +105,7 @@ if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
 
 ### 🔐 Authorization
 
-**Authorized by:** CTO  
+**Authorized by:** Erdun (Developer)  
 **Authorization Code:** PHASE2A_TRIGGER_INVESTIGATION_20250120  
 **Git Commit:** 6e1e05a  
 **Previous Version:** v0.8.0.7

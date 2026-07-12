@@ -316,7 +316,7 @@ try {
 1. Open Chrome: `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked"
-4. Select: `/Users/erdune/Desktop/promptlint/apps/extension-chrome/dist`
+4. Select: `/Users/developer/Desktop/promptlint/apps/extension-chrome/dist`
 
 ### Step 2: Test Verification
 1. Open `TEST_LEVEL5_FIXES.html` in browser
@@ -359,7 +359,7 @@ Open DevTools Console and verify:
 
 ## 🎯 NEXT ACTIONS FOR USER
 
-1. **Open test file:** `open /Users/erdune/Desktop/promptlint/apps/extension-chrome/TEST_LEVEL5_FIXES.html`
+1. **Open test file:** `open /Users/developer/Desktop/promptlint/apps/extension-chrome/TEST_LEVEL5_FIXES.html`
 2. **Verify all tests pass** (should see 4x ✅ PASS)
 3. **Load extension:** `chrome://extensions/` → Load unpacked → select `dist/` folder
 4. **Test on ChatGPT:** Type prompt, check console (F12) for errors

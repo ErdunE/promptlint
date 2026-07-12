@@ -569,7 +569,7 @@ Level 4 architecture designed with extensibility for future Level 5 capabilities
 
 **Development Methodology:**
 - Incremental development with validation at each phase
-- Cursor AI-assisted implementation with Technical Lead oversight
+- AI-assisted implementation under the developer's design and oversight
 - Comprehensive testing and validation throughout development
 - User feedback integration during development process
 

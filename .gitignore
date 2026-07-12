@@ -137,3 +137,6 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# 软著申报私人材料，不推送公开仓库
+copyright-submission/

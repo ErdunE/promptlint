@@ -1,6 +1,6 @@
 {
   "name": "@promptlint/level5-orchestration",
-  "version": "0.8.0.0",
+  "version": "0.8.0",
   "description": "Level 5 Multi-Agent Orchestration for PromptLint",
   "type": "module",
   "main": "dist/index.js",

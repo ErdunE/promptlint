@@ -150,7 +150,7 @@ dist/content-script.js  460.40 kB │ gzip: 121.83 kB
 
 ### 1. Load Extension
 ```bash
-chrome://extensions/ → Load unpacked → /Users/erdune/Desktop/promptlint/apps/extension-chrome/dist
+chrome://extensions/ → Load unpacked → /Users/developer/Desktop/promptlint/apps/extension-chrome/dist
 ```
 
 ### 2. Navigate to ChatGPT
@@ -283,7 +283,7 @@ Look for ghost text appearing near input field (gray text overlay)
 
 ## 🔐 AUTHORIZATION
 
-**Authorized by:** CTO  
+**Authorized by:** Erdun (Developer)  
 **Authorization Code:** PHASE2A_TRIGGER_INVESTIGATION_20250120  
 **Git Commit:** Included in commit message  
 **Build Status:** ✅ VERIFIED  

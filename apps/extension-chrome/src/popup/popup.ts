@@ -527,7 +527,7 @@ class PromptLintPopup {
       
       const exportData = {
         exportedAt: new Date().toISOString(),
-        promptlintVersion: '0.6.0',
+        promptlintVersion: '0.8.1',
         userData: allData.promptlint_user_data || {},
         privacySettings: allData.promptlint_privacy_settings || {},
         totalSelections: allData.promptlint_user_data?.selections?.length || 0

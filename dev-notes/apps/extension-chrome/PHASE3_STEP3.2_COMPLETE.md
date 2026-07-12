@@ -367,7 +367,7 @@ IndexedDB
 1. Open Chrome → chrome://extensions/
 2. Enable "Developer mode"
 3. Click "Load unpacked"
-4. Select: /Users/erdune/Desktop/promptlint/apps/extension-chrome/dist
+4. Select: /Users/developer/Desktop/promptlint/apps/extension-chrome/dist
 5. Extension should load without errors
 ```
 
@@ -519,7 +519,7 @@ async storeInteraction(interaction: UserInteraction) {
 
 ## 🔐 Authorization
 
-**Authorized by:** CTO (Claude)  
+**Authorized by:** Erdun (Developer)  
 **Authorization Code:** PHASE3_STORAGE_IMPLEMENTATION_20250120  
 **Git Commit:** Pending  
 **Build Status:** ✅ VERIFIED  
